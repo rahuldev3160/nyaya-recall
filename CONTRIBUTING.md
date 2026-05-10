@@ -8,6 +8,13 @@ This project has two roles:
 
 ---
 
+## Documentation and decisions
+
+- **Chronicle (decisions):** [`docs/CHRONICLE.md`](docs/CHRONICLE.md) — significant “what/why” only; not every PR.
+- **Batched tracker:** [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md) — short Now/Next/Later; keep detailed tables here in `PROJECT.md`.
+- **Sync helper (cheap):** from repo root, `python3 scripts/sync_tracker.py` prints `git log` / `git diff --stat` since `docs/tracker_state.json` last anchor. After updating docs, run `python3 scripts/sync_tracker.py --write-state` to save the new anchor.
+- **Agent charters (Claude / Cursor):** [`docs/agents/`](docs/agents/) — planning vs implementation vs read-only audit; reduces conflicting edits across sessions.
+
 ## How issues work
 
 Rahul files issues during actual study sessions — these are real bugs and real friction points, not hypothetical ones. Every issue has a screenshot and a description of what was expected vs what happened.

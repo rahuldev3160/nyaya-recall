@@ -3,6 +3,8 @@
 > This file is the source of truth for everything in progress, planned, and shipped.
 > Each feature gets its own sub-plan in `plans/`. Merge means: code shipped + plan archived.
 
+**Decisions + batched tracker:** see [`docs/CHRONICLE.md`](docs/CHRONICLE.md), [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md), and `python3 scripts/sync_tracker.py` (git-delta summaries). Agent roles: [`docs/agents/`](docs/agents/).
+
 ---
 
 ## Live Status

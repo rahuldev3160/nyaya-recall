@@ -1,0 +1,7 @@
+{
+  "interval_mode": "manual",
+  "last_sync_at": null,
+  "last_sync_git_sha": null,
+  "last_chronicle_headline": null,
+  "usage": "After each sync, set last_sync_at (ISO-8601) and last_sync_git_sha to current HEAD. interval_mode: manual | session_end | daily | weekly — informational only for humans."
+}
