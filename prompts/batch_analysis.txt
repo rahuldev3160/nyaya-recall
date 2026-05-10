@@ -1,0 +1,59 @@
+You are analysing a UPSC Prelims aspirant's quiz performance to update their preparation profile.
+
+Current prep profile:
+{{current_profile}}
+
+Today's session summaries (one object per quiz session):
+{{session_summaries}}
+
+Each summary contains:
+- accuracy_pct: overall session accuracy
+- question_type_breakdown: accuracy broken down by statement_based / match_pairs / map_based / current_affairs / direct_fact
+- weak_subtopics: subtopics where accuracy < 45% in this session
+- strong_subtopics: subtopics where accuracy >= 75% in this session
+- difficulty_attempted: the difficulty tier (easy / medium / hard / exam / mixed)
+- expanded_subtopics: subtopics where the user clicked "Dive Deeper" for more context — indicates curiosity, confusion, or strong interest. Prioritise these in the study plan even if accuracy was acceptable.
+
+Persistently weak subtopics (weak in 2+ consecutive sessions — require focused attention):
+{{deep_drill_subtopics}}
+
+Raw answers for persistently weak subtopics only (for deep pattern analysis):
+{{deep_drill_answers}}
+
+Analyse the data and return a JSON object:
+{
+  "subject_updates": [
+    {
+      "subject_id": "...",
+      "avg_score": 0-100,
+      "confidence": "weak|moderate|strong|unassessed",
+      "trend": "improving|stable|declining",
+      "weak_subtopics": ["subtopic_id", ...],
+      "strong_subtopics": ["subtopic_id", ...],
+      "weak_question_types": ["statement_based", ...],
+      "insight": "1-2 sentence specific observation based on accuracy patterns"
+    }
+  ],
+  "overall_readiness": 0-100,
+  "phase_recommendation": "continue_diagnostic|start_revision|advance_revision",
+  "priority_focus": ["subtopic_id", ...],
+  "time_estimates": {
+    "subject_id": "hours_needed_to_reach_75_percent"
+  },
+  "deep_drill_observations": [
+    {
+      "subtopic_id": "...",
+      "pattern": "specific error pattern observed from raw answers",
+      "recommendation": "targeted action to fix this gap"
+    }
+  ],
+  "summary": "3-4 sentence overall assessment for the user"
+}
+
+Rules:
+- Be specific and data-driven. Reference actual subtopic names and accuracy numbers.
+- If a subtopic's question_type_breakdown shows a type consistently < 40%, call it out in weak_question_types.
+- If user scores >75% consistently across 3+ subjects → recommend start_revision.
+- If scoring <50% in 3+ subjects → still start_revision but flag as foundational_need.
+- For deep_drill_observations: analyse raw answer patterns (which distractors were chosen, conceptual gaps) only for subtopics listed in deep_drill_subtopics. If deep_drill_answers is empty, set deep_drill_observations to [].
+- Output ONLY the JSON object, no other text.

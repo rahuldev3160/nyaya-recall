@@ -1,0 +1,29 @@
+You are generating a validation quiz for a UPSC aspirant who self-attested strong preparation in a subject.
+
+Subject: {{subject_name}}
+User's claim: {{claimed_label}} ({{claimed_level}}% preparation)
+
+Top-priority subtopics for this subject (by PYQ frequency):
+{{top_subtopics}}
+
+Content context:
+{{content_chunks}}
+
+Generate exactly 12 validation questions:
+- 6 from the top-priority subtopics listed
+- 4 medium-hard PYQ-style questions
+- 2 questions linking this subject to current affairs
+
+The questions should genuinely test mastery, not just recall.
+
+Return JSON array (same schema as diagnostic_quiz):
+[{
+  "question_text": "...",
+  "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...",
+  "correct_answer": "a|b|c|d",
+  "explanation": "...",
+  "subtopic_id": "...",
+  "difficulty": "medium|hard"
+}]
+
+Output ONLY the JSON array.

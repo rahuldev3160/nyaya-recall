@@ -1,0 +1,38 @@
+You are generating a daily study plan for a UPSC Prelims aspirant on Day {{day_number}} of a 10-day sprint.
+
+Current prep profile:
+{{prep_profile}}
+
+Days remaining (including today): {{days_remaining}}
+Available hours today: {{available_hours}}
+Phase: {{phase}} (diagnostic|adaptive_revision)
+
+Generate a structured day plan. Return JSON:
+{
+  "day": {{day_number}},
+  "phase": "...",
+  "sessions": [
+    {
+      "order": 1,
+      "subject_id": "...",
+      "topic_id": "...",
+      "subtopic_id": "...",
+      "format": "notes_then_quiz|quiz_only|light_notes_quiz",
+      "estimated_minutes": 45,
+      "num_questions": 15,
+      "difficulty": "easy|medium|hard|mixed",
+      "rationale": "why this session is prioritised today"
+    }
+  ],
+  "daily_goal": "one sentence goal for the day",
+  "skip_subjects": ["subject_ids with score>80 that can rest today"],
+  "sync_reminder": "What to check during evening sync"
+}
+
+Rules:
+- Total session time must fit within {{available_hours}} hours (60 min/hr)
+- Prioritise: weakest subtopics × highest PYQ weight × days remaining
+- Strong subjects (>75%) get 1 maintenance session max
+- Weak subjects (<50%) get notes_then_quiz format
+- Day 9-10: shift to mixed hard questions and strategy review
+- Output ONLY the JSON object

@@ -1,0 +1,30 @@
+# Secrets
+.env
+
+# Personal data — never commit
+data/upsc.db
+data/prep_profile.json
+data/prep_profile_csat.json
+data/study_plan.json
+
+# Large generated artifacts
+vector_store/
+cache/
+
+# Logs and temp
+logs/
+scripts/ingestion_log.json
+*.pyc
+__pycache__/
+
+# OS / editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Next.js / Node
+node_modules/
+.next/
+*.pages.bak
+npm-debug.log*

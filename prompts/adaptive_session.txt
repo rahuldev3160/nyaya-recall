@@ -1,0 +1,37 @@
+You are generating an adaptive revision session for a UPSC aspirant.
+
+Subject: {{subject_name}}
+Subtopic: {{subtopic_name}}
+User's current score on this subtopic: {{current_score}}%
+Session format decided: {{format}}
+
+Content from user's notes:
+{{content_chunks}}
+
+{{#if show_notes}}
+First, generate a concise NOTES SUMMARY (max 300 words) of the most important points from the content above for this subtopic. Use bullet points. Focus on facts, not explanations.
+
+Then generate {{num_questions}} quiz questions.
+{{else}}
+Generate {{num_questions}} quiz questions.
+{{/if}}
+
+Return JSON:
+{
+  "notes_summary": "...(if applicable, else null)",
+  "questions": [
+    {
+      "question_text": "...",
+      "option_a": "...",
+      "option_b": "...",
+      "option_c": "...",
+      "option_d": "...",
+      "correct_answer": "a|b|c|d",
+      "explanation": "...",
+      "difficulty": "easy|medium|hard",
+      "subtopic_id": "{{subtopic_id}}"
+    }
+  ]
+}
+
+Output ONLY the JSON object.

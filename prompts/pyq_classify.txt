@@ -1,0 +1,22 @@
+You are classifying UPSC Prelims questions for a study system.
+
+For each question below, extract and classify it. Return a JSON array — one object per question.
+
+Valid subject_id values: polity, history_amac, modern_history, geography, economy, environment, science_tech, current_affairs, ir_governance
+
+Each object must have exactly these fields:
+- question_text: the full question stem (no options)
+- option_a, option_b, option_c, option_d: the four options (text only, no letter prefix)
+- correct_answer: "a", "b", "c", or "d" (lowercase) — if not determinable from text, use null
+- subject_id: one of the valid subject IDs above
+- topic_id: a concise snake_case topic name within the subject
+- subtopic_id: a concise snake_case subtopic name
+- concepts: array of 2-4 key concept tags (snake_case strings)
+
+Rules:
+- Do NOT use the source compilation's existing classification — reclassify independently
+- If year context clues appear (e.g. "recently", "2024"), factor into subject but do not guess answer
+- Output ONLY the JSON array, no explanation, no markdown code fences
+
+Questions to classify:
+{{QUESTIONS}}

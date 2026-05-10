@@ -1,0 +1,628 @@
+{
+  "version": "1.0",
+  "exam": "UPSC Civil Services Prelims GS Paper 1",
+  "subjects": [
+    {
+      "id": "polity",
+      "name": "Polity & Governance",
+      "folder": "Polity",
+      "avg_questions_per_year": 18,
+      "topics": [
+        {
+          "id": "constitutional_framework",
+          "name": "Constitutional Framework",
+          "subtopics": [
+            {"id": "making_constitution", "name": "Making of Constitution & Historical Background"},
+            {"id": "preamble", "name": "Preamble"},
+            {"id": "union_territories", "name": "Union & its Territories"},
+            {"id": "citizenship", "name": "Citizenship"},
+            {"id": "constitutional_amendments", "name": "Constitutional Amendments"}
+          ]
+        },
+        {
+          "id": "fundamental_rights",
+          "name": "Fundamental Rights & DPSP",
+          "subtopics": [
+            {"id": "right_to_equality", "name": "Right to Equality (Articles 14-18)"},
+            {"id": "right_to_freedom", "name": "Right to Freedom (Articles 19-22)"},
+            {"id": "right_against_exploitation", "name": "Right against Exploitation"},
+            {"id": "right_to_religion", "name": "Right to Freedom of Religion"},
+            {"id": "cultural_educational_rights", "name": "Cultural & Educational Rights"},
+            {"id": "right_to_constitutional_remedies", "name": "Right to Constitutional Remedies (Art 32)"},
+            {"id": "dpsp", "name": "Directive Principles of State Policy (Articles 36-51)"},
+            {"id": "fundamental_duties", "name": "Fundamental Duties (Article 51A)"}
+          ]
+        },
+        {
+          "id": "union_executive",
+          "name": "Union Executive",
+          "subtopics": [
+            {"id": "president", "name": "President of India"},
+            {"id": "vice_president", "name": "Vice President"},
+            {"id": "prime_minister_cabinet", "name": "Prime Minister & Council of Ministers"},
+            {"id": "attorney_general", "name": "Attorney General of India"}
+          ]
+        },
+        {
+          "id": "parliament",
+          "name": "Parliament",
+          "subtopics": [
+            {"id": "rajya_sabha", "name": "Rajya Sabha — Composition & Powers"},
+            {"id": "lok_sabha", "name": "Lok Sabha — Composition & Powers"},
+            {"id": "parliamentary_procedures", "name": "Parliamentary Procedures & Sessions"},
+            {"id": "bills_legislation", "name": "Bills & Types of Legislation"},
+            {"id": "parliamentary_committees", "name": "Parliamentary Committees"},
+            {"id": "budget_process", "name": "Budget Process & Financial Bills"}
+          ]
+        },
+        {
+          "id": "judiciary",
+          "name": "Judiciary",
+          "subtopics": [
+            {"id": "supreme_court", "name": "Supreme Court — Jurisdiction & Powers"},
+            {"id": "high_courts", "name": "High Courts"},
+            {"id": "judicial_review", "name": "Judicial Review, PIL & Writs"},
+            {"id": "tribunals", "name": "Tribunals & Alternative Dispute Resolution"}
+          ]
+        },
+        {
+          "id": "federalism",
+          "name": "Federalism & Centre-State Relations",
+          "subtopics": [
+            {"id": "distribution_powers", "name": "Distribution of Powers (Schedule 7)"},
+            {"id": "interstate_relations", "name": "Inter-State Relations & River Disputes"},
+            {"id": "emergency_provisions", "name": "Emergency Provisions (Art 352, 356, 360)"},
+            {"id": "special_provisions_states", "name": "Special Provisions for States (Art 370, 371)"}
+          ]
+        },
+        {
+          "id": "local_governance",
+          "name": "Local Governance",
+          "subtopics": [
+            {"id": "panchayati_raj", "name": "Panchayati Raj (73rd Amendment)"},
+            {"id": "urban_local_bodies", "name": "Urban Local Bodies (74th Amendment)"},
+            {"id": "fifth_sixth_schedules", "name": "5th & 6th Schedules — Tribal Areas"}
+          ]
+        },
+        {
+          "id": "constitutional_bodies",
+          "name": "Constitutional & Statutory Bodies",
+          "subtopics": [
+            {"id": "election_commission", "name": "Election Commission of India"},
+            {"id": "cag", "name": "Comptroller & Auditor General"},
+            {"id": "upsc_spsc", "name": "UPSC & State Public Service Commissions"},
+            {"id": "finance_commission", "name": "Finance Commission"},
+            {"id": "national_commissions", "name": "National Commissions (SC/ST/Women/Minorities/BC)"},
+            {"id": "statutory_bodies", "name": "Statutory Bodies (CVC, CIC, Lokpal, NGT)"}
+          ]
+        },
+        {
+          "id": "schedules",
+          "name": "Schedules of the Constitution",
+          "subtopics": [
+            {"id": "schedules_overview", "name": "All 12 Schedules — Purpose & Content"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "history_amac",
+      "name": "Ancient, Medieval, Art & Culture",
+      "folder": "Ancient, Medieval, Art & Culture",
+      "avg_questions_per_year": 12,
+      "topics": [
+        {
+          "id": "indus_valley",
+          "name": "Indus Valley Civilisation",
+          "subtopics": [
+            {"id": "ivc_sites_features", "name": "Sites, Excavations & Key Features"},
+            {"id": "ivc_economy_society", "name": "Economy, Trade & Social Structure"}
+          ]
+        },
+        {
+          "id": "vedic_age",
+          "name": "Vedic Age",
+          "subtopics": [
+            {"id": "early_later_vedic", "name": "Early & Later Vedic Period"},
+            {"id": "vedic_literature", "name": "Vedic Literature (Vedas, Upanishads, Puranas)"}
+          ]
+        },
+        {
+          "id": "religion_philosophy",
+          "name": "Religion & Philosophy",
+          "subtopics": [
+            {"id": "buddhism", "name": "Buddhism — Sects, Councils & Spread"},
+            {"id": "jainism", "name": "Jainism — Tirthankaras & Sects"},
+            {"id": "bhakti_sufi", "name": "Bhakti & Sufi Movements"},
+            {"id": "six_schools", "name": "Six Schools of Hindu Philosophy"}
+          ]
+        },
+        {
+          "id": "ancient_dynasties",
+          "name": "Ancient Dynasties & Empires",
+          "subtopics": [
+            {"id": "mauryan", "name": "Mauryan Empire — Chandragupta, Ashoka, Administration"},
+            {"id": "post_mauryan", "name": "Post-Mauryan (Sungas, Kushanas, Satavahanas)"},
+            {"id": "gupta_empire", "name": "Gupta Empire — Golden Age of India"},
+            {"id": "sangam_south_india", "name": "Sangam Age & South Indian Kingdoms"},
+            {"id": "harsha_vardhana", "name": "Harsha & Vardhana Dynasty"}
+          ]
+        },
+        {
+          "id": "medieval_period",
+          "name": "Medieval India",
+          "subtopics": [
+            {"id": "delhi_sultanate", "name": "Delhi Sultanate (Slave, Khilji, Tughlaq, Lodi)"},
+            {"id": "vijayanagara_bahmani", "name": "Vijayanagara & Bahmani Kingdoms"},
+            {"id": "mughal_empire", "name": "Mughal Empire — Babur to Aurangzeb"},
+            {"id": "regional_kingdoms", "name": "Marathas, Rajputs, Sikhs & Regional Powers"},
+            {"id": "medieval_economy_admin", "name": "Medieval Economy, Trade & Administration"}
+          ]
+        },
+        {
+          "id": "art_architecture",
+          "name": "Art & Architecture",
+          "subtopics": [
+            {"id": "rock_cut_cave", "name": "Rock-cut & Cave Architecture (Ajanta, Ellora, Elephanta)"},
+            {"id": "temple_architecture", "name": "Temple Styles — Nagara, Dravida, Vesara"},
+            {"id": "mughal_indo_islamic", "name": "Mughal & Indo-Islamic Architecture"},
+            {"id": "sculpture_painting", "name": "Sculpture & Painting Traditions"},
+            {"id": "stupas_pillars", "name": "Buddhist Stupas, Pillars & Monasteries"}
+          ]
+        },
+        {
+          "id": "performing_arts",
+          "name": "Performing Arts",
+          "subtopics": [
+            {"id": "classical_dance_forms", "name": "8 Classical Dance Forms"},
+            {"id": "classical_music", "name": "Hindustani & Carnatic Music"},
+            {"id": "folk_arts_crafts", "name": "Folk Arts, Crafts & Regional Traditions"}
+          ]
+        },
+        {
+          "id": "handicrafts_gi",
+          "name": "Handicrafts, Textiles & GI Tags",
+          "subtopics": [
+            {"id": "gi_tagged_products", "name": "GI Tagged Crafts & Products"},
+            {"id": "textile_traditions", "name": "Textile & Weaving Traditions"},
+            {"id": "pottery_metalwork", "name": "Pottery, Metalwork & Tribal Crafts"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "modern_history",
+      "name": "Modern History & Freedom Struggle",
+      "folder": "Modern History",
+      "avg_questions_per_year": 8,
+      "topics": [
+        {
+          "id": "advent_europeans",
+          "name": "Advent of Europeans & British Expansion",
+          "subtopics": [
+            {"id": "european_companies", "name": "European Trading Companies in India"},
+            {"id": "british_expansion_battles", "name": "British Expansion — Battles & Treaties"},
+            {"id": "subsidiary_lapse", "name": "Subsidiary Alliance & Doctrine of Lapse"},
+            {"id": "economic_impact_british", "name": "Economic Impact of British Rule"}
+          ]
+        },
+        {
+          "id": "revolt_1857",
+          "name": "Revolt of 1857 & Social Reforms",
+          "subtopics": [
+            {"id": "revolt_1857_causes", "name": "Revolt of 1857 — Causes, Centres & Aftermath"},
+            {"id": "social_religious_reforms", "name": "Social & Religious Reform Movements"},
+            {"id": "reform_leaders", "name": "Raja Ram Mohan Roy, Dayananda, Vivekananda & Others"}
+          ]
+        },
+        {
+          "id": "freedom_struggle",
+          "name": "Indian Freedom Struggle",
+          "subtopics": [
+            {"id": "inc_formation_phases", "name": "INC — Formation, Moderates & Extremists"},
+            {"id": "partition_bengal_swadeshi", "name": "Partition of Bengal & Swadeshi Movement"},
+            {"id": "gandhi_mass_movements", "name": "Gandhi & Mass Movements (NCM, CDM, QIM)"},
+            {"id": "civil_disobedience_salt", "name": "Civil Disobedience & Salt Satyagraha"},
+            {"id": "revolutionary_movements", "name": "Revolutionary Movements (Bhagat Singh, INA, Bose)"},
+            {"id": "constitutional_reforms", "name": "Constitutional Reforms (Morley-Minto to GOI 1935)"},
+            {"id": "independence_partition", "name": "Independence & Partition 1947"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "geography",
+      "name": "Geography",
+      "folder": "Geography",
+      "avg_questions_per_year": 12,
+      "topics": [
+        {
+          "id": "physical_geography",
+          "name": "Physical Geography",
+          "subtopics": [
+            {"id": "geomorphology", "name": "Geomorphology — Rocks, Landforms, Erosion"},
+            {"id": "climatology", "name": "Climatology — Atmosphere, Pressure Belts, Winds"},
+            {"id": "ocean_currents", "name": "Oceanography & Ocean Currents"},
+            {"id": "monsoon_el_nino", "name": "Indian Monsoon, El Niño, La Niña & IOD"},
+            {"id": "earthquakes_volcanoes", "name": "Earthquakes, Volcanoes & Plate Tectonics"}
+          ]
+        },
+        {
+          "id": "indian_geography",
+          "name": "Indian Physical Geography",
+          "subtopics": [
+            {"id": "himalayan_plains", "name": "Himalayan Ranges & Northern Plains"},
+            {"id": "peninsular_plateau", "name": "Peninsular Plateau & Deccan Traps"},
+            {"id": "coastal_islands", "name": "Coastal Plains & Islands"},
+            {"id": "rivers_india", "name": "Rivers of India — Himalayan & Peninsular"},
+            {"id": "lakes_wetlands", "name": "Lakes, Wetlands & Ramsar Sites"},
+            {"id": "soils_india", "name": "Soils of India — Types & Distribution"},
+            {"id": "natural_vegetation", "name": "Natural Vegetation & Forest Types"}
+          ]
+        },
+        {
+          "id": "economic_geography",
+          "name": "Economic Geography",
+          "subtopics": [
+            {"id": "agriculture_crops", "name": "Agriculture & Crop Patterns"},
+            {"id": "minerals_distribution", "name": "Minerals & Their Geographic Distribution"},
+            {"id": "industries_location", "name": "Industries & Location Factors"},
+            {"id": "energy_resources", "name": "Energy Resources & Power Plants"}
+          ]
+        },
+        {
+          "id": "world_geography",
+          "name": "World Geography",
+          "subtopics": [
+            {"id": "continents_oceans", "name": "Continents, Oceans & Major Features"},
+            {"id": "world_climate_biomes", "name": "World Climate Zones & Biomes"},
+            {"id": "straits_channels", "name": "Important Straits, Channels & Chokepoints"},
+            {"id": "world_mountains_plateaus", "name": "Major Mountain Ranges & Plateaus"}
+          ]
+        },
+        {
+          "id": "mapping",
+          "name": "Mapping & Places in News",
+          "subtopics": [
+            {"id": "india_mapping_features", "name": "India — Dams, Rivers, Peaks, National Parks"},
+            {"id": "world_mapping_news", "name": "World — Conflict Zones & Border Disputes"},
+            {"id": "protected_areas_map", "name": "Protected Areas — NPs, WLSes, Biosphere Reserves"},
+            {"id": "places_in_news_current", "name": "Places in News (2025-26)"},
+            {"id": "military_exercises_locations", "name": "Military Exercises & Their Locations"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "economy",
+      "name": "Economy",
+      "folder": "Economy",
+      "avg_questions_per_year": 13,
+      "topics": [
+        {
+          "id": "macro_basics",
+          "name": "Macroeconomic Basics",
+          "subtopics": [
+            {"id": "gdp_national_income", "name": "GDP, GNP, NNP & National Income Concepts"},
+            {"id": "inflation_indices", "name": "Inflation, Deflation, WPI & CPI"},
+            {"id": "fiscal_policy_budget", "name": "Fiscal Policy, Deficits & Union Budget Concepts"},
+            {"id": "monetary_policy_rbi", "name": "Monetary Policy & RBI Tools (CRR, SLR, Repo)"}
+          ]
+        },
+        {
+          "id": "banking_finance",
+          "name": "Banking & Financial System",
+          "subtopics": [
+            {"id": "rbi_functions", "name": "RBI — Functions, Monetary Tools & Regulation"},
+            {"id": "banking_types_nbfc", "name": "Types of Banks, NBFCs & Financial Institutions"},
+            {"id": "financial_markets", "name": "Money Market, Capital Market & Debt Market"},
+            {"id": "digital_payments_fintech", "name": "UPI, CBDC & Digital Payment Ecosystem"}
+          ]
+        },
+        {
+          "id": "budget_taxes",
+          "name": "Union Budget & Taxation",
+          "subtopics": [
+            {"id": "budget_2026_highlights", "name": "Union Budget 2026-27 Key Highlights"},
+            {"id": "budget_2025_highlights", "name": "Union Budget 2025-26 Key Highlights"},
+            {"id": "gst_structure", "name": "GST — Structure, GST Council & Slabs"},
+            {"id": "direct_indirect_taxes", "name": "Direct & Indirect Tax Concepts"}
+          ]
+        },
+        {
+          "id": "agriculture_rural",
+          "name": "Agriculture & Rural Economy",
+          "subtopics": [
+            {"id": "msp_food_security", "name": "MSP, Procurement & Food Security (NFSA)"},
+            {"id": "agriculture_schemes", "name": "Agricultural Schemes & Reforms"},
+            {"id": "agriculture_revolutions", "name": "Green Revolution & Other Revolutions"}
+          ]
+        },
+        {
+          "id": "international_trade",
+          "name": "International Trade & Organisations",
+          "subtopics": [
+            {"id": "wto_agreements", "name": "WTO — Agreements, Rounds & Current Issues"},
+            {"id": "india_ftas", "name": "India's Trade Policy, FTAs & Trade Blocs"},
+            {"id": "imf_worldbank", "name": "IMF, World Bank & Multilateral Finance"},
+            {"id": "bop_exchange_rate", "name": "Balance of Payments & Exchange Rate"}
+          ]
+        },
+        {
+          "id": "economic_survey",
+          "name": "Economic Survey & Indicators",
+          "subtopics": [
+            {"id": "eco_survey_2025_26", "name": "Economic Survey 2025-26 Key Themes & Data"},
+            {"id": "eco_survey_2024_25", "name": "Economic Survey 2024-25 Key Themes & Data"},
+            {"id": "india_rankings_reports", "name": "India in Global Rankings & Economic Reports"}
+          ]
+        },
+        {
+          "id": "poverty_development",
+          "name": "Poverty, Inequality & Human Development",
+          "subtopics": [
+            {"id": "poverty_measurement_lines", "name": "Poverty Measurement, Lines & MPI"},
+            {"id": "social_sector_schemes", "name": "Social Sector Schemes (MGNREGA, PM-Kisan, etc.)"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "environment",
+      "name": "Environment & Ecology",
+      "folder": "Environment",
+      "avg_questions_per_year": 13,
+      "topics": [
+        {
+          "id": "ecology_basics",
+          "name": "Ecology Fundamentals",
+          "subtopics": [
+            {"id": "ecosystems_types", "name": "Ecosystems — Types, Structure & Functions"},
+            {"id": "food_chains_energy", "name": "Food Chains, Food Webs & Energy Flow"},
+            {"id": "biogeochemical_cycles", "name": "Biogeochemical Cycles (C, N, P, S, Water)"},
+            {"id": "ecological_succession", "name": "Ecological Succession"}
+          ]
+        },
+        {
+          "id": "biodiversity",
+          "name": "Biodiversity",
+          "subtopics": [
+            {"id": "biodiversity_hotspots", "name": "Biodiversity Hotspots & Endemic Species"},
+            {"id": "threatened_species_iucn", "name": "Threatened Species & IUCN Red List Updates"},
+            {"id": "invasive_alien_species", "name": "Invasive Alien Species"},
+            {"id": "conservation_insitu_exsitu", "name": "In-situ & Ex-situ Conservation Methods"}
+          ]
+        },
+        {
+          "id": "protected_areas",
+          "name": "Protected Areas & Wildlife Programmes",
+          "subtopics": [
+            {"id": "national_parks_sanctuaries", "name": "National Parks, Wildlife Sanctuaries & Tiger Reserves"},
+            {"id": "biosphere_reserves", "name": "Biosphere Reserves (UNESCO MAB Programme)"},
+            {"id": "ramsar_wetlands", "name": "Ramsar Wetland Sites — India & World"},
+            {"id": "wildlife_projects", "name": "Project Tiger, Elephant, Crocodile, Dolphin, etc."}
+          ]
+        },
+        {
+          "id": "climate_change",
+          "name": "Climate Change & Pollution",
+          "subtopics": [
+            {"id": "greenhouse_global_warming", "name": "Greenhouse Gases & Global Warming Mechanisms"},
+            {"id": "climate_conventions_cop", "name": "UNFCCC, Paris Agreement & COP Updates (COP29/30)"},
+            {"id": "ozone_montreal", "name": "Ozone Depletion & Montreal Protocol"},
+            {"id": "pollution_types", "name": "Air, Water, Soil & Noise Pollution"},
+            {"id": "solid_waste_plastic", "name": "Solid Waste, Plastic & E-Waste Management"}
+          ]
+        },
+        {
+          "id": "env_laws_policies",
+          "name": "Environmental Laws & International Agreements",
+          "subtopics": [
+            {"id": "key_env_acts_india", "name": "Key Indian Acts (EPA, Forest, Wildlife, CRZ, POBA)"},
+            {"id": "international_env_agreements", "name": "CBD, CITES, Basel, Rotterdam, Minamata Conventions"},
+            {"id": "india_env_missions", "name": "India's Environmental Missions & Action Plans"}
+          ]
+        },
+        {
+          "id": "species_in_news",
+          "name": "Species in News",
+          "subtopics": [
+            {"id": "flora_fauna_news", "name": "Flora & Fauna Species in Recent News"},
+            {"id": "iucn_status_updates", "name": "IUCN Red List Status Changes"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "science_tech",
+      "name": "Science & Technology",
+      "folder": "Science and Tech",
+      "avg_questions_per_year": 9,
+      "topics": [
+        {
+          "id": "space_tech",
+          "name": "Space Technology",
+          "subtopics": [
+            {"id": "isro_missions_satellites", "name": "ISRO Missions, Satellites & Launch Vehicles"},
+            {"id": "international_space_missions", "name": "International Space Missions & Agencies"},
+            {"id": "space_applications", "name": "Space Applications — GPS, Remote Sensing, GIS"}
+          ]
+        },
+        {
+          "id": "defence_tech",
+          "name": "Defence Technology",
+          "subtopics": [
+            {"id": "missiles_drdo", "name": "Missiles, Weapons & DRDO Projects"},
+            {"id": "indigenisation_defence", "name": "Indigenisation, Make in India & Defence Exports"},
+            {"id": "nuclear_tech_treaties", "name": "Nuclear Technology & Non-Proliferation Treaties"}
+          ]
+        },
+        {
+          "id": "biotech",
+          "name": "Biotechnology & Life Sciences",
+          "subtopics": [
+            {"id": "genetic_engineering_gmo", "name": "Genetic Engineering, GMOs & CRISPR"},
+            {"id": "vaccines_drugs_diseases", "name": "Vaccines, New Drugs & Disease Management"},
+            {"id": "nanotech_applications", "name": "Nanotechnology Applications"}
+          ]
+        },
+        {
+          "id": "it_emerging_tech",
+          "name": "IT & Emerging Technologies",
+          "subtopics": [
+            {"id": "ai_ml_applications", "name": "AI, Machine Learning & Their Applications"},
+            {"id": "blockchain_web3", "name": "Blockchain, Web3 & Cryptocurrency"},
+            {"id": "cybersecurity_data", "name": "Cybersecurity, Data Protection & Privacy Laws"},
+            {"id": "5g_telecom_iot", "name": "5G, IoT, Cloud Computing & Digital Infrastructure"}
+          ]
+        },
+        {
+          "id": "basic_science",
+          "name": "Basic Science in Daily Life",
+          "subtopics": [
+            {"id": "physics_chemistry_basics", "name": "Physics & Chemistry Concepts in Everyday Life"},
+            {"id": "diseases_nutrition_health", "name": "Diseases, Nutrition & Public Health"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "current_affairs",
+      "name": "Current Affairs",
+      "folder": "Current Affairs",
+      "avg_questions_per_year": 18,
+      "topics": [
+        {
+          "id": "govt_schemes_programmes",
+          "name": "Government Schemes & Programmes",
+          "subtopics": [
+            {"id": "flagship_central_schemes", "name": "Central Flagship Schemes (PM-level initiatives)"},
+            {"id": "new_modified_schemes_2025_26", "name": "New/Modified Schemes in 2025-26"},
+            {"id": "social_health_welfare", "name": "Social Welfare, Health & Education Schemes"}
+          ]
+        },
+        {
+          "id": "awards_persons_news",
+          "name": "Awards, Persons & Important Days",
+          "subtopics": [
+            {"id": "bharat_ratna_padma_awards", "name": "Bharat Ratna, Padma & National Awards"},
+            {"id": "international_awards_nobel", "name": "International Awards (Nobel, Booker, Abel, etc.)"},
+            {"id": "important_days_themes", "name": "Important Days & Their 2025-26 Themes"}
+          ]
+        },
+        {
+          "id": "pib_govt_communications",
+          "name": "PIB & Government Communications",
+          "subtopics": [
+            {"id": "pib_2025_highlights", "name": "PIB Highlights 2025"},
+            {"id": "pib_2026_highlights", "name": "PIB Highlights 2026"}
+          ]
+        },
+        {
+          "id": "gi_tags_culture_news",
+          "name": "GI Tags, Art & Cultural News",
+          "subtopics": [
+            {"id": "new_gi_tags_2024_26", "name": "New GI Tags Granted (2024-26)"},
+            {"id": "art_products_news", "name": "Art Forms, Products & Cultural Heritage in News"}
+          ]
+        },
+        {
+          "id": "defence_military_news",
+          "name": "Defence & Military",
+          "subtopics": [
+            {"id": "defence_acquisitions_news", "name": "Defence Acquisitions, Inductions & Exercises"},
+            {"id": "military_exercises_india", "name": "Military Exercises — India & International"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ir_governance",
+      "name": "International Relations & Governance",
+      "folder": "International Relations & Governance",
+      "avg_questions_per_year": 7,
+      "topics": [
+        {
+          "id": "india_bilateral",
+          "name": "India's Bilateral Relations",
+          "subtopics": [
+            {"id": "india_neighbours_saarc", "name": "India & Neighbours (SAARC, BIMSTEC)"},
+            {"id": "india_major_powers", "name": "India-US, India-Russia, India-China Relations"},
+            {"id": "india_other_regions", "name": "India-Europe, India-Africa, Indo-Pacific"}
+          ]
+        },
+        {
+          "id": "international_orgs",
+          "name": "International Organisations",
+          "subtopics": [
+            {"id": "un_system_agencies", "name": "UN System & Specialised Agencies"},
+            {"id": "g20_g7_brics_sco", "name": "G20, G7, BRICS, SCO & Multilateral Forums"},
+            {"id": "regional_orgs_asean", "name": "ASEAN, EU, African Union & Regional Bodies"},
+            {"id": "trade_orgs_wto", "name": "WTO, RCEP & Trade Blocs"}
+          ]
+        },
+        {
+          "id": "global_issues_geopolitics",
+          "name": "Global Issues & Geopolitics",
+          "subtopics": [
+            {"id": "ongoing_conflicts", "name": "Ongoing Conflicts & Geopolitical Tensions"},
+            {"id": "nuclear_treaties_npt", "name": "Nuclear Treaties & Non-Proliferation"},
+            {"id": "terrorism_int_security", "name": "Terrorism & International Security"}
+          ]
+        },
+        {
+          "id": "governance_initiatives",
+          "name": "Governance Initiatives",
+          "subtopics": [
+            {"id": "india_governance_digital", "name": "India's e-Governance & Digital India Initiatives"},
+            {"id": "transparency_accountability", "name": "Transparency, RTI & Accountability Measures"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "csat",
+      "name": "CSAT (Paper 2)",
+      "folder": "CSAT",
+      "avg_questions_per_year": 80,
+      "separate_paper": true,
+      "topics": [
+        {
+          "id": "comprehension",
+          "name": "Comprehension",
+          "subtopics": [
+            {"id": "reading_comprehension", "name": "Reading Comprehension Passages"},
+            {"id": "precis_summary", "name": "Précis & Summary Identification"}
+          ]
+        },
+        {
+          "id": "logical_reasoning",
+          "name": "Logical Reasoning & Analytical Ability",
+          "subtopics": [
+            {"id": "syllogisms_deduction", "name": "Syllogisms & Logical Deduction"},
+            {"id": "series_analogies", "name": "Series, Patterns & Analogies"},
+            {"id": "coding_decoding", "name": "Coding-Decoding"},
+            {"id": "blood_relations_direction", "name": "Blood Relations & Direction Sense"}
+          ]
+        },
+        {
+          "id": "data_interpretation",
+          "name": "Data Interpretation",
+          "subtopics": [
+            {"id": "tables_graphs_charts", "name": "Tables, Bar Graphs, Line Charts & Pie Charts"},
+            {"id": "data_sufficiency", "name": "Data Sufficiency Problems"}
+          ]
+        },
+        {
+          "id": "basic_numeracy",
+          "name": "Basic Numeracy",
+          "subtopics": [
+            {"id": "arithmetic_percentages", "name": "Percentages, Ratios, Profit/Loss & Averages"},
+            {"id": "number_system", "name": "Number System, LCM & HCF"},
+            {"id": "time_work_speed", "name": "Time, Work, Speed & Distance"}
+          ]
+        }
+      ]
+    }
+  ]
+}

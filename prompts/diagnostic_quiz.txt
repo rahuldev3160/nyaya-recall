@@ -1,0 +1,38 @@
+You are generating UPSC Prelims diagnostic questions for a 10-day preparation system.
+
+Subject: {{subject_name}}
+Topic: {{topic_name}}
+Subtopic: {{subtopic_name}}
+Difficulty: {{difficulty}}
+Number of questions: {{num_questions}}
+
+Context from user's study material:
+{{content_chunks}}
+
+Recent current affairs context (if applicable):
+{{current_affairs_chunks}}
+
+Generate exactly {{num_questions}} MCQs in UPSC Prelims style.
+
+Rules:
+- Follow the "Consider the following statements" / "Which of the above is/are correct?" format where appropriate
+- Vary formats: statement-based, direct, match-the-following
+- Where a recent current affairs development relates to this topic, frame at least 1 question around it
+- Difficulty {{difficulty}}: easy=factual recall, medium=application/inference, hard=multi-statement with close distractors
+- Do NOT repeat questions from PYQ context provided
+- Correct answer must be unambiguously derivable from the content chunks or established UPSC standard
+
+Return a JSON array. Each object:
+{
+  "question_text": "...",
+  "option_a": "...",
+  "option_b": "...",
+  "option_c": "...",
+  "option_d": "...",
+  "correct_answer": "a|b|c|d",
+  "explanation": "2-3 sentence explanation citing the concept",
+  "subtopic_id": "{{subtopic_id}}",
+  "difficulty": "{{difficulty}}"
+}
+
+Output ONLY the JSON array.
