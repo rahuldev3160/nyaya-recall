@@ -1,7 +1,6 @@
-const BASE =
-  typeof window !== "undefined"
-    ? `http://${window.location.hostname}:8000`
-    : "http://localhost:8000";
+// All calls go through the Next.js proxy (/api/backend → port 8000).
+// This works on any device on the same WiFi — no direct port 8000 access needed.
+const BASE = "/api/backend";
 
 async function post(path: string, body: object = {}) {
   const res = await fetch(`${BASE}${path}`, {
