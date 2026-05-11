@@ -1,12 +1,12 @@
 You are generating UPSC Prelims diagnostic questions for a 10-day preparation system.
 
 Subject: {{subject_name}}
-Topic: {{topic_name}}
-Subtopic: {{subtopic_name}}
 Difficulty: {{difficulty}}
-Number of questions: {{num_questions}}
+Total questions: {{num_questions}}
 
-Context from user's study material:
+{{subtopic_allocation}}
+
+Study material (organised by subtopic — use the section heading to match questions to subtopics):
 {{content_chunks}}
 
 Recent current affairs context (if applicable):
@@ -15,24 +15,25 @@ Recent current affairs context (if applicable):
 Generate exactly {{num_questions}} MCQs in UPSC Prelims style.
 
 Rules:
-- Follow the "Consider the following statements" / "Which of the above is/are correct?" format where appropriate
-- Vary formats: statement-based, direct, match-the-following
-- Where a recent current affairs development relates to this topic, frame at least 1 question around it
-- Difficulty {{difficulty}}: easy=factual recall, medium=application/inference, hard=multi-statement with close distractors
-- Do NOT repeat questions from PYQ context provided
-- Correct answer must be unambiguously derivable from the content chunks or established UPSC standard
+- Use varied formats: statement-based ("Consider the following statements…"), direct recall, match-the-following
+- easy = factual recall, medium = application/inference, hard = multi-statement with close distractors
+- Where current affairs context relates to a subtopic, include at least 1 current-affairs-linked question for it
+- Correct answer must be unambiguously derivable from content or established UPSC standard
+- CRITICAL: each question's "subtopic_id" must be the EXACT subtopic_id string from the allocation above — no invented values
 
 Return a JSON array. Each object:
-{
-  "question_text": "...",
-  "option_a": "...",
-  "option_b": "...",
-  "option_c": "...",
-  "option_d": "...",
-  "correct_answer": "a|b|c|d",
-  "explanation": "2-3 sentence explanation citing the concept",
-  "subtopic_id": "{{subtopic_id}}",
-  "difficulty": "{{difficulty}}"
-}
+[
+  {
+    "question_text": "...",
+    "option_a": "...",
+    "option_b": "...",
+    "option_c": "...",
+    "option_d": "...",
+    "correct_answer": "a|b|c|d",
+    "explanation": "2-3 sentences citing the specific concept",
+    "subtopic_id": "<exact subtopic_id from allocation>",
+    "difficulty": "easy|medium|hard"
+  }
+]
 
-Output ONLY the JSON array.
+Output ONLY the JSON array, no other text.

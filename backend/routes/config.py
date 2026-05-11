@@ -5,11 +5,11 @@ from pathlib import Path
 from datetime import date
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(redirect_slashes=False)
 CONFIG_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
 
 
-@router.get("/")
+@router.get("")
 def get_config():
     if CONFIG_PATH.exists():
         try:
@@ -19,7 +19,7 @@ def get_config():
     return {"total_days": 10, "daily_hours": 6, "start_date": date.today().isoformat()}
 
 
-@router.post("/")
+@router.post("")
 def save_config(body: dict):
     if not body.get("start_date"):
         body["start_date"] = date.today().isoformat()

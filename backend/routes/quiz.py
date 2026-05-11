@@ -17,9 +17,104 @@ router = APIRouter()
 DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 CHROMA_PATH = os.getenv("CHROMA_PATH", "vector_store")
 PROMPT_DIR = Path(__file__).parent.parent.parent / "prompts"
+_SYLLABUS_PATH = Path(__file__).parent.parent.parent / "data" / "syllabus.json"
+_SUBJECT_ALIAS = {"history": "history_amac"}
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 chroma = chromadb.PersistentClient(path=CHROMA_PATH)
+
+
+def _get_subject_subtopics(subject_id: str) -> list[str]:
+    """Return all subtopic IDs for a subject from syllabus.json."""
+    sid = _SUBJECT_ALIAS.get(subject_id, subject_id)
+    try:
+        syllabus = json.loads(_SYLLABUS_PATH.read_text())
+        for subj in syllabus.get("subjects", []):
+            if subj["id"] == sid:
+                return [
+                    st["id"]
+                    for topic in subj.get("topics", [])
+                    for st in topic.get("subtopics", [])
+                ]
+    except Exception:
+        pass
+    return []
+
+
+def _get_tested_subtopics_for_subject(subject_id: str) -> set[str]:
+    """Return subtopic_ids already in subtopic_scores for this subject."""
+    sid = _SUBJECT_ALIAS.get(subject_id, subject_id)
+    try:
+        con = sqlite3.connect(DB_PATH)
+        rows = con.execute(
+            "SELECT subtopic_id FROM subtopic_scores WHERE user_id='user_1' AND subject_id=?",
+            (sid,),
+        ).fetchall()
+        con.close()
+        return {r[0] for r in rows if r[0]}
+    except Exception:
+        return set()
+
+
+def _allocate_questions_across_subtopics(subject_id: str, num_q: int) -> list[dict]:
+    """
+    Returns priority-ordered list: [{subtopic_id, num_questions, weight, is_tested}].
+
+    Ordering rule:
+      1. Untested subtopics first (higher diagnostic value).
+      2. Within each group, sorted by PYQ priority weight descending.
+
+    Question counts are proportional to PYQ weight, minimum 1 per subtopic,
+    covering at most num_q subtopics so every question maps to a unique subtopic.
+    """
+    all_subtopics = _get_subject_subtopics(subject_id)
+    if not all_subtopics:
+        return []
+
+    try:
+        from priority_scorer import compute_all_priorities
+        pyq_weights = compute_all_priorities()
+    except Exception:
+        pyq_weights = {}
+
+    tested = _get_tested_subtopics_for_subject(subject_id)
+
+    # Sort: untested before tested, then by PYQ weight descending within each group
+    ordered = sorted(
+        all_subtopics,
+        key=lambda st: (st in tested, -pyq_weights.get(st, 1.0)),
+    )
+
+    # Cover at most num_q subtopics (floor is 1 question each)
+    n_cover = min(num_q, len(ordered))
+    selected = ordered[:n_cover]
+    raw_w = [max(pyq_weights.get(st, 1.0), 0.5) for st in selected]
+    total_w = sum(raw_w)
+
+    # Proportional allocation
+    allocs = [max(1, int(round(num_q * w / total_w))) for w in raw_w]
+
+    # Fix rounding so total == num_q exactly
+    diff = num_q - sum(allocs)
+    i = 0
+    while diff != 0:
+        step = 1 if diff > 0 else -1
+        if step < 0 and allocs[i % n_cover] <= 1:
+            i += 1
+            continue
+        allocs[i % n_cover] += step
+        diff -= step
+        i += 1
+
+    return [
+        {
+            "subtopic_id": st,
+            "num_questions": allocs[idx],
+            "weight": round(raw_w[idx], 2),
+            "is_tested": st in tested,
+        }
+        for idx, st in enumerate(selected)
+    ]
 
 
 def get_collection():
@@ -46,15 +141,49 @@ def fetch_ca_chunks(topic_keyword: str, k: int = 2) -> list[str]:
     return results["documents"][0] if results["documents"] else []
 
 
+def _build_multi_subtopic_prompt_parts(
+    subject_id: str, allocation: list[dict]
+) -> tuple[str, str]:
+    """
+    Returns (subtopic_allocation_str, content_chunks_str) for multi-subtopic mode.
+    Fetches 2 ChromaDB chunks per subtopic; falls back to syllabus stub if none found.
+    """
+    alloc_lines: list[str] = []
+    chunk_sections: list[str] = []
+
+    for item in allocation:
+        st_id = item["subtopic_id"]
+        n = item["num_questions"]
+        w = item["weight"]
+        tag = "[UNTESTED — diagnose first]" if not item["is_tested"] else "[tested]"
+        alloc_lines.append(f"  {st_id}: {n} question{'s' if n > 1 else ''}  {tag}  (PYQ weight {w})")
+
+        st_chunks = fetch_chunks(subject_id, st_id, k=2)
+        if not st_chunks:
+            st_chunks = [
+                f"Standard UPSC Prelims content on {subject_id}: "
+                f"{st_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+            ]
+        header = f"[{st_id}  —  {n} question{'s' if n > 1 else ''}]"
+        chunk_sections.append(header + "\n" + "\n---\n".join(st_chunks))
+
+    subtopic_allocation = (
+        "Subtopic coverage — generate EXACTLY these counts "
+        "(each question's subtopic_id must equal the subtopic_id listed here):\n"
+        + "\n".join(alloc_lines)
+    )
+    content_chunks_str = "\n\n".join(chunk_sections)
+    return subtopic_allocation, content_chunks_str
+
+
 @router.post("/generate")
 def generate_quiz(config: dict):
     subject_id = config.get("subject_id", "")
-    topic_id = config.get("topic_id", "")
+    topic_id   = config.get("topic_id", "")
     subtopic_id = config.get("subtopic_id", "")
     num_q = config.get("num_questions", 10)
     session_type = config.get("session_type", "diagnostic")
 
-    # Use adaptive difficulty if not explicitly overridden in config
     if "difficulty" in config:
         difficulty = config["difficulty"]
     elif subtopic_id:
@@ -64,32 +193,69 @@ def generate_quiz(config: dict):
         except Exception:
             difficulty = "easy"
     else:
-        difficulty = "easy"
-
-    chunks = fetch_chunks(subject_id, subtopic_id)
-    ca_chunks = fetch_ca_chunks(subtopic_id.replace("_", " "))
-
-    if not chunks:
-        chunks = [f"General UPSC knowledge on {subject_id.replace('_', ' ')} — {subtopic_id.replace('_', ' ')}. "
-                  "Generate questions based on standard UPSC Prelims syllabus for this topic."]
+        difficulty = "mixed"  # subject-level diagnostics use mixed difficulty
 
     prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
     prompt_template = (PROMPT_DIR / prompt_file).read_text()
 
-    prompt = prompt_template\
-        .replace("{{subject_name}}", subject_id)\
-        .replace("{{topic_name}}", topic_id)\
-        .replace("{{subtopic_name}}", subtopic_id)\
-        .replace("{{subtopic_id}}", subtopic_id)\
-        .replace("{{num_questions}}", str(num_q))\
-        .replace("{{difficulty}}", difficulty)\
-        .replace("{{content_chunks}}", "\n\n---\n\n".join(chunks))\
-        .replace("{{current_affairs_chunks}}", "\n\n---\n\n".join(ca_chunks))\
-        .replace("{{format}}", config.get("format", "quiz_only"))\
-        .replace("{{current_score}}", str(config.get("current_score", 0)))\
-        .replace("{{#if show_notes}}", "" if config.get("show_notes") else "<!--")\
-        .replace("{{else}}", "-->" if config.get("show_notes") else "")\
-        .replace("{{/if}}", "" if not config.get("show_notes") else "-->")
+    if subtopic_id:
+        # ── Single-subtopic mode (session from plan or user-chosen subtopic) ────
+        chunks = fetch_chunks(subject_id, subtopic_id)
+        ca_chunks = fetch_ca_chunks(subtopic_id.replace("_", " "))
+        if not chunks:
+            chunks = [
+                f"Standard UPSC Prelims content on {subject_id}: "
+                f"{subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+            ]
+        subtopic_allocation = (
+            f"Subtopic: {subtopic_id}\n"
+            f"Generate all {num_q} questions on this subtopic. "
+            f"Set subtopic_id = \"{subtopic_id}\" in every question."
+        )
+        content_chunks_str = "\n\n---\n\n".join(chunks)
+        ca_str = "\n\n---\n\n".join(ca_chunks)
+    else:
+        # ── Multi-subtopic diagnostic mode ───────────────────────────────────────
+        allocation = _allocate_questions_across_subtopics(subject_id, num_q)
+        if allocation:
+            subtopic_allocation, content_chunks_str = _build_multi_subtopic_prompt_parts(
+                subject_id, allocation
+            )
+            # Single CA search for the whole subject
+            ca_chunks = fetch_ca_chunks(subject_id.replace("_", " "), k=2)
+            ca_str = "\n\n---\n\n".join(ca_chunks)
+        else:
+            # Fallback when syllabus has no entries for this subject
+            chunks = fetch_chunks(subject_id, subject_id)
+            ca_chunks = fetch_ca_chunks(subject_id.replace("_", " "))
+            if not chunks:
+                chunks = [f"Standard UPSC Prelims content on {subject_id.replace('_', ' ')}."]
+            subtopic_allocation = (
+                f"Topic: {subject_id} (general)\n"
+                f"Generate {num_q} questions spread across diverse subtopics. "
+                f"Use snake_case subtopic_id values that reflect each question's content."
+            )
+            content_chunks_str = "\n\n---\n\n".join(chunks)
+            ca_str = "\n\n---\n\n".join(ca_chunks)
+
+    prompt = (
+        prompt_template
+        .replace("{{subject_name}}",           subject_id)
+        .replace("{{subtopic_allocation}}",    subtopic_allocation)
+        .replace("{{num_questions}}",          str(num_q))
+        .replace("{{difficulty}}",             difficulty)
+        .replace("{{content_chunks}}",         content_chunks_str)
+        .replace("{{current_affairs_chunks}}", ca_str)
+        # legacy placeholders kept for adaptive_session.txt compatibility
+        .replace("{{topic_name}}",             topic_id)
+        .replace("{{subtopic_name}}",          subtopic_id)
+        .replace("{{subtopic_id}}",            subtopic_id)
+        .replace("{{format}}",                 config.get("format", "quiz_only"))
+        .replace("{{current_score}}",          str(config.get("current_score", 0)))
+        .replace("{{#if show_notes}}",         "" if config.get("show_notes") else "<!--")
+        .replace("{{else}}",                   "-->" if config.get("show_notes") else "")
+        .replace("{{/if}}",                    "" if not config.get("show_notes") else "-->")
+    )
 
     response = client.messages.create(
         model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),

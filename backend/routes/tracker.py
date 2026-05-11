@@ -69,10 +69,9 @@ def get_gaps():
 @router.get("/sar")
 def get_sar():
     con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
     row = con.execute("SELECT * FROM sar_scores WHERE user_id='user_1'").fetchone()
     con.close()
     if not row:
         return {"sar": 0.5, "total_claims": 0}
-    return dict(sqlite3.Row(con, row)) if False else {
-        "sar": row[1], "total_claims": row[2], "updated_at": row[3]
-    }
+    return {"sar": row["sar"], "total_claims": row["total_claims"], "updated_at": row["updated_at"]}

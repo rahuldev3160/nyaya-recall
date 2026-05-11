@@ -79,6 +79,25 @@ def close_session(session_id: str) -> dict:
         con.close()
         return {}
 
+    # Convert to mutable dicts; backfill missing subtopic/topic from session config
+    answers = [dict(a) for a in answers]
+    session_row = con.execute(
+        "SELECT config FROM quiz_sessions WHERE id=?", (session_id,)
+    ).fetchone()
+    if session_row and session_row["config"]:
+        try:
+            cfg = json.loads(session_row["config"])
+            cfg_topic    = cfg.get("topic_id")    or None
+            cfg_subtopic = cfg.get("subtopic_id") or None
+            if cfg_topic or cfg_subtopic:
+                for a in answers:
+                    if not a.get("topic_id"):
+                        a["topic_id"] = cfg_topic
+                    if not a.get("subtopic_id"):
+                        a["subtopic_id"] = cfg_subtopic
+        except Exception:
+            pass
+
     total = len(answers)
     correct = sum(1 for a in answers if a["is_correct"])
     skipped = sum(1 for a in answers if a["skipped"])
@@ -165,7 +184,7 @@ def _store_session_summary(
     # Track which subtopics the user chose to expand — learning interest signal
     expanded = list({
         a["subtopic_id"] for a in answers
-        if a.get("concept_expanded") and a["subtopic_id"]
+        if a["concept_expanded"] and a["subtopic_id"]
     })
 
     con.execute("""
@@ -214,7 +233,7 @@ def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
 
         existing = con.execute("""
             SELECT score, total_attempts, correct_count FROM subtopic_scores
-            WHERE user_id='user_1' AND subject_id=? AND topic_id=? AND subtopic_id=?
+            WHERE user_id='user_1' AND subject_id=? AND topic_id IS ? AND subtopic_id=?
         """, (subject_id, topic_id, subtopic_id)).fetchone()
 
         if existing:
@@ -232,7 +251,7 @@ def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
                 UPDATE subtopic_scores
                 SET score=?, total_attempts=?, correct_count=?, trend=?, confidence_level=?,
                     last_tested=?, updated_at=?
-                WHERE user_id='user_1' AND subject_id=? AND topic_id=? AND subtopic_id=?
+                WHERE user_id='user_1' AND subject_id=? AND topic_id IS ? AND subtopic_id=?
             """, (
                 new_score, new_total, new_correct, trend, confidence,
                 datetime.now(timezone.utc).isoformat(), datetime.now(timezone.utc).isoformat(),

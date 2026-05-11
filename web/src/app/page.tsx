@@ -33,19 +33,20 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
-    api.getProfile().then(setProfile).catch(() => {});
-    api.getPlan().then(setPlan).catch(() => {});
-    api.getConfig().then(setConfig).catch(() => {});
+    (async () => {
+      try { setProfile(await api.getProfile()); } catch {}
+      try { setPlan(await api.getPlan()); } catch {}
+      try { setConfig(await api.getConfig()); } catch {}
+    })();
   }, []);
 
   const handleSync = async () => {
     setSyncing(true);
     try {
       await api.syncAnalysis();
-      const [p, pl, cfg] = await Promise.all([api.getProfile(), api.getPlan(), api.getConfig()]);
-      setProfile(p);
-      setPlan(pl);
-      setConfig(cfg);
+      try { setProfile(await api.getProfile()); } catch {}
+      try { setPlan(await api.getPlan()); } catch {}
+      try { setConfig(await api.getConfig()); } catch {}
     } finally {
       setSyncing(false);
     }

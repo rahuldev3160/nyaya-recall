@@ -1,11 +1,18 @@
-You are generating a daily study plan for a UPSC Prelims aspirant on Day {{day_number}} of a 10-day sprint.
+You are generating a daily study plan for a UPSC Prelims aspirant on Day {{day_number}} of a {{total_days}}-day sprint.
 
-Current prep profile:
+Current prep profile (subject-level scores and insights):
 {{prep_profile}}
+
+Subtopic coverage — the ground truth of what has and has not been diagnosed:
+{{subtopic_coverage}}
+
+For each subject the coverage object contains:
+  "untested": list of subtopics never attempted, sorted by pyq_weight DESCENDING (highest ROI first)
+  "tested":   list of subtopics already attempted, with their current score
 
 Days remaining (including today): {{days_remaining}}
 Available hours today: {{available_hours}}
-Phase: {{phase}} (diagnostic|adaptive_revision)
+Phase: {{phase}}
 
 Generate a structured day plan. Return JSON:
 {
@@ -29,10 +36,30 @@ Generate a structured day plan. Return JSON:
   "sync_reminder": "What to check during evening sync"
 }
 
-Rules:
-- Total session time must fit within {{available_hours}} hours (60 min/hr)
-- Prioritise: weakest subtopics × highest PYQ weight × days remaining
-- Strong subjects (>75%) get 1 maintenance session max
-- Weak subjects (<50%) get notes_then_quiz format
-- Day 9-10: shift to mixed hard questions and strategy review
-- Output ONLY the JSON object
+Scheduling rules (apply in strict order):
+1. UNTESTED HIGH-PRIORITY FIRST: Schedule untested subtopics in descending pyq_weight order.
+   Fill today's hours with the highest-weight untested subtopics across subjects.
+   Never skip an untested subtopic with high pyq_weight in favour of re-testing something already done.
+
+2. CROSS-SUBJECT SPREAD: Each day must cover at least 3 different subjects.
+   Do not stack all sessions on one subject unless that subject has 0% coverage and days_remaining <= 2.
+
+3. CAPACITY PLANNING FOR LATER DAYS: Lower-weight untested subtopics that don't fit today
+   must be explicitly queued — the plan should implicitly leave room for them in future days
+   by not over-scheduling any single subject. Rationale field should note "queued for Day X" when a
+   high-weight subtopic is intentionally deferred.
+
+4. RE-TEST LOGIC: Only re-test a subtopic if:
+   - Its score is < 50% AND it was last tested > 1 day ago, OR
+   - days_remaining <= 3 (final sprint — reinforce everything weak)
+   Never re-test a subtopic with score >= 75 unless days_remaining <= 2.
+
+5. FORMAT: weak subtopics (score < 50%) → notes_then_quiz; untested → notes_then_quiz if days_remaining > 5, else quiz_only; strong (>= 75%) → quiz_only for maintenance.
+
+6. QUESTION COUNT: 10–20 questions per session. Scale up (15–20) for high-weight untested subtopics; scale down (10) for maintenance or low-weight topics.
+
+7. TIME FIT: Total session time must fit within {{available_hours}} hours (60 min/hr).
+
+8. LATE SPRINT (Day 8–10): shift to hard difficulty, mixed formats, and strategy review sessions. Deprioritise any untested low-weight subtopics — focus only on confirmed weak areas.
+
+- Output ONLY the JSON object, no other text.

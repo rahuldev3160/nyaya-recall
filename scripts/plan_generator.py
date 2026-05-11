@@ -5,20 +5,83 @@ Writes to data/study_plan.json.
 """
 from __future__ import annotations
 import os
+import sys
 import json
+import sqlite3
 from pathlib import Path
 from datetime import datetime, date, timezone
 import anthropic
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
+sys.path.insert(0, str(Path(__file__).parent))
 
-PROFILE_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
-PLAN_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
-CONFIG_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
-PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "plan_generation.txt"
+PROFILE_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
+PLAN_PATH     = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
+CONFIG_PATH   = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
+SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
+PROMPT_PATH   = Path(__file__).parent.parent / "prompts" / "plan_generation.txt"
+DB_PATH       = os.getenv("DB_PATH", "data/upsc.db")
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+
+def compute_subtopic_coverage() -> dict:
+    """
+    Returns {subject_id: {total, untested: [{id, pyq_weight}], tested: [{id, score, pyq_weight}]}}.
+    untested list is sorted by pyq_weight descending — this is the scheduling priority order.
+    """
+    try:
+        syllabus = json.loads(SYLLABUS_PATH.read_text())
+    except Exception:
+        return {}
+
+    try:
+        from priority_scorer import compute_all_priorities
+        weights = compute_all_priorities()
+    except Exception:
+        weights = {}
+
+    tested_map: dict[str, dict[str, float]] = {}
+    try:
+        con = sqlite3.connect(DB_PATH)
+        rows = con.execute(
+            "SELECT subject_id, subtopic_id, score FROM subtopic_scores WHERE user_id='user_1'"
+        ).fetchall()
+        con.close()
+        for subj_id, st_id, sc in rows:
+            if st_id:
+                tested_map.setdefault(subj_id, {})[st_id] = sc
+    except Exception:
+        pass
+
+    result: dict = {}
+    for subj in syllabus.get("subjects", []):
+        sid = subj["id"]
+        all_subs = [
+            st["id"]
+            for topic in subj.get("topics", [])
+            for st in topic.get("subtopics", [])
+        ]
+        tested_in_subj = tested_map.get(sid, {})
+
+        untested = sorted(
+            [{"id": st, "pyq_weight": round(weights.get(st, 1.0), 2)} for st in all_subs if st not in tested_in_subj],
+            key=lambda x: -x["pyq_weight"],
+        )
+        tested_list = sorted(
+            [{"id": st, "score": round(sc, 1), "pyq_weight": round(weights.get(st, 1.0), 2)} for st, sc in tested_in_subj.items()],
+            key=lambda x: -x["pyq_weight"],
+        )
+        result[sid] = {
+            "total_subtopics":   len(all_subs),
+            "untested_count":    len(untested),
+            "tested_count":      len(tested_list),
+            "untested":          untested,   # scheduling priority order — use these first
+            "tested":            tested_list,
+        }
+
+    return result
 
 
 def load_config() -> dict:
@@ -65,15 +128,18 @@ def generate_plan(available_hours: float | None = None) -> dict:
     remaining = days_remaining()
     total_days = int(config.get("total_days", 10))
 
+    subtopic_coverage = compute_subtopic_coverage()
+
     prompt_template = PROMPT_PATH.read_text()
     prompt = (
         prompt_template
-        .replace("{{prep_profile}}", json.dumps(profile, indent=2))
-        .replace("{{day_number}}", str(day_number))
-        .replace("{{days_remaining}}", str(remaining))
-        .replace("{{total_days}}", str(total_days))
-        .replace("{{available_hours}}", str(available_hours))
-        .replace("{{phase}}", profile.get("phase", "diagnostic"))
+        .replace("{{prep_profile}}",       json.dumps(profile, indent=2))
+        .replace("{{subtopic_coverage}}",  json.dumps(subtopic_coverage, indent=2))
+        .replace("{{day_number}}",         str(day_number))
+        .replace("{{days_remaining}}",     str(remaining))
+        .replace("{{total_days}}",         str(total_days))
+        .replace("{{available_hours}}",    str(available_hours))
+        .replace("{{phase}}",              profile.get("phase", "diagnostic"))
     )
 
     response = client.messages.create(

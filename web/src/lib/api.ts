@@ -1,5 +1,4 @@
 // All calls go through the Next.js proxy (/api/backend → port 8000).
-// This works on any device on the same WiFi — no direct port 8000 access needed.
 const BASE = "/api/backend";
 
 async function post(path: string, body: object = {}) {
@@ -12,10 +11,16 @@ async function post(path: string, body: object = {}) {
   return res.json();
 }
 
-async function get(path: string) {
-  const res = await fetch(`${BASE}${path}`);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+async function get(path: string, timeoutMs = 8000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${BASE}${path}`, { signal: ctrl.signal });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 export const api = {

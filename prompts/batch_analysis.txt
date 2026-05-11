@@ -12,29 +12,40 @@ Each summary contains:
 - weak_subtopics: subtopics where accuracy < 45% in this session
 - strong_subtopics: subtopics where accuracy >= 75% in this session
 - difficulty_attempted: the difficulty tier (easy / medium / hard / exam / mixed)
-- expanded_subtopics: subtopics where the user clicked "Dive Deeper" for more context — indicates curiosity, confusion, or strong interest. Prioritise these in the study plan even if accuracy was acceptable.
+- expanded_subtopics: subtopics where the user clicked "Dive Deeper" — indicates curiosity or confusion. Prioritise these in the study plan even if accuracy was acceptable.
+
+Pre-computed weighted readiness report (AUTHORITATIVE — do not recalculate these numbers):
+{{coverage_report}}
+
+This report contains the ground-truth readiness scores computed by code using:
+- PYQ priority weights (recency-decayed question frequency from 2009–2025)
+- All subtopics in each subject from the official syllabus
+- Untested subtopics treated as score 0 (assumed gap until proven otherwise)
+
+Your job is NOT to compute or adjust numerical scores — those are provided above.
+Your job IS to provide qualitative insight: WHY the scores look the way they do,
+what patterns the session data reveals, and what the aspirant should do next.
 
 Persistently weak subtopics (weak in 2+ consecutive sessions — require focused attention):
 {{deep_drill_subtopics}}
 
-Raw answers for persistently weak subtopics only (for deep pattern analysis):
+Raw answers for persistently weak subtopics only:
 {{deep_drill_answers}}
 
-Analyse the data and return a JSON object:
+Return a JSON object:
 {
   "subject_updates": [
     {
       "subject_id": "...",
-      "avg_score": 0-100,
       "confidence": "weak|moderate|strong|unassessed",
       "trend": "improving|stable|declining",
       "weak_subtopics": ["subtopic_id", ...],
       "strong_subtopics": ["subtopic_id", ...],
       "weak_question_types": ["statement_based", ...],
-      "insight": "1-2 sentence specific observation based on accuracy patterns"
+      "insight": "1-2 sentence specific observation about WHY this subject looks the way it does — reference actual subtopics, question types, and coverage gaps"
     }
   ],
-  "overall_readiness": 0-100,
+  "overall_readiness": "<copy the overall_readiness value from the coverage_report exactly>",
   "phase_recommendation": "continue_diagnostic|start_revision|advance_revision",
   "priority_focus": ["subtopic_id", ...],
   "time_estimates": {
@@ -47,13 +58,14 @@ Analyse the data and return a JSON object:
       "recommendation": "targeted action to fix this gap"
     }
   ],
-  "summary": "3-4 sentence overall assessment for the user"
+  "summary": "3-4 sentence overall assessment for the user — mention coverage gaps, what is confirmed strong vs just lightly tested, and what must be done before the exam"
 }
 
 Rules:
-- Be specific and data-driven. Reference actual subtopic names and accuracy numbers.
+- Do NOT invent or adjust avg_score — it is computed by code and will be set from coverage_report.
+- overall_readiness must equal the value in coverage_report exactly.
+- A subject where only 1-2 subtopics are tested should never be called "strong" — note low coverage in the insight.
 - If a subtopic's question_type_breakdown shows a type consistently < 40%, call it out in weak_question_types.
-- If user scores >75% consistently across 3+ subjects → recommend start_revision.
-- If scoring <50% in 3+ subjects → still start_revision but flag as foundational_need.
-- For deep_drill_observations: analyse raw answer patterns (which distractors were chosen, conceptual gaps) only for subtopics listed in deep_drill_subtopics. If deep_drill_answers is empty, set deep_drill_observations to [].
+- phase_recommendation: continue_diagnostic if coverage < 60% across most subjects; start_revision if most subjects are > 60% covered; advance_revision only if coverage is high AND scores are strong.
+- For deep_drill_observations: analyse raw answer patterns only for subtopics in deep_drill_subtopics. If empty, set to [].
 - Output ONLY the JSON object, no other text.
