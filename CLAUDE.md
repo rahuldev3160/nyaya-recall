@@ -100,3 +100,100 @@ Off-network fallback: export session as offline HTML → import JSON responses.
 - Sonnet for: question generation, batch analysis, plan generation, explanations
 - Never call API per individual answer — always batch
 - Check `cache/explanations.json` before any explanation API call
+
+---
+
+## Autonomous agent workflow
+
+Rahul is the sole tester and product owner. He flags issues and features during live study
+sessions. Everything is logged in FEATURES.md, ISSUES.md, and plans/. An AI agent (Claude
+Code) picks up tasks from those files and implements them. Rahul approves via GitHub PR on
+his phone. He is not a developer — keep him in the loop only for critical approvals.
+
+### How to pick up work each session
+
+1. Read `ISSUES.md` → any **Open** items are highest priority (live bugs blocking study)
+2. Read `FEATURES.md → 🔵 Planned` → spec exists, ready to implement
+3. Read `FEATURES.md → 📋 Queued` → needs a spec first before implementing
+4. Pick the highest-priority item, check for a spec in `plans/`, and begin
+
+If a Queued item has no plan file: write the spec in `plans/<feature>.md`, commit it,
+open a spec-only PR titled `Spec: <feature name>` — do NOT implement until Rahul approves
+the spec. Specs for P1 items should be drafted proactively.
+
+### Branch naming
+
+```
+feature/<short-name>         e.g. feature/per-question-timer
+fix/<issue-id>-<short>       e.g. fix/issue-002-notes-parser
+spec/<feature-name>          e.g. spec/metacognition-capture
+```
+
+Never push directly to `main`. Always work on a branch and open a PR.
+
+### Before opening every PR — checklist
+
+- [ ] `cd web && npx tsc --noEmit` passes (zero TypeScript errors)
+- [ ] `cd web && npm run lint` passes
+- [ ] FEATURES.md updated — item moved to correct status (Planned or Shipped)
+- [ ] ISSUES.md updated if this fixes an issue — Status → Resolved, Resolution field filled
+- [ ] HANDOFF.md updated with what changed and any watch-outs
+
+### PR description format (always use this structure)
+
+```
+## What changed
+- bullet points of what was implemented
+
+## Files touched
+- list key files modified
+
+## How to test
+- specific steps Rahul can follow in the browser to verify it works
+
+## Risks / watch-outs
+- anything affecting existing data, scoring logic, or live sessions
+
+## Needs approval before merge?
+Yes / No — reason
+```
+
+### Approval gates — ALWAYS stop and flag, never proceed autonomously
+
+These require an explicit message or PR comment from Rahul before any work continues:
+
+- Any ALTER TABLE or DROP TABLE on existing DB tables
+- Any change to score calculation logic in `scripts/score_engine.py`
+- Any change to the readiness formula in `scripts/batch_analyse.py`
+- Any change to `prompts/plan_generation.txt` scheduling rules
+- Deleting files that are referenced by other active code
+- Any change touching `.env`, API keys, or authentication
+- Force-pushing or rewriting git history
+
+### Autonomous — no approval needed, implement and open PR
+
+- New frontend UI components and pages
+- New additive API endpoints (not changing existing ones)
+- New DB tables (CREATE TABLE only — never ALTER or DROP existing)
+- Bug fixes where root cause is clearly identified in ISSUES.md
+- New prompt files in `prompts/`
+- New scripts that don't modify existing DB data
+- Updating FEATURES.md, ISSUES.md, HANDOFF.md documentation
+- Adding plan spec files in `plans/`
+
+### After completing a task
+
+1. Move the item in FEATURES.md: Queued → Planned (if spec) or → ✅ Shipped (if implemented)
+   - Add ship date in the Notes column: `Shipped May 12`
+2. If fixing an ISSUE: move to Resolved section, fill in the Resolution field with date + what changed
+3. Update HANDOFF.md: add a brief entry under "What changed" with files modified
+4. Open the PR — write the description using the format above
+5. Do not start the next task until the current PR is merged or explicitly unblocked by Rahul
+
+### Communicating with Rahul
+
+- Keep PR descriptions short and scannable — he reads them on his phone
+- Lead with impact: "This adds X which means Y" not a technical explanation
+- If blocked: leave a comment on the PR explaining exactly what decision is needed
+- Never send long messages asking multiple questions — one clear question at a time
+- If a decision will take >5 minutes of his attention, break it into a smaller question
