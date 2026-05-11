@@ -27,6 +27,7 @@ export default function DiagnosticPage() {
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState<any>(null);
+  const [skipped, setSkipped] = useState<Record<number, boolean>>({});
   const [expanded, setExpanded] = useState<Record<number, string>>({});
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
 
@@ -47,6 +48,7 @@ export default function DiagnosticPage() {
       setCurrentQ(0);
       setAnswers({});
       setRevealed({});
+      setSkipped({});
       setFinished(false);
       setScore(null);
     } catch (e: any) {
@@ -70,6 +72,26 @@ export default function DiagnosticPage() {
       correct_answer: q.correct_answer,
       user_answer: opt,
       is_correct: correct,
+      time_taken_sec: 0,
+      subject_id: selected,
+      subtopic_id: q.subtopic_id ?? selected,
+    }).catch(() => {});
+  };
+
+  const skipQuestion = async () => {
+    if (!session || answers[currentQ] !== undefined || skipped[currentQ]) return;
+    const q = session.questions[currentQ];
+    setSkipped((s) => ({ ...s, [currentQ]: true }));
+    setRevealed((r) => ({ ...r, [currentQ]: true }));
+    await api.submitAnswer({
+      session_id: session.session_id,
+      question_hash: q.question_hash ?? `${session.session_id}_${currentQ}`,
+      question_text: q.question_text,
+      options: { a: q.option_a ?? "", b: q.option_b ?? "", c: q.option_c ?? "", d: q.option_d ?? "" },
+      correct_answer: q.correct_answer,
+      user_answer: null,
+      is_correct: false,
+      skipped: true,
       time_taken_sec: 0,
       subject_id: selected,
       subtopic_id: q.subtopic_id ?? selected,
@@ -167,15 +189,22 @@ export default function DiagnosticPage() {
 
   if (finished) {
     const total = session.questions.length;
-    const correct = Object.values(answers).filter((opt, i) =>
-      session.questions[i]?.correct_answer === opt
+    const skippedCount = Object.keys(skipped).length;
+    const correct = Object.entries(answers).filter(([idx, opt]) =>
+      session.questions[parseInt(idx)]?.correct_answer === opt
     ).length;
+    const attempted = total - skippedCount;
     return (
       <div className="max-w-xl space-y-6">
         <h1 className="text-2xl font-bold">Session Complete</h1>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center space-y-2">
-          <div className="text-5xl font-bold text-amber-400">{Math.round((correct / total) * 100)}%</div>
-          <div className="text-gray-400">{correct} / {total} correct</div>
+          <div className="text-5xl font-bold text-amber-400">
+            {attempted > 0 ? Math.round((correct / attempted) * 100) : 0}%
+          </div>
+          <div className="text-gray-400">{correct} / {attempted} correct</div>
+          {skippedCount > 0 && (
+            <div className="text-gray-500 text-sm">{skippedCount} skipped</div>
+          )}
         </div>
         <p className="text-gray-400 text-sm">Session saved. Run Sync & Plan on the dashboard to update your profile.</p>
         <div className="flex gap-4">
@@ -220,7 +249,7 @@ export default function DiagnosticPage() {
             <button
               key={opt.key}
               onClick={() => submitAnswer(opt.key)}
-              disabled={!!answers[currentQ]}
+              disabled={!!answers[currentQ] || !!skipped[currentQ]}
               className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                 show && isCorrect ? "border-green-500 bg-green-500/10 text-green-300" :
                 show && chosen && !isCorrect ? "border-red-500 bg-red-500/10 text-red-300" :
@@ -233,7 +262,22 @@ export default function DiagnosticPage() {
         })}
       </div>
 
-      {revealed[currentQ] && q.explanation && (
+      {!answers[currentQ] && !skipped[currentQ] && (
+        <button
+          onClick={skipQuestion}
+          className="text-sm text-gray-500 hover:text-gray-300 border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-colors"
+        >
+          Skip →
+        </button>
+      )}
+
+      {skipped[currentQ] && (
+        <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
+          <p className="text-gray-500 text-sm">Skipped — correct answer was <span className="text-green-400 font-medium">({q.correct_answer})</span></p>
+        </div>
+      )}
+
+      {revealed[currentQ] && !skipped[currentQ] && q.explanation && (
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-3">
           <p className="text-amber-300 text-sm font-medium mb-1">Explanation</p>
           <p className="text-gray-300 text-sm">{q.explanation}</p>
