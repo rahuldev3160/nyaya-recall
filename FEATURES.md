@@ -58,18 +58,19 @@ These are ordered by impact. Pick from the top.
 
 | # | Feature / Fix | Priority | Description | Source |
 |---|---------------|----------|-------------|--------|
-| 1 | PYQ subtopic ID normalisation | P1 | `priority_scorer` returns weight 1.0 for most subtopics because PYQ table uses different subtopic_id values than `syllabus.json`. Fix the mapping so priority ordering actually works. | `HANDOFF.md → P1` |
-| 2 | ChromaDB content audit + re-ingestion | P1 | Unknown how much study material is actually indexed. Most quiz questions fall back to generic stubs. Audit per-subject coverage and re-ingest gaps. | `HANDOFF.md → P2` |
-| 3 | Session summaries backfill | P2 | Historical polity/economy `session_summaries.weak_subtopics` arrays are empty (computed before subtopic fix). `get_persistently_weak_subtopics()` can't see past session weakness patterns. | `HANDOFF.md → P3` |
-| 4 | Question deduplication | P2 | No mechanism to prevent same question appearing in two sessions. `question_hash` column exists but unused for filtering. | `HANDOFF.md → P4` |
-| 5 | Streak + daily goal tracker | P2 | No daily return habit mechanism. Dashboard widget showing streak, today's session count, study minutes. | [`plans/streak_tracker.md`](plans/streak_tracker.md) |
-| 6 | Difficulty engine — 1-question threshold | P2 | Difficulty never updates in multi-subtopic diagnostic mode (requires 3+ answers per subtopic, but allocation gives 1 each). | `HANDOFF.md → P5` |
-| 7 | Plan validation layer | P2 | Plan scheduling is LLM-decided with no post-generation validation. Claude can ignore rules. Add deterministic Python checks: time budget, subject spread, re-test rules. | `HANDOFF.md → P6` |
-| 8 | CSAT activation | P2 | CSAT routes and pages exist but have never been run. Profile doesn't exist. Needs a first-run setup and its own diagnostic flow. | `HANDOFF.md → P8` |
-| 9 | Onboarding redesign | P3 | First-run experience is rough. User needs guided setup for API key, study material ingestion, and first diagnostic. | [`plans/onboarding_redesign.md`](plans/onboarding_redesign.md) |
-| 10 | Mock test mode | P3 | Full UPSC Prelims simulation: 100 questions, 2 hours, mixed subjects, auto-scored with strategy analysis. | [`plans/github_collab.md`](plans/github_collab.md) — rough notes |
-| 11 | Auto-start on Mac reboot | P3 | Both servers must be manually started after every restart. `pm2` or `launchd` plist files would fix this. | `HANDOFF.md → P7` |
-| 12 | Multi-user / dynamic user_id | P3 | `user_id = 'user_1'` is hardcoded everywhere. Making it dynamic unlocks multi-user. | `docs/PLANNING.md` |
+| 1 | **Skip button in quiz UI** | P1 | Skip button per question (real exam behaviour — avoid negative marking). Backend 100% ready (`skipped` col, scoring excludes it). Only frontend work needed. See `ISSUES.md → ISSUE-001`. Extends to metacognition "why skipped" prompt. | `ISSUES.md → ISSUE-001` |
+| 2 | PYQ subtopic ID normalisation | P1 | `priority_scorer` returns weight 1.0 for most subtopics because PYQ table uses different subtopic_id values than `syllabus.json`. Fix the mapping so priority ordering actually works. | `HANDOFF.md → P1` |
+| 3 | ChromaDB content audit + re-ingestion | P1 | Unknown how much study material is actually indexed. Most quiz questions fall back to generic stubs. Audit per-subject coverage and re-ingest gaps. | `HANDOFF.md → P2` |
+| 4 | Session summaries backfill | P2 | Historical polity/economy `session_summaries.weak_subtopics` arrays are empty (computed before subtopic fix). `get_persistently_weak_subtopics()` can't see past session weakness patterns. | `HANDOFF.md → P3` |
+| 5 | Question deduplication | P2 | No mechanism to prevent same question appearing in two sessions. `question_hash` column exists but unused for filtering. | `HANDOFF.md → P4` |
+| 6 | Streak + daily goal tracker | P2 | No daily return habit mechanism. Dashboard widget showing streak, today's session count, study minutes. | [`plans/streak_tracker.md`](plans/streak_tracker.md) |
+| 7 | Difficulty engine — 1-question threshold | P2 | Difficulty never updates in multi-subtopic diagnostic mode (requires 3+ answers per subtopic, but allocation gives 1 each). | `HANDOFF.md → P5` |
+| 8 | Plan validation layer | P2 | Plan scheduling is LLM-decided with no post-generation validation. Claude can ignore rules. Add deterministic Python checks: time budget, subject spread, re-test rules. | `HANDOFF.md → P6` |
+| 9 | CSAT activation | P2 | CSAT routes and pages exist but have never been run. Profile doesn't exist. Needs a first-run setup and its own diagnostic flow. | `HANDOFF.md → P8` |
+| 10 | Onboarding redesign | P3 | First-run experience is rough. User needs guided setup for API key, study material ingestion, and first diagnostic. | [`plans/onboarding_redesign.md`](plans/onboarding_redesign.md) |
+| 11 | Mock test mode | P3 | Full UPSC Prelims simulation: 100 questions, 2 hours, mixed subjects, auto-scored with strategy analysis. | [`plans/github_collab.md`](plans/github_collab.md) — rough notes |
+| 12 | Auto-start on Mac reboot | P3 | Both servers must be manually started after every restart. `pm2` or `launchd` plist files would fix this. | `HANDOFF.md → P7` |
+| 13 | Multi-user / dynamic user_id | P3 | `user_id = 'user_1'` is hardcoded everywhere. Making it dynamic unlocks multi-user. | `docs/PLANNING.md` |
 
 ---
 
