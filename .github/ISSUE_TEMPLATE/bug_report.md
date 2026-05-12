@@ -1,25 +1,13 @@
 ---
 name: Bug report
-about: Something broke during real use
-labels: bug
+about: Something broken during a study session
+labels: bug, needs-triage
 ---
 
-**What happened**
-<!-- One sentence: what went wrong -->
+**What happened:**
 
-**What I expected**
-<!-- One sentence: what should have happened -->
+**Steps to reproduce:**
 
-**Steps to reproduce**
-1. 
-2. 
-3. 
+**Expected behaviour:**
 
-**Screenshot**
-<!-- Drag and drop a screenshot here -->
-
-**Page / feature**
-<!-- e.g. Diagnostic, Analysis, Dashboard, Attestation -->
-
-**Priority**
-<!-- Did this block your study session? Yes/No -->
+**Linked ISSUES.md entry:** ISSUE-
