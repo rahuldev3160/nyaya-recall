@@ -32,7 +32,7 @@
 
 ---
 
-### ISSUE-006 —  the session notes generated for ir/governance session linked to subtopic g2o are vague, unorganised, unprocessed (directly fetched as it is from vector DB which are doesn't make sense for a user preparing for Upsc)- it should be simple notes on subtopics covering all the priority dimesnions of that subtopics (concept, pyq angles, current affairs linkages if any relevant and a broader linkage to the other related concepts/topics/subtopics)
+### ISSUE-007 — there is no option to go back to previous question while attempting the quiz, this feature enables user to navigate independently within quiz (just like normal online exams, quizes happen)
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
 **Status:** Open
@@ -43,7 +43,7 @@
 *(fill in — what were you doing when you noticed this)*
 
 **The problem:**
- the session notes generated for ir/governance session linked to subtopic g2o are vague, unorganised, unprocessed (directly fetched as it is from vector DB which are doesn't make sense for a user preparing for Upsc)- it should be simple notes on subtopics covering all the priority dimesnions of that subtopics (concept, pyq angles, current affairs linkages if any relevant and a broader linkage to the other related concepts/topics/subtopics)
+there is no option to go back to previous question while attempting the quiz, this feature enables user to navigate independently within quiz (just like normal online exams, quizes happen)
 
 **Current state of the code:**
 *(Claude to investigate)*
@@ -55,26 +55,47 @@
 
 ---
 
-### ISSUE-005 — notes generated within session are vague, not structured, not organised, contain unnecessary details which a user does not need, and it fetches excerpts directly from db without being rewritten by model. ideally it should be like a brief comprehensive revision notes explaining the concepts (across dimensions necessary for exam) for which this note was generated
+### ISSUE-006 — Session notes vague, unprocessed (ir/governance g20 subtopic)
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(same root cause as ISSUE-005)*
+
+**What happened:**
+Notes panel in ir/governance session showed raw vector excerpts, not structured revision content.
+
+**The problem:**
+Raw ChromaDB chunks pasted verbatim — no concept explanation, no PYQ angles, no current affairs linkage.
+
+**Current state of the code:**
+`build_notes_from_vector_chunks()` was explicitly no-LLM by design (to save tokens). Fixed — see ISSUE-005 resolution.
+
+**Resolution:** Resolved 2026-05-12. Same fix as ISSUE-005 — Haiku now synthesises structured notes (Core Concept / PYQ Angles / Current Affairs Linkages / Broader Linkages) from vector chunks and caches by content hash. All today's sessions pre-warmed.
+
+---
+
+### ISSUE-005 — Session notes are raw vector excerpts, not synthesised revision notes
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
 **What happened:**
-*(fill in — what were you doing when you noticed this)*
+Notes panel in planned sessions showed unprocessed PDF/document excerpts from ChromaDB.
 
 **The problem:**
-notes generated within session are vague, not structured, not organised, contain unnecessary details which a user does not need, and it fetches excerpts directly from db without being rewritten by model. ideally it should be like a brief comprehensive revision notes explaining the concepts (across dimensions necessary for exam) for which this note was generated
+`build_notes_from_vector_chunks()` in `backend/routes/quiz.py` deliberately skipped the LLM ("Markdown from stored vectors only (no LLM)") to save tokens. Result: raw, unsynthesised excerpts with no exam framing.
 
 **Current state of the code:**
-*(Claude to investigate)*
+Fixed. Replaced with `synthesize_notes_cached()`.
 
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-12.
+- New `prompts/session_notes.txt`: Haiku prompt that synthesises 4-section notes (Core Concept, PYQ Angles, Current Affairs Linkages, Broader Linkages) from raw chunks.
+- `synthesize_notes_cached()` in `quiz.py`: checks `cache/explanations.json` by SHA256(subtopic+chunks); calls Haiku on cache miss; returns on cache hit (0 API tokens for repeat sessions).
+- Library source links (from ISSUE-003) preserved and appended after synthesised notes.
+- `scripts/prewarm_notes_cache.py`: pre-warms cache for all today's `notes_then_quiz` sessions. All 12 sessions for May 12 pre-generated and cached.
 
 ---
 
