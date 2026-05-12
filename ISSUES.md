@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — after the session is complete, it does not show as completed in the today's session tab where all the scheduled sessions are, this does not allow the user to keep a track of what is complete and what is left, all the sessions looks exactly similar even after attempting some of them already
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+after the session is complete, it does not show as completed in the today's session tab where all the scheduled sessions are, this does not allow the user to keep a track of what is complete and what is left, all the sessions looks exactly similar even after attempting some of them already
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE-008 — once a session is complete, there is no option to access it back as of now, this blocks users revisiting the session to revise a question or concept from the notes of the session
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
