@@ -305,6 +305,20 @@ Key env vars: `ANTHROPIC_API_KEY`, `DB_PATH` (default `data/upsc.db`),
 
 ---
 
+## What changed — May 12 (per-question time capture)
+
+Per-question time capture: `time_taken_sec` now populated from frontend timer in `diagnostic/page.tsx`.
+
+- Added `questionStartTime` state (initialised to `Date.now()`)
+- `useEffect` resets the timer whenever `currentQ` changes
+- `startSession` also resets the timer on new session start
+- Both `submitAnswer` and `skipQuestion` compute `Math.round((Date.now() - questionStartTime) / 1000)` and pass it as `time_taken_sec` (was always `0`)
+- `useEffect` import added to the React import line
+
+No backend changes needed — the DB column and API field already existed.
+
+---
+
 ## Files changed in this session
 
 ```

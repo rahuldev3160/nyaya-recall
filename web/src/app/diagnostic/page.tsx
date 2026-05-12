@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 
 const SUBJECTS = [
@@ -30,6 +30,11 @@ export default function DiagnosticPage() {
   const [skipped, setSkipped] = useState<Record<number, boolean>>({});
   const [expanded, setExpanded] = useState<Record<number, string>>({});
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
+  const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+
+  useEffect(() => {
+    setQuestionStartTime(Date.now());
+  }, [currentQ]);
 
   const startSession = async () => {
     if (!selected) return;
@@ -51,6 +56,7 @@ export default function DiagnosticPage() {
       setSkipped({});
       setFinished(false);
       setScore(null);
+      setQuestionStartTime(Date.now());
     } catch (e: any) {
       setError("Failed to generate questions. Please try again.");
     } finally {
@@ -62,6 +68,7 @@ export default function DiagnosticPage() {
     if (!session || answers[currentQ]) return;
     const q = session.questions[currentQ];
     const correct = q.correct_answer === opt;
+    const timeSec = Math.round((Date.now() - questionStartTime) / 1000);
     setAnswers((a) => ({ ...a, [currentQ]: opt }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
     await api.submitAnswer({
@@ -72,7 +79,7 @@ export default function DiagnosticPage() {
       correct_answer: q.correct_answer,
       user_answer: opt,
       is_correct: correct,
-      time_taken_sec: 0,
+      time_taken_sec: timeSec,
       subject_id: selected,
       subtopic_id: q.subtopic_id ?? selected,
     }).catch(() => {});
@@ -81,6 +88,7 @@ export default function DiagnosticPage() {
   const skipQuestion = async () => {
     if (!session || answers[currentQ] !== undefined || skipped[currentQ]) return;
     const q = session.questions[currentQ];
+    const timeSec = Math.round((Date.now() - questionStartTime) / 1000);
     setSkipped((s) => ({ ...s, [currentQ]: true }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
     await api.submitAnswer({
@@ -92,7 +100,7 @@ export default function DiagnosticPage() {
       user_answer: null,
       is_correct: false,
       skipped: true,
-      time_taken_sec: 0,
+      time_taken_sec: timeSec,
       subject_id: selected,
       subtopic_id: q.subtopic_id ?? selected,
     }).catch(() => {});
