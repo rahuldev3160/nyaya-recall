@@ -32,6 +32,58 @@
 
 ---
 
+### ISSUE-004 — this is a test for issue log through terminal
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+this is a test for issue log through terminal
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-002 — Planned session (notes then quiz) shows quiz only, no notes
+**Noticed:** 2026-05-12  
+**Reported by:** Rahul  
+**Status:** In progress — parser fix landed 2026-05-12; Rahul to confirm after 2026-05-13 session  
+**Priority:** P1  
+**Linked feature:** Plan session formats (`plan_generation.txt` `notes_then_quiz`); adaptive quiz generation (`prompts/adaptive_session.txt`, `backend/routes/quiz.py`, `web/src/app/session/page.tsx`)
+
+**What happened:**  
+A planned session whose format is **notes then quiz** was started from Today’s Sessions. The UI should show the “Key Concepts — Read Before Quiz” block (`quiz.notes_summary`) before questions; only the quiz appeared.
+
+**The problem:**  
+Notes block never appears even when the plan says notes-then-quiz. User only gets questions.
+
+**Current state of the code:**  
+- Frontend correctly sets `show_notes: session.format === "notes_then_quiz"` when calling `api.generateQuiz` (`web/src/app/session/page.tsx`).  
+- Prompt template `adaptive_session.txt` asks for JSON with `notes_summary` + `questions` when the notes branch is active.  
+- **Bug in `generate_quiz` JSON extraction:** `quiz.py` uses `start = raw.find("[") if "[" in raw else raw.find("{")`. For a normal object response `{"notes_summary":"...","questions":[...]}`, `"[" in raw` is true (the questions array), so the slice is **only the questions array**. Parser then treats the result as a `list`, so `notes_summary` is dropped (`notes = None`). Same symptom if the model returns a perfect object.  
+- UI only renders notes when `quiz.notes_summary` is truthy (`session/page.tsx`).
+
+**What's needed to fix:**  
+1. **Parser:** Prefer extracting a top-level JSON **object** when `{` appears before the opening `[` of `questions` (or always try object bounds first for adaptive / `show_notes` responses).  
+2. **Optional hardening:** If `show_notes` and `notes` is null after parse, retry or log server-side for debugging.  
+3. After fix, re-test a `notes_then_quiz` planned session end-to-end.
+
+**Resolution:** *(pending user verification)*  
+2026-05-12: **Root cause** was `quiz.py` choosing the first `[` in the model output, which for `{"notes_summary":...,"questions":[...]}` slices only the questions array so `notes_summary` is always `null`. Replaced with logic that prefers a top-level JSON object when `{` appears before `[`. Move to **Resolved** after tomorrow’s session confirms notes appear; if not, re-open investigation (model omitting `notes_summary`, proxy stripping fields, etc.).
+
+---
+
 ### ISSUE-001 — No skip button in quiz UI
 **Noticed:** 2026-05-11
 **Reported by:** Rahul
@@ -91,6 +143,31 @@ as a prerequisite for Part A. Ship Part A first independently.*
 ---
 
 ## Resolved
+
+### ISSUE-003 — Session notes: explore links, parallel notetaking, plan personalisation
+**Noticed:** 2026-05-12  
+**Reported by:** Rahul (approved scope same day)  
+**Status:** Resolved  
+**Priority:** P1  
+**Linked feature:** `FEATURES.md` — Notes deep-links + selection explain; Parallel session notes + plan signals
+
+**What happened:**  
+User approved (1) actionable links inside vector-sourced notes + on-demand “explain selection”, (2) parallel structured notetaking during read + quiz, (3) notes drawer **closed by default** once a session starts, (4) entries in FEATURES + ISSUES.
+
+**The problem:**  
+Notes lacked per-excerpt source links; no way to deep-dive a highlighted phrase from the notes card; no persisted parallel notes; planner did not see self-reported weak signals.
+
+**Current state of the code (2026-05-12):**  
+- `quiz.py` — `build_notes_from_vector_chunks`: after each excerpt, *Open full source:* → `/api/backend/library/file?rel=…` when resolvable under `UPSC_CONTENT_PATH`.  
+- `POST /sessions/expand-notes-selection`, `prompts/expand_notes_selection.txt` (Haiku, user-triggered only).  
+- `session_user_notes` in `scripts/db_init.py`; `server.py` lifespan creates table if missing.  
+- `GET` / `PUT` `/sessions/{session_id}/user-notes` in `backend/routes/sessions.py`.  
+- `web/src/app/session/page.tsx` — “Explain selected text” under Key Concepts; **My notes** FAB + slide-over; debounced save; `flushUserNotes` on Finish.  
+- `plan_generator.fetch_user_notes_signals()` + `plan_generation.txt` `{{user_notes_signals}}` + rule to prioritise `still_weak` subtopics.
+
+**Resolution:** Shipped 2026-05-12. **Stretch (post–20 May):** PDF page anchors in links, NLP on free-text notes, automatic merge into `prep_profile.json`.
+
+---
 
 ### ISSUE-001 — see Open section above (moved to Resolved 2026-05-11)
 
