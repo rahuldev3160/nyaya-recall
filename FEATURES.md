@@ -45,6 +45,7 @@
 | **Notes deep-links + selection explain** | P1 | Vector-built notes include per-excerpt *Open full source* links to `/library/file`; “Explain selected text” in Key Concepts calls Haiku on demand (`expand_notes_selection.txt`, `POST /sessions/expand-notes-selection`) | Shipped May 12 |
 | **Parallel session notes + plan signals** | P1 | “My notes” drawer on Session page (starts closed); confusion / mnemonic / still_weak; debounced `PUT /sessions/{id}/user-notes`; `session_user_notes` table; planner prompt includes `{{user_notes_signals}}` | Shipped May 12 |
 | **Per-question time capture** | P1 | `time_taken_sec` in `session_answers` now populated from a React timer; resets on each question; feeds difficulty engine and metacognition analysis | Shipped May 12 |
+| **PYQ subtopic ID normalisation** | P1 | Subject-scoped token-overlap fuzzy matching in `priority_scorer.py` maps PYQ free-text descriptors → canonical syllabus IDs; 139 subtopics now have real varied weights (was 0). `retag_pyq_subtopics.py` written for full coverage (~$0.05 one-time) | Shipped May 12 |
 
 ---
 
@@ -63,7 +64,7 @@ These are ordered by impact. Pick from the top.
 
 | # | Feature / Fix | Priority | Description | Source |
 |---|---------------|----------|-------------|--------|
-| 1 | PYQ subtopic ID normalisation | P1 | `priority_scorer` returns weight 1.0 for most subtopics because PYQ table uses different subtopic_id values than `syllabus.json`. Fix the mapping so priority ordering actually works. | `HANDOFF.md → P1` |
+| 1 | ~~PYQ subtopic ID normalisation~~ | ~~P1~~ | ~~SHIPPED~~ | ~~`HANDOFF.md → P1`~~ |
 | 2 | ChromaDB content audit + re-ingestion | P1 | Unknown how much study material is actually indexed. Most quiz questions fall back to generic stubs. Audit per-subject coverage and re-ingest gaps. | `HANDOFF.md → P2` |
 | 3 | Timed mode enforcement | P1 | Add live countdown display to `time_boxed` mode. Auto-close session when timer hits 0 — saves questions answered so far, skips remainder. Currently time limit is collected but never enforced. ~2–3 hrs. | Session planning May 12 |
 | 4 | Open-ended quiz mode | P1 | New quiz mode: no fixed question count or time limit. "Save & Close" button after each answered/skipped question closes the session as complete with questions done so far (save-as-complete, not resume-later). ~3–4 hrs. | Session planning May 12 |
