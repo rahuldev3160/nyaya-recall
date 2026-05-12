@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE-005 — notes generated within session are vague, not structured, not organised, contain unnecessary details which a user does not need, and it fetches excerpts directly from db without being rewritten by model. ideally it should be like a brief comprehensive revision notes explaining the concepts (across dimensions necessary for exam) for which this note was generated
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+notes generated within session are vague, not structured, not organised, contain unnecessary details which a user does not need, and it fetches excerpts directly from db without being rewritten by model. ideally it should be like a brief comprehensive revision notes explaining the concepts (across dimensions necessary for exam) for which this note was generated
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE-004 — this is a test for issue log through terminal
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
