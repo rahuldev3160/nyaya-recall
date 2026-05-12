@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — while attempting the question a simple click save the user response and show the answer immedialtely, instead create a option at the bottom of options which let user to submit the response himself
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+while attempting the question a simple click save the user response and show the answer immedialtely, instead create a option at the bottom of options which let user to submit the response himself
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the notes generated for a session covers all the important dimensions for a subtopic correctly but the explaination around the core concept is missing (for eg: the note on g20, brics subtopic session correctly identified organisations, broader concepts about how are they structured in globalised world, geopolitical angles, pyq angles, current affairs but did not sufficiently explained the confusing concepts or facts, it also should have explained a bit more on BRICS (given the current affairs mention that india as BRICS chair for 2026 clubbed with its expanding nature makes it automatically a concept which user need to read comprehensively in brief and notes should deliver that
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
