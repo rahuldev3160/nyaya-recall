@@ -55,6 +55,7 @@
 |---------|----------|--------------------|------|--------|
 | **Metacognition capture** | P1 | No record of HOW user thinks — only what they answered. Can't distinguish fact gaps from concept gaps from strategy errors. | [`plans/metacognition_capture.md`](plans/metacognition_capture.md) | ~15 hrs |
 | **Question & session feedback** | P1 | Bad questions (wrong answer, off-syllabus, unclear) silently corrupt scoring data. Difficulty engine has only correct/incorrect signal — no self-reported signal. ChromaDB gaps are invisible. | [`plans/question_feedback.md`](plans/question_feedback.md) | ~6.5 hrs |
+| **Audio revision export (NotebookLM)** | P1 | No audio revision path. Rahul studies 5-6 hrs/day but commute/exercise time is unused. System has all the data (gaps, PYQs, notes) but no way to export it for audio consumption. | [`plans/audio_revision.md`](plans/audio_revision.md) | ~5 hrs |
 
 ---
 
