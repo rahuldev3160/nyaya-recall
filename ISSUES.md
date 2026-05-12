@@ -31,6 +31,8 @@
 ## Open
 
 ---
+- 1. the loading time for sessions is 30-40secs, need to minimise this or invent a way to interect with user while session/quiz is genersting in parallel/background.
+-2. the parallel note feature (my notes) is running standalone. theu are on the same screen but the user can either take notes or read notes ( note tab automatically shrink back at the bottom instead it should remain open to have more seamless note taking).
 
 ### ISSUE-001 — No skip button in quiz UI
 **Noticed:** 2026-05-11
