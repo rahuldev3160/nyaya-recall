@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE-006 —  the session notes generated for ir/governance session linked to subtopic g2o are vague, unorganised, unprocessed (directly fetched as it is from vector DB which are doesn't make sense for a user preparing for Upsc)- it should be simple notes on subtopics covering all the priority dimesnions of that subtopics (concept, pyq angles, current affairs linkages if any relevant and a broader linkage to the other related concepts/topics/subtopics)
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+ the session notes generated for ir/governance session linked to subtopic g2o are vague, unorganised, unprocessed (directly fetched as it is from vector DB which are doesn't make sense for a user preparing for Upsc)- it should be simple notes on subtopics covering all the priority dimesnions of that subtopics (concept, pyq angles, current affairs linkages if any relevant and a broader linkage to the other related concepts/topics/subtopics)
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE-005 — notes generated within session are vague, not structured, not organised, contain unnecessary details which a user does not need, and it fetches excerpts directly from db without being rewritten by model. ideally it should be like a brief comprehensive revision notes explaining the concepts (across dimensions necessary for exam) for which this note was generated
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
