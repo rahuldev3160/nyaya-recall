@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — at the end of the session, it is correctly showing the status as complete but missing the data on how many questions the user did right, add the user's score information too within the box which shows complete status
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+at the end of the session, it is correctly showing the status as complete but missing the data on how many questions the user did right, add the user's score information too within the box which shows complete status
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the option to go back to previous question is not there while in the session and attempting session questions- need to add that to allow use to revisit a question
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
