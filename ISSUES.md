@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — the note taking box at the right bottom corner should appear as a completely new note with each question and if user take any note- it should autosave as user input/notes linked to that particular question. - this way the note taking feature can be used much more effeciently to feed in the model training and make the model more personalised and fine tune with the users preference
+**Noticed:** 2026-05-13
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the note taking box at the right bottom corner should appear as a completely new note with each question and if user take any note- it should autosave as user input/notes linked to that particular question. - this way the note taking feature can be used much more effeciently to feed in the model training and make the model more personalised and fine tune with the users preference
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the sessions shows a label medium in yellow text color- this is unclear what it is , is it the medium level of the user or the medium level of notes and quiz generated in session, need to make all the labels on UI self explainatory for any random user
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
