@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — the sessions shows a label medium in yellow text color- this is unclear what it is , is it the medium level of the user or the medium level of notes and quiz generated in session, need to make all the labels on UI self explainatory for any random user
+**Noticed:** 2026-05-13
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the sessions shows a label medium in yellow text color- this is unclear what it is , is it the medium level of the user or the medium level of notes and quiz generated in session, need to make all the labels on UI self explainatory for any random user
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — while attempting the question a simple click save the user response and show the answer immedialtely, instead create a option at the bottom of options which let user to submit the response himself
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
