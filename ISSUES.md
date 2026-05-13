@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — introduce a time tracker that tracks time the user spents on the model/portal (if published for public), the time tracker has details section too which deep dives into time spent on each section of the model (i.e on attending sessions, doing quizes (diagnostics sections renamed), self attestation quizes, etc)
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+introduce a time tracker that tracks time the user spents on the model/portal (if published for public), the time tracker has details section too which deep dives into time spent on each section of the model (i.e on attending sessions, doing quizes (diagnostics sections renamed), self attestation quizes, etc)
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — can we integrate other AI tools like chatgpt as a chat tool inside model so that user can ask/explore more about a topic if he wants to, what will be the cost of this feature, how is this feature vs the existing features we have (i.e the deep dive feature and selecting text for more explaination feature where each click uses LLm ad incure a trasaction cost
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
