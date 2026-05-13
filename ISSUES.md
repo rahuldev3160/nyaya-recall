@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — at the end of the session, give a brief revision notes around the concepts which user attempted incorrectly, this revision note user consume right after the quiz session to lock in the concepts in memory effeciently. this will better serve the goal of the model which is to train the user for upsc prelims and that requires that user understand and retain concepts where he is attempting questions wrong
+**Noticed:** 2026-05-13
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+at the end of the session, give a brief revision notes around the concepts which user attempted incorrectly, this revision note user consume right after the quiz session to lock in the concepts in memory effeciently. this will better serve the goal of the model which is to train the user for upsc prelims and that requires that user understand and retain concepts where he is attempting questions wrong
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the note taking box at the right bottom corner should appear as a completely new note with each question and if user take any note- it should autosave as user input/notes linked to that particular question. - this way the note taking feature can be used much more effeciently to feed in the model training and make the model more personalised and fine tune with the users preference
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
