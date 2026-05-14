@@ -219,7 +219,7 @@ can we integrate other AI tools like chatgpt as a chat tool inside model so that
 ### ISSUE- — at the end of the session, it is correctly showing the status as complete but missing the data on how many questions the user did right, add the user's score information too within the box which shows complete status
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -242,7 +242,7 @@ at the end of the session, it is correctly showing the status as complete but mi
 ### ISSUE- — the option to go back to previous question is not there while in the session and attempting session questions- need to add that to allow use to revisit a question
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -357,7 +357,7 @@ the sessions shows a label medium in yellow text color- this is unclear what it 
 ### ISSUE- — while attempting the question a simple click save the user response and show the answer immedialtely, instead create a option at the bottom of options which let user to submit the response himself
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -403,7 +403,7 @@ the notes generated for a session covers all the important dimensions for a subt
 ### ISSUE- — after the session is complete, it does not show as completed in the today's session tab where all the scheduled sessions are, this does not allow the user to keep a track of what is complete and what is left, all the sessions looks exactly similar even after attempting some of them already
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -449,7 +449,7 @@ once a session is complete, there is no option to access it back as of now, this
 ### ISSUE-007 — there is no option to go back to previous question while attempting the quiz, this feature enables user to navigate independently within quiz (just like normal online exams, quizes happen)
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 

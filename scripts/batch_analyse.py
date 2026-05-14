@@ -67,9 +67,12 @@ def _build_syllabus_map() -> dict[str, dict]:
         syllabus = json.loads(SYLLABUS_PATH.read_text())
     except Exception:
         return {}
+    EXCLUDE_SUBJECTS = {"csat"}  # CSAT is standalone — never included in GS1 readiness
     result: dict[str, dict] = {}
     for subject in syllabus.get("subjects", []):
         sid = subject["id"]
+        if sid in EXCLUDE_SUBJECTS:
+            continue
         subtopics: list[str] = []
         for topic in subject.get("topics", []):
             for st in topic.get("subtopics", []):

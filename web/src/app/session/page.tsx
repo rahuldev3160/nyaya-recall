@@ -14,8 +14,14 @@ export default function SessionPage() {
   const [finished, setFinished] = useState(false);
   const [expanded, setExpanded] = useState<Record<number, string>>({});
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
+  const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
+  const [completedSessions, setCompletedSessions] = useState<Set<number>>(new Set());
 
   useEffect(() => { api.getPlan().then(setPlan).catch(() => {}); }, []);
+
+  useEffect(() => {
+    setPendingAnswer(null);
+  }, [currentQ]);
 
   const startSession = async (session: any, index: number) => {
     setLoading(true);
@@ -38,6 +44,7 @@ export default function SessionPage() {
       setAnswers({});
       setRevealed({});
       setFinished(false);
+      setPendingAnswer(null);
     } catch (e: any) {
       setError("Failed to generate session questions. Please try again.");
       setActiveSession(null);
@@ -51,6 +58,7 @@ export default function SessionPage() {
     const q = quiz.questions[currentQ];
     setAnswers((a) => ({ ...a, [currentQ]: opt }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
+    setPendingAnswer(null);
     await api.submitAnswer({
       session_id: quiz.session_id,
       question_hash: `${quiz.session_id}_${currentQ}`,
@@ -68,6 +76,7 @@ export default function SessionPage() {
   const finishSession = async () => {
     if (!quiz) return;
     try { await api.closeSession(quiz.session_id); } catch {}
+    setCompletedSessions((prev) => new Set([...prev, activeSession!]));
     setFinished(true);
   };
 
@@ -105,12 +114,19 @@ export default function SessionPage() {
   }
 
   if (finished) {
+    const total = quiz?.questions?.length ?? 0;
+    const correct = Object.entries(answers).filter(([idx, opt]) =>
+      quiz?.questions?.[parseInt(idx)]?.correct_answer === opt
+    ).length;
     return (
       <div className="max-w-xl space-y-6">
         <h1 className="text-2xl font-bold">Session Complete</h1>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
-          <p className="text-green-400 text-lg font-semibold mb-2">Saved!</p>
-          <p className="text-gray-400 text-sm">Session recorded. Keep going with the next session or sync your progress.</p>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center space-y-2">
+          <p className="text-green-400 text-lg font-semibold">Saved!</p>
+          <div className="text-4xl font-bold text-amber-400">
+            {total > 0 ? Math.round((correct / total) * 100) : 0}%
+          </div>
+          <div className="text-gray-400">{correct} / {total} correct</div>
         </div>
         <div className="flex gap-4">
           <button onClick={() => { setQuiz(null); setFinished(false); setActiveSession(null); }}
@@ -141,28 +157,40 @@ export default function SessionPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {plan.sessions.map((s: any, i: number) => (
-              <div key={i} className="flex items-center gap-4 p-4 bg-gray-900 rounded-xl border border-gray-800">
-                <div className="flex-1">
-                  <div className="font-medium text-white">
-                    {s.subject_id?.replace(/_/g, " ")} → {s.subtopic_id?.replace(/_/g, " ")}
+            {plan.sessions.map((s: any, i: number) => {
+              const done = completedSessions.has(i);
+              return (
+                <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
+                  done ? "bg-green-950/30 border-green-900" : "bg-gray-900 border-gray-800"
+                }`}>
+                  <div className="flex-1">
+                    <div className={`font-medium ${done ? "text-green-400" : "text-white"}`}>
+                      {done && <span className="mr-2">✓</span>}
+                      {s.subject_id?.replace(/_/g, " ")} → {s.subtopic_id?.replace(/_/g, " ")}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {s.format?.replace(/_/g, " ")} · {s.estimated_minutes} min
+                      {s.difficulty && s.difficulty !== "mixed" && (
+                        <span className="ml-2 text-amber-400">· {s.difficulty} difficulty</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {s.format?.replace(/_/g, " ")} · {s.estimated_minutes} min
-                    {s.difficulty && s.difficulty !== "mixed" && (
-                      <span className="ml-2 text-amber-400">· {s.difficulty}</span>
-                    )}
-                  </div>
+                  {done ? (
+                    <span className="text-green-400 text-sm font-medium px-3 py-1 bg-green-900/40 rounded-lg">
+                      Completed
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => startSession(s, i)}
+                      disabled={loading}
+                      className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm"
+                    >
+                      {loading && activeSession === i ? "Generating..." : "Start"}
+                    </button>
+                  )}
                 </div>
-                <button
-                  onClick={() => startSession(s, i)}
-                  disabled={loading}
-                  className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm"
-                >
-                  {loading && activeSession === i ? "Generating..." : "Start"}
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -175,6 +203,7 @@ export default function SessionPage() {
     { key: "c", text: q.option_c ?? "" }, { key: "d", text: q.option_d ?? "" },
   ];
   const isLast = currentQ === quiz.questions.length - 1;
+  const isAnswered = !!answers[currentQ];
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -191,19 +220,23 @@ export default function SessionPage() {
       </div>
 
       <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
-        <p className="text-white leading-relaxed">{q.question_text}</p>
+        <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
       </div>
 
       <div className="space-y-3">
         {options.map((opt) => {
+          const isPending = pendingAnswer === opt.key;
           const chosen = answers[currentQ] === opt.key;
           const correct = q.correct_answer === opt.key;
           const show = revealed[currentQ];
           return (
-            <button key={opt.key} onClick={() => submitAnswer(opt.key)} disabled={!!answers[currentQ]}
+            <button key={opt.key}
+              onClick={() => !isAnswered && setPendingAnswer(opt.key)}
+              disabled={isAnswered}
               className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                 show && correct ? "border-green-500 bg-green-500/10 text-green-300" :
                 show && chosen ? "border-red-500 bg-red-500/10 text-red-300" :
+                isPending ? "border-blue-500 bg-blue-500/10 text-blue-200" :
                 "border-gray-700 hover:border-gray-500 text-gray-200"
               }`}>
               <span className="font-medium mr-3 text-gray-500">({opt.key})</span>{opt.text}
@@ -211,6 +244,16 @@ export default function SessionPage() {
           );
         })}
       </div>
+
+      {/* Submit button — only shown when option selected but not yet submitted */}
+      {pendingAnswer && !isAnswered && (
+        <button
+          onClick={() => submitAnswer(pendingAnswer)}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors"
+        >
+          Submit Answer
+        </button>
+      )}
 
       {revealed[currentQ] && q.explanation && (
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-3">
@@ -239,13 +282,21 @@ export default function SessionPage() {
       )}
 
       <div className="flex gap-4">
-        {revealed[currentQ] && !isLast && (
+        {/* Previous — available any time except Q1 */}
+        {currentQ > 0 && (
+          <button onClick={() => setCurrentQ(currentQ - 1)}
+            className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
+            ← Previous
+          </button>
+        )}
+
+        {isAnswered && !isLast && (
           <button onClick={() => setCurrentQ(currentQ + 1)}
             className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg">
             Next →
           </button>
         )}
-        {revealed[currentQ] && isLast && (
+        {isAnswered && isLast && (
           <button onClick={finishSession}
             className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-lg">
             Finish Session

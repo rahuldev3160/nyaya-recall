@@ -31,9 +31,11 @@ export default function DiagnosticPage() {
   const [expanded, setExpanded] = useState<Record<number, string>>({});
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+  const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
 
   useEffect(() => {
     setQuestionStartTime(Date.now());
+    setPendingAnswer(null);
   }, [currentQ]);
 
   const startSession = async () => {
@@ -56,6 +58,7 @@ export default function DiagnosticPage() {
       setSkipped({});
       setFinished(false);
       setScore(null);
+      setPendingAnswer(null);
       setQuestionStartTime(Date.now());
     } catch (e: any) {
       setError("Failed to generate questions. Please try again.");
@@ -71,6 +74,7 @@ export default function DiagnosticPage() {
     const timeSec = Math.round((Date.now() - questionStartTime) / 1000);
     setAnswers((a) => ({ ...a, [currentQ]: opt }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
+    setPendingAnswer(null);
     await api.submitAnswer({
       session_id: session.session_id,
       question_hash: q.question_hash ?? `${session.session_id}_${currentQ}`,
@@ -91,6 +95,7 @@ export default function DiagnosticPage() {
     const timeSec = Math.round((Date.now() - questionStartTime) / 1000);
     setSkipped((s) => ({ ...s, [currentQ]: true }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
+    setPendingAnswer(null);
     await api.submitAnswer({
       session_id: session.session_id,
       question_hash: q.question_hash ?? `${session.session_id}_${currentQ}`,
@@ -236,6 +241,7 @@ export default function DiagnosticPage() {
     { key: "d", text: q.option_d ?? "" },
   ];
   const isLast = currentQ === session.questions.length - 1;
+  const isAnswered = !!answers[currentQ] || !!skipped[currentQ];
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -245,22 +251,24 @@ export default function DiagnosticPage() {
       </div>
 
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <p className="text-white leading-relaxed">{q.question_text}</p>
+        <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
       </div>
 
       <div className="space-y-3">
         {options.map((opt) => {
+          const isPending = pendingAnswer === opt.key;
           const chosen = answers[currentQ] === opt.key;
           const isCorrect = q.correct_answer === opt.key;
           const show = revealed[currentQ];
           return (
             <button
               key={opt.key}
-              onClick={() => submitAnswer(opt.key)}
-              disabled={!!answers[currentQ] || !!skipped[currentQ]}
+              onClick={() => !isAnswered && setPendingAnswer(opt.key)}
+              disabled={isAnswered}
               className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                 show && isCorrect ? "border-green-500 bg-green-500/10 text-green-300" :
                 show && chosen && !isCorrect ? "border-red-500 bg-red-500/10 text-red-300" :
+                isPending ? "border-blue-500 bg-blue-500/10 text-blue-200" :
                 "border-gray-700 hover:border-gray-500 text-gray-200"
               }`}
             >
@@ -270,7 +278,18 @@ export default function DiagnosticPage() {
         })}
       </div>
 
-      {!answers[currentQ] && !skipped[currentQ] && (
+      {/* Submit button — only shown when an option is selected but not yet submitted */}
+      {pendingAnswer && !isAnswered && (
+        <button
+          onClick={() => submitAnswer(pendingAnswer)}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors"
+        >
+          Submit Answer
+        </button>
+      )}
+
+      {/* Skip — only before any selection */}
+      {!isAnswered && !pendingAnswer && (
         <button
           onClick={skipQuestion}
           className="text-sm text-gray-500 hover:text-gray-300 border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-colors"
@@ -312,13 +331,21 @@ export default function DiagnosticPage() {
       )}
 
       <div className="flex gap-4">
-        {revealed[currentQ] && !isLast && (
+        {/* Previous button — available any time except on Q1 */}
+        {currentQ > 0 && (
+          <button onClick={() => setCurrentQ(currentQ - 1)}
+            className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
+            ← Previous
+          </button>
+        )}
+
+        {isAnswered && !isLast && (
           <button onClick={() => setCurrentQ(currentQ + 1)}
             className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg">
             Next Question →
           </button>
         )}
-        {revealed[currentQ] && isLast && (
+        {isAnswered && isLast && (
           <button onClick={finishSession}
             className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg">
             Finish & Save Session
