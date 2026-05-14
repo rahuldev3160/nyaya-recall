@@ -31,6 +31,58 @@
 ## Open
 
 ---
+
+### ISSUE-024 — Session progress lost on server restart; completed sessions reset on page refresh
+**Noticed:** 2026-05-15
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P0
+**Linked feature:** *(none)*
+
+**What happened:**
+User killed the server mid-session (or server crashed). On restart, Today's Sessions showed all sessions as "Start" again, including ones already completed. Clicking Start regenerated a new quiz from scratch, discarding the in-progress work.
+
+**The problem:**
+Two bugs:
+1. `completedSessions` is pure React state (`Set<number>`). Page refresh wipes it — all completed sessions re-appear as "Start" even though answers are in SQLite.
+2. Active quiz state (`session_id`, `questions`, `currentQ`, `answers`, `revealed`) lives only in React memory. Server restart → frontend reload → `startSession()` generates a NEW session_id/questions. Old in-progress session is orphaned in DB with no `end_time`, never counted.
+
+Note: individual answers ARE persisted to SQLite immediately on submit (via `record_answer()`). The data is not lost — only the UI state is lost.
+
+**Current state of the code:**
+`web/src/app/session/page.tsx` — all session state is transient React state. No localStorage or DB-backed restoration. `list_sessions` query filters `end_time IS NOT NULL`, so in-progress sessions are invisible to the frontend.
+
+**What's needed to fix:**
+localStorage for both stores (no backend change needed):
+- `upsc_completed_{date}` → `number[]` of completed plan-session indices (by date so it auto-resets next day)
+- `upsc_active_quiz` → full quiz snapshot; verified against `GET /sessions/{id}` on restore; discarded if session has `end_time`
+
+**Resolution:** Resolved 2026-05-15. `web/src/app/session/page.tsx` — added `ACTIVE_QUIZ_KEY` constant; four new effects: restore completedSessions on mount, save completedSessions on change, restore active quiz when plan loads (verified against DB), persist quiz state on every answer/navigation. `finishSession` clears localStorage on clean finish.
+
+---
+
+### ISSUE-021 — the time taking while generating session/quiz (in diagnostic section) is irritating- need to plan an interactive way for the user to keep engaged with the model/app while the session is generated at the background
+**Noticed:** 2026-05-15
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the time taking while generating session/quiz (in diagnostic section) is irritating- need to plan an interactive way for the user to keep engaged with the model/app while the session is generated at the background
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
 - 1. the loading time for sessions is 30-40secs, need to minimise this or invent a way to interect with user while session/quiz is genersting in parallel/background.
 -2. the parallel note feature (my notes) is running standalone. theu are on the same screen but the user can either take notes or read notes ( note tab automatically shrink back at the bottom instead it should remain open to have more seamless note taking).
 3. structure, organise model cleanly so that it can be utilized for upsc mains preperation, indian economics services exam, RBI depr exams too. There is overlap with all these 3 exams 
@@ -564,7 +616,7 @@ Fixed. Backend was already complete.
 ## How to add a new issue
 
 1. Copy the format block at the top
-2. Increment the issue number (next: ISSUE-024)
+2. Increment the issue number (next: ISSUE-025)
 3. Fill in all fields — especially "Current state of the code" so the next person
    doesn't have to re-investigate
 4. Add it under **Open**

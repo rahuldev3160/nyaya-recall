@@ -1,3 +1,20 @@
+# HANDOFF.md — Dev Session Update (May 15, 2026)
+
+### ISSUE-024 — Session progress persisted across server restarts — 2026-05-15
+
+**Two bugs fixed in `web/src/app/session/page.tsx` only (no backend changes):**
+
+1. **`completedSessions` now survives page refresh** — Stored in localStorage as `upsc_completed_{YYYY-MM-DD}` (date-keyed so it auto-resets each day). Restored on mount; saved on every change.
+
+2. **In-progress session auto-resumes after server restart** — Active quiz state (`session_id`, `questions`, `currentQ`, `answers`, `revealed`, `activeSession`) stored in localStorage key `upsc_active_quiz`. On page load (after plan loads, runs once via `restoredRef`), calls `GET /sessions/{id}` to verify the session is still open (no `end_time`). If open → restores full state silently. If session already closed or missing → discards localStorage entry. `finishSession()` explicitly removes the entry on clean finish.
+
+**Watch-outs:**
+- Individual answers were already persisted to SQLite on submit — this fix only restores the UI state, not the data.
+- The restore verification requires the backend to be running (it calls `GET /sessions/{id}`). If backend is down when page loads, the active quiz won't restore that visit.
+- `notes_summary` (session notes) is also stored and restored — so notes-then-quiz sessions resume with notes intact.
+
+---
+
 # HANDOFF.md — Dev Session Update (May 14, 2026 — evening)
 
 ### Quick wins — ISSUE-022 / ISSUE-020 / ISSUES.md housekeeping — 2026-05-14
