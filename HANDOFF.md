@@ -1,7 +1,99 @@
-# HANDOFF.md — Dev Session Update (May 11, 2026)
+# HANDOFF.md — Dev Session Update (May 14, 2026)
 
 > Read `COLLAB.md` first for the full project context and architecture overview.
 > This file covers what changed in the most recent dev session and what still needs work.
+
+---
+
+## What changed — May 14, 2026
+
+### 1. Session UX fixes — PR #2 open (fix/session-ux-improvements), awaiting merge
+
+Five issues fixed in one PR:
+
+| Issue | What changed | File |
+|-------|-------------|------|
+| ISSUE-021 | Submit button before answer reveal — option click highlights blue, Submit reveals | `web/src/app/diagnostic/page.tsx`, `web/src/app/session/page.tsx` |
+| ISSUE-007 | ← Previous button on both quiz pages, currentQ > 0 only | same |
+| ISSUE-016 | Session finish screen now shows score % + correct/total | `web/src/app/session/page.tsx` |
+| ISSUE-023 | Completed sessions show green ✓ badge in Today's Sessions list | `web/src/app/session/page.tsx` |
+| ISSUE-012 | CSAT excluded from GS1 readiness in `_build_syllabus_map()` | `scripts/batch_analyse.py` |
+
+Also added `whitespace-pre-wrap` to question text on both pages (fixes statement formatting).
+
+**Next action:** Rahul to merge PR #2 from phone. No approval gates — all UI-only or additive changes.
+
+---
+
+### 2. Feature idea inbox system — shipped to fix/explanation-quality branch
+
+New files:
+- `FEATURE_IDEAS.md` — structured idea inbox (Raw → Reviewed → Staged → Won't Build)
+- `scripts/log_feature.sh` — `log-feature "idea"` from terminal, auto-commits
+- `~/.zshrc` — `log-feature` alias added
+- `CLAUDE.md` — session-start workflow: sync GitHub Issues with `feature-request` label, evaluate Raw ideas, route to FEATURES.md or Won't Build (Suggested)
+- `.github/ISSUE_TEMPLATE/feature_request.md` — updated for phone logging
+
+**Phone logging flow:** GitHub mobile app → repo Issues → New Issue → Feature request template → add `feature-request` label → submit. Claude picks up at next session start.
+
+**GitHub auth:** `gh` CLI now authenticated as `rahuldev3160`. Token in macOS keychain. Use `GH_TOKEN=$(security find-internet-password -s github.com -a rahuldev3160 -w)` prefix in bash scripts since keychain isn't available in subshells.
+
+---
+
+### 3. fix/explanation-quality branch — NOT yet merged to main
+
+This branch has important fixes that should be merged before or alongside PR #2:
+- Explanation quality overhaul (ISSUE-009, 010, 011, 013): options context in prompts, no preamble in revision deck, per-wrong-option explanations
+- Notes synthesis + audio scripts
+- Feature inbox files (FEATURE_IDEAS.md etc.)
+
+**Next action:** open a PR for fix/explanation-quality → merge it → then merge PR #2.
+
+---
+
+### 4. Global Claude Code permissions configured
+
+`~/.claude/settings.json` updated — routine dev tools (git, npm, python, gh, ls, find, grep, curl, etc.) are auto-approved. Private folders (~/Documents, ~/Downloads, ~/Library, /etc, /System) are denied. No prompts for routine work.
+
+---
+
+## Open issues — current priority order
+
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| ISSUE-008 | Completed sessions accessible for review | Open P1 | Needs new page `web/src/app/sessions/[id]/page.tsx` |
+| ISSUE-019 | Note-taking resets per question + autosaves | Open P1 | Per-question note state in session/page.tsx |
+| ISSUE-020 | "Medium difficulty" label self-explanatory | Open P1 | Fixed in session/page.tsx to show "· medium difficulty" — verify in PR #2 |
+| ISSUE-017 | Note-taking as model feedback/training | Open P1 | Needs spec in plans/ before implementing |
+| ISSUE-014 | Time tracker for portal | Open P2 | Needs spec |
+| ISSUE-015 | AI chat integration evaluation | Open P2 | Cost/benefit analysis needed first |
+| ISSUE-002 | Notes-then-quiz session fix | In progress | Rahul to confirm notes appear in live session |
+
+---
+
+## Branch state
+
+| Branch | State | Action needed |
+|--------|-------|---------------|
+| `main` | 22 commits ahead of origin/main — push pending | `git push origin main` |
+| `fix/explanation-quality` | Pushed, no PR yet | Open PR, merge first |
+| `fix/session-ux-improvements` | PR #2 open | Rahul to merge |
+
+---
+
+## Start commands (unchanged)
+
+```bash
+# Tab 1 — Backend
+cd "/Users/rahulsingh/Desktop/Claude Projects/Last 10 Day AI powered Preparation/backend"
+uvicorn server:app --host 0.0.0.0 --port 8000
+
+# Tab 2 — Frontend
+cd "/Users/rahulsingh/Desktop/Claude Projects/Last 10 Day AI powered Preparation/web"
+npm run start -- -H 0.0.0.0
+
+# Phone (Tailscale): http://100.113.107.75:3000
+```
 
 ---
 
