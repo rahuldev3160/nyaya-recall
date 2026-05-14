@@ -6,6 +6,11 @@ Current prep profile (subject-level scores and insights):
 Subtopic coverage — the ground truth of what has and has not been diagnosed:
 {{subtopic_coverage}}
 
+Learner-reported signals from parallel session notes (latest first; may be empty):
+{{user_notes_signals}}
+
+When this array is non-empty, treat `still_weak: true` rows as explicit weak signals: prefer scheduling those `subtopic_id` values earlier today (respecting pyq_weight and other rules below). Use `confusion_excerpt` to understand what felt unclear; do not copy private text into the plan JSON verbatim — only reflect it in prioritisation and rationale wording.
+
 For each subject the coverage object contains:
   "untested": list of subtopics never attempted, sorted by pyq_weight DESCENDING (highest ROI first)
   "tested":   list of subtopics already attempted, with their current score
