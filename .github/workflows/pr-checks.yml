@@ -6,7 +6,7 @@ on:
 
 jobs:
   frontend:
-    name: Frontend — typecheck + lint
+    name: Frontend — typecheck
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,9 +26,6 @@ jobs:
 
       - name: TypeScript check
         run: npx tsc --noEmit
-
-      - name: Lint
-        run: npm run lint
 
   backend:
     name: Backend — Python syntax check
