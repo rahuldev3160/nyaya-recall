@@ -41,4 +41,6 @@ export const api = {
   submitAttestation: (body: object) => post("/attestation/claim", body),
   validateAttestation: (body: object) => post("/attestation/validate", body),
   expandConcept: (body: object) => post("/sessions/expand-concept", body),
+  getSessionHistory: (limit = 30) => get(`/sessions/?limit=${limit}`),
+  getSession: (id: string) => get(`/sessions/${id}`),
 };

@@ -18,6 +18,23 @@ _EXPAND_PROMPT = (Path(__file__).parent.parent.parent / "prompts" / "expand_conc
 _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 
+@router.get("/")
+def list_sessions(limit: int = 30):
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    rows = con.execute(
+        """SELECT id, subject_id, topic_id, score, start_time, end_time,
+                  total_questions, answered, skipped
+           FROM quiz_sessions
+           WHERE end_time IS NOT NULL
+           ORDER BY start_time DESC
+           LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    con.close()
+    return [dict(r) for r in rows]
+
+
 @router.post("/answer")
 def submit_answer(answer: dict):
     try:
