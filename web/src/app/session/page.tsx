@@ -274,12 +274,19 @@ export default function SessionPage() {
   }
 
   if (finished) {
+    const total = quiz?.questions?.length ?? 0;
+    const correct = Object.entries(answers).filter(([idx, opt]) =>
+      quiz?.questions?.[parseInt(idx)]?.correct_answer === opt
+    ).length;
     return (
       <div className="max-w-xl space-y-6">
         <h1 className="text-2xl font-bold">Session Complete</h1>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
-          <p className="text-green-400 text-lg font-semibold mb-2">Saved!</p>
-          <p className="text-gray-400 text-sm">Session recorded. Keep going with the next session or sync your progress.</p>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center space-y-2">
+          <p className="text-green-400 text-lg font-semibold">Saved!</p>
+          <div className="text-4xl font-bold text-amber-400">
+            {total > 0 ? Math.round((correct / total) * 100) : 0}%
+          </div>
+          <div className="text-gray-400">{correct} / {total} correct</div>
         </div>
         <div className="flex gap-4">
           <button
@@ -475,6 +482,12 @@ export default function SessionPage() {
         )}
 
         <div className="flex gap-4">
+          {currentQ > 0 && (
+            <button onClick={() => setCurrentQ(currentQ - 1)}
+              className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
+              ← Previous
+            </button>
+          )}
           {revealed[currentQ] && !isLast && (
             <button
               onClick={() => setCurrentQ(currentQ + 1)}

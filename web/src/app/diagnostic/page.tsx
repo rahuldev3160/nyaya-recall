@@ -368,6 +368,12 @@ export default function DiagnosticPage() {
       )}
 
       <div className="flex gap-4">
+        {currentQ > 0 && (
+          <button onClick={() => setCurrentQ(currentQ - 1)}
+            className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
+            ← Previous
+          </button>
+        )}
         {revealed[currentQ] && !isLast && (
           <button onClick={() => setCurrentQ(currentQ + 1)}
             className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg">
