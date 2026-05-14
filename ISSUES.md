@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — the model is not good at doing mathematical calculations- it generated a diagnostic CSAT test and itself marking wrong answers and contradicting itself in explaination too- we need to remove the CSAT section from the tracker for now, and remove its featuring in assessing the preparation level of the user too- basically keep the CSAT section entirely standalone and let the model access the preparation level os the user for GS paper 1 only and we will build the model for GS1 paper only, the goal is to prepare the user fully for GS1 paper of prelims for now
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the model is not good at doing mathematical calculations- it generated a diagnostic CSAT test and itself marking wrong answers and contradicting itself in explaination too- we need to remove the CSAT section from the tracker for now, and remove its featuring in assessing the preparation level of the user too- basically keep the CSAT section entirely standalone and let the model access the preparation level os the user for GS paper 1 only and we will build the model for GS1 paper only, the goal is to prepare the user fully for GS1 paper of prelims for now
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the explaination of the answers can be enriched - it should include a brief explaination of the correct option (which contains the core concept or facts etc) and also include brief explaination of why the other given options are not correct/explaintion of the concepts involved in wrong options/facts related to wrong options. This will give an enriched explaination to the user to better prepare for the exam
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
