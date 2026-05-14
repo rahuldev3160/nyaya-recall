@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — the format of questions generated specifically the statement based questions which include multiple statements is not good, it should be similar to how UPSC format - each statement starts from a new line (question looks clean this way)
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the format of questions generated specifically the statement based questions which include multiple statements is not good, it should be similar to how UPSC format - each statement starts from a new line (question looks clean this way)
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the model is not good at doing mathematical calculations- it generated a diagnostic CSAT test and itself marking wrong answers and contradicting itself in explaination too- we need to remove the CSAT section from the tracker for now, and remove its featuring in assessing the preparation level of the user too- basically keep the CSAT section entirely standalone and let the model access the preparation level os the user for GS paper 1 only and we will build the model for GS1 paper only, the goal is to prepare the user fully for GS1 paper of prelims for now
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
