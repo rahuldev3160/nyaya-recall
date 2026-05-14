@@ -53,4 +53,6 @@ export const api = {
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     }),
+  getSessionHistory: (limit = 30) => get(`/sessions/?limit=${limit}`),
+  getSession: (id: string) => get(`/sessions/${id}`),
 };
