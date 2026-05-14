@@ -195,6 +195,12 @@ Yes / No — reason
 
 ### Approval gates — ALWAYS stop and flag, never proceed autonomously
 
+**Sound alert rule:** Before asking Rahul for any approval, always run:
+```bash
+afplay /System/Library/Sounds/Ping.aiff
+```
+Rahul studies in another window and cannot see the terminal. The sound is his only signal to look. Do this BEFORE writing the question, not after.
+
 These require an explicit message or PR comment from Rahul before any work continues:
 
 - Any ALTER TABLE or DROP TABLE on existing DB tables

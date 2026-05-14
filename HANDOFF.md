@@ -1,11 +1,38 @@
-# HANDOFF.md — Dev Session Update (May 14, 2026)
+# HANDOFF.md — Dev Session Update (May 14, 2026 — evening)
 
 > Read `COLLAB.md` first for the full project context and architecture overview.
 > This file covers what changed in the most recent dev session and what still needs work.
 
 ---
 
-## What changed — May 14, 2026
+## What changed — May 14 evening session
+
+### 1. All 4 PRs merged and live
+
+All open PRs were merged and servers restarted with the full build:
+
+| PR | Branch | What it shipped |
+|----|--------|----------------|
+| PR #3 | fix/explanation-quality | Explanation quality overhaul (ISSUE-009/010/011/013), feature inbox, audio scripts |
+| PR #2 | fix/session-ux-improvements | Submit button, ← Previous, finish score, completed badge, CSAT exclusion |
+| PR #4 | fix/issue-008-session-review | Session history page (`/sessions`), session review page (`/sessions/[id]`), ChromaDB audit script |
+
+Frontend rebuilt (`npm run build`) — both servers running as background processes.
+
+### 2. Sound alert on approval gates
+
+**Problem:** Rahul studies in another window and misses approval requests.
+
+**Fix:**
+- `~/.claude/settings.json` — added `Notification` hook (`afplay Ping.aiff`) + added `Bash(afplay *)` and `Bash(pkill *)` to allow list
+- `CLAUDE.md` — new rule under Approval Gates: run `afplay /System/Library/Sounds/Ping.aiff` before writing any approval question
+- Memory saved: `feedback_sound_alert.md`
+
+**How it works:** `Notification` hook fires for background system events. For mid-conversation approval questions, Claude must manually call `afplay` as a Bash tool before asking.
+
+---
+
+## Open issues — current priority order
 
 ### 1. Session UX fixes — PR #2 open (fix/session-ux-improvements), awaiting merge
 
@@ -59,25 +86,33 @@ This branch has important fixes that should be merged before or alongside PR #2:
 
 ## Open issues — current priority order
 
-| # | Issue | Status | Notes |
-|---|-------|--------|-------|
-| ISSUE-008 | Completed sessions accessible for review | Open P1 | Needs new page `web/src/app/sessions/[id]/page.tsx` |
-| ISSUE-019 | Note-taking resets per question + autosaves | Open P1 | Per-question note state in session/page.tsx |
-| ISSUE-020 | "Medium difficulty" label self-explanatory | Open P1 | Fixed in session/page.tsx to show "· medium difficulty" — verify in PR #2 |
-| ISSUE-017 | Note-taking as model feedback/training | Open P1 | Needs spec in plans/ before implementing |
-| ISSUE-014 | Time tracker for portal | Open P2 | Needs spec |
-| ISSUE-015 | AI chat integration evaluation | Open P2 | Cost/benefit analysis needed first |
-| ISSUE-002 | Notes-then-quiz session fix | In progress | Rahul to confirm notes appear in live session |
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| ISSUE-007/016/021 | ← Previous + score + submit confirm in `session/page.tsx` | P1 | Patterns already done in `diagnostic/page.tsx` — one PR |
+| ISSUE-023 | Sessions not marked complete in Today's plan | P1 | Need to investigate which component renders plan sessions |
+| ISSUE-020 | "Medium" label unclear | P1 | Replace with "Medium difficulty" or add context |
+| ISSUE-019 | Note box doesn't reset/autosave per question | P1 | `session_user_notes` table exists; wire per-question index |
+| ISSUE-022 | Session notes missing core concept depth | P1 | Rewrite Core Concept section in `prompts/session_notes.txt` |
+| ISSUE-018 | No revision notes on session finish (adaptive) | P1 | Diagnostic has it; check if `session/page.tsx` also calls it |
+| ISSUE-012 | CSAT in tracker UI / readiness scoring | P1 | Audit `batch_analyse.py` + tracker page |
+| ISSUE-017 | Note-taking as feedback/training data | P1 | Spec needed first → `plans/feedback_training.md` |
+| ISSUE-014 | Portal time tracker | P2 | Spec needed |
+| ISSUE-015 | AI chat integration evaluation | P2 | Cost/benefit analysis needed |
+
+## Pending one-time tasks (need Rahul go-ahead)
+
+| Task | Cost | What it does |
+|------|------|--------------|
+| `python3 scripts/retag_pyq_subtopics.py` | ~$0.05 | Better PYQ→subtopic matching; improves readiness scoring |
+| `python3 scripts/check_chroma_coverage.py` | Free | Audit which subjects have thin/missing study material in ChromaDB |
 
 ---
 
 ## Branch state
 
-| Branch | State | Action needed |
-|--------|-------|---------------|
-| `main` | 22 commits ahead of origin/main — push pending | `git push origin main` |
-| `fix/explanation-quality` | Pushed, no PR yet | Open PR, merge first |
-| `fix/session-ux-improvements` | PR #2 open | Rahul to merge |
+| Branch | State |
+|--------|-------|
+| `main` | All 4 PRs merged and live. Clean. |
 
 ---
 
