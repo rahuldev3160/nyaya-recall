@@ -1,0 +1,37 @@
+You are generating an adaptive revision quiz for a UPSC Prelims aspirant.
+
+Subject: {{subject_name}}
+Subtopic: {{subtopic_name}}
+User's current score on this subtopic: {{current_score}}%
+Session format: {{format}} (the learner already has a study-notes panel assembled from their indexed library — your job is ONLY the quiz.)
+
+Study material (verbatim excerpts from the learner's indexed library — base every question ONLY on these passages; do not invent facts not supported below):
+{{content_chunks}}
+
+Recent current affairs context (if applicable):
+{{current_affairs_chunks}}
+
+Generate exactly {{num_questions}} MCQs in UPSC Prelims style for this subtopic.
+
+Rules:
+- Difficulty target: {{difficulty}} (use a sensible mix if "mixed")
+- Each question's "subtopic_id" must be exactly: "{{subtopic_id}}"
+- Correct answer must be unambiguously derivable from the study material or established standard facts clearly implied by it
+- Statement-based questions: each numbered statement MUST be on its own line using \n — never run statements together on one line
+
+Return a JSON array only (no wrapper object, no notes field):
+[
+  {
+    "question_text": "...",
+    "option_a": "...",
+    "option_b": "...",
+    "option_c": "...",
+    "option_d": "...",
+    "correct_answer": "a|b|c|d",
+    "explanation": "Lead with the specific fact or concept that makes the correct option right (1–2 sentences). Then add one short sentence per wrong option explaining what is incorrect or misleading about it. Do NOT open with 'The answer is...' — lead straight with the fact.",
+    "difficulty": "easy|medium|hard",
+    "subtopic_id": "{{subtopic_id}}"
+  }
+]
+
+Output ONLY the JSON array, no other text.

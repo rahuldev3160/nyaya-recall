@@ -31,330 +31,12 @@
 ## Open
 
 ---
-
-### ISSUE- — the revision deck generated to revise the incorrect attempts in the diagnostic tests is producing contradictory explainations with the actual answers (which itslef are marked correct by model but the explaination is false and mixes the inforamtion)
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the revision deck generated to revise the incorrect attempts in the diagnostic tests is producing contradictory explainations with the actual answers (which itslef are marked correct by model but the explaination is false and mixes the inforamtion)
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the revision deck after the end of diagnostic explains unnecessarry details which user already know, it is consuming first 2-3 lines just to reiterate which the correct option is and what user choose and that its incorrect (this detail is completely unnecessary as user is able to infer this himself), the explaination could cover more dimensions of the concept asked which are relevant for upsc instead
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the revision deck after the end of diagnostic explains unnecessarry details which user already know, it is consuming first 2-3 lines just to reiterate which the correct option is and what user choose and that its incorrect (this detail is completely unnecessary as user is able to infer this himself), the explaination could cover more dimensions of the concept asked which are relevant for upsc instead
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the format of questions generated specifically the statement based questions which include multiple statements is not good, it should be similar to how UPSC format - each statement starts from a new line (question looks clean this way)
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the format of questions generated specifically the statement based questions which include multiple statements is not good, it should be similar to how UPSC format - each statement starts from a new line (question looks clean this way)
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the model is not good at doing mathematical calculations- it generated a diagnostic CSAT test and itself marking wrong answers and contradicting itself in explaination too- we need to remove the CSAT section from the tracker for now, and remove its featuring in assessing the preparation level of the user too- basically keep the CSAT section entirely standalone and let the model access the preparation level os the user for GS paper 1 only and we will build the model for GS1 paper only, the goal is to prepare the user fully for GS1 paper of prelims for now
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the model is not good at doing mathematical calculations- it generated a diagnostic CSAT test and itself marking wrong answers and contradicting itself in explaination too- we need to remove the CSAT section from the tracker for now, and remove its featuring in assessing the preparation level of the user too- basically keep the CSAT section entirely standalone and let the model access the preparation level os the user for GS paper 1 only and we will build the model for GS1 paper only, the goal is to prepare the user fully for GS1 paper of prelims for now
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the explaination of the answers can be enriched - it should include a brief explaination of the correct option (which contains the core concept or facts etc) and also include brief explaination of why the other given options are not correct/explaintion of the concepts involved in wrong options/facts related to wrong options. This will give an enriched explaination to the user to better prepare for the exam
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the explaination of the answers can be enriched - it should include a brief explaination of the correct option (which contains the core concept or facts etc) and also include brief explaination of why the other given options are not correct/explaintion of the concepts involved in wrong options/facts related to wrong options. This will give an enriched explaination to the user to better prepare for the exam
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the explaination after attempting a question should include brief explaination of the correct answer and a brief explaination of why the other options are wrong (i.e brief explainations of the concepts/facts of other wrong options)- this will make the model better in equiping the user useful information in a highly effective manner (question answer format is good for making a user learn new concepts and avoid possible mistakes by explaining about the wrong options in the question)
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the explaination after attempting a question should include brief explaination of the correct answer and a brief explaination of why the other options are wrong (i.e brief explainations of the concepts/facts of other wrong options)- this will make the model better in equiping the user useful information in a highly effective manner (question answer format is good for making a user learn new concepts and avoid possible mistakes by explaining about the wrong options in the question)
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — introduce a time tracker that tracks time the user spents on the model/portal (if published for public), the time tracker has details section too which deep dives into time spent on each section of the model (i.e on attending sessions, doing quizes (diagnostics sections renamed), self attestation quizes, etc)
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-introduce a time tracker that tracks time the user spents on the model/portal (if published for public), the time tracker has details section too which deep dives into time spent on each section of the model (i.e on attending sessions, doing quizes (diagnostics sections renamed), self attestation quizes, etc)
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — can we integrate other AI tools like chatgpt as a chat tool inside model so that user can ask/explore more about a topic if he wants to, what will be the cost of this feature, how is this feature vs the existing features we have (i.e the deep dive feature and selecting text for more explaination feature where each click uses LLm ad incure a trasaction cost
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-can we integrate other AI tools like chatgpt as a chat tool inside model so that user can ask/explore more about a topic if he wants to, what will be the cost of this feature, how is this feature vs the existing features we have (i.e the deep dive feature and selecting text for more explaination feature where each click uses LLm ad incure a trasaction cost
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — at the end of the session, it is correctly showing the status as complete but missing the data on how many questions the user did right, add the user's score information too within the box which shows complete status
-**Noticed:** 2026-05-14
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-at the end of the session, it is correctly showing the status as complete but missing the data on how many questions the user did right, add the user's score information too within the box which shows complete status
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the option to go back to previous question is not there while in the session and attempting session questions- need to add that to allow use to revisit a question
-**Noticed:** 2026-05-13
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the option to go back to previous question is not there while in the session and attempting session questions- need to add that to allow use to revisit a question
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the note taking button for the time being can serve as a excellent tool to train our model- i can give a feedback as to what was correct, what should have been included and what could have been omitted and what is absolutely incorrect/misplaced in that particular context- this way we can generate a massive data for training model linked with each of the question, session notes, diagnostic session questions etc...basically this will improve the model via refinig the prompt which goes to llm for generating questions, session notes, quizes or anything else- we also need to store these notes taken by user well indexed and organised as this is a rich data minutely linked to every question which is generated by llm
-**Noticed:** 2026-05-13
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the note taking button for the time being can serve as a excellent tool to train our model- i can give a feedback as to what was correct, what should have been included and what could have been omitted and what is absolutely incorrect/misplaced in that particular context- this way we can generate a massive data for training model linked with each of the question, session notes, diagnostic session questions etc...basically this will improve the model via refinig the prompt which goes to llm for generating questions, session notes, quizes or anything else- we also need to store these notes taken by user well indexed and organised as this is a rich data minutely linked to every question which is generated by llm
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — at the end of the session, give a brief revision notes around the concepts which user attempted incorrectly, this revision note user consume right after the quiz session to lock in the concepts in memory effeciently. this will better serve the goal of the model which is to train the user for upsc prelims and that requires that user understand and retain concepts where he is attempting questions wrong
-**Noticed:** 2026-05-13
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-at the end of the session, give a brief revision notes around the concepts which user attempted incorrectly, this revision note user consume right after the quiz session to lock in the concepts in memory effeciently. this will better serve the goal of the model which is to train the user for upsc prelims and that requires that user understand and retain concepts where he is attempting questions wrong
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the note taking box at the right bottom corner should appear as a completely new note with each question and if user take any note- it should autosave as user input/notes linked to that particular question. - this way the note taking feature can be used much more effeciently to feed in the model training and make the model more personalised and fine tune with the users preference
-**Noticed:** 2026-05-13
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the note taking box at the right bottom corner should appear as a completely new note with each question and if user take any note- it should autosave as user input/notes linked to that particular question. - this way the note taking feature can be used much more effeciently to feed in the model training and make the model more personalised and fine tune with the users preference
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — the sessions shows a label medium in yellow text color- this is unclear what it is , is it the medium level of the user or the medium level of notes and quiz generated in session, need to make all the labels on UI self explainatory for any random user
-**Noticed:** 2026-05-13
-**Reported by:** Rahul
-**Status:** Open
-**Priority:** P1
-**Linked feature:** *(to be linked)*
-
-**What happened:**
-*(fill in — what were you doing when you noticed this)*
-
-**The problem:**
-the sessions shows a label medium in yellow text color- this is unclear what it is , is it the medium level of the user or the medium level of notes and quiz generated in session, need to make all the labels on UI self explainatory for any random user
-
-**Current state of the code:**
-*(Claude to investigate)*
-
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
-
----
-
-### ISSUE- — while attempting the question a simple click save the user response and show the answer immedialtely, instead create a option at the bottom of options which let user to submit the response himself
+- 1. the loading time for sessions is 30-40secs, need to minimise this or invent a way to interect with user while session/quiz is genersting in parallel/background.
+-2. the parallel note feature (my notes) is running standalone. theu are on the same screen but the user can either take notes or read notes ( note tab automatically shrink back at the bottom instead it should remain open to have more seamless note taking).
+3. structure, organise model cleanly so that it can be utilized for upsc mains preperation, indian economics services exam, RBI depr exams too. There is overlap with all these 3 exams 
+4.
+
+### ISSUE-023 — Sessions not marked complete after finishing
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
 **Status:** Open
@@ -362,10 +44,10 @@ the sessions shows a label medium in yellow text color- this is unclear what it 
 **Linked feature:** *(to be linked)*
 
 **What happened:**
-*(fill in — what were you doing when you noticed this)*
+After completing a session, the today's sessions tab still shows it looking identical to unstarted sessions.
 
 **The problem:**
-while attempting the question a simple click save the user response and show the answer immedialtely, instead create a option at the bottom of options which let user to submit the response himself
+After the session is complete, it does not show as completed in the today's session tab where all the scheduled sessions are, this does not allow the user to keep a track of what is complete and what is left, all the sessions looks exactly similar even after attempting some of them already.
 
 **Current state of the code:**
 *(Claude to investigate)*
@@ -377,7 +59,7 @@ while attempting the question a simple click save the user response and show the
 
 ---
 
-### ISSUE- — the notes generated for a session covers all the important dimensions for a subtopic correctly but the explaination around the core concept is missing (for eg: the note on g20, brics subtopic session correctly identified organisations, broader concepts about how are they structured in globalised world, geopolitical angles, pyq angles, current affairs but did not sufficiently explained the confusing concepts or facts, it also should have explained a bit more on BRICS (given the current affairs mention that india as BRICS chair for 2026 clubbed with its expanding nature makes it automatically a concept which user need to read comprehensively in brief and notes should deliver that
+### ISSUE-022 — Session notes missing core concept depth
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
 **Status:** Open
@@ -385,22 +67,22 @@ while attempting the question a simple click save the user response and show the
 **Linked feature:** *(to be linked)*
 
 **What happened:**
-*(fill in — what were you doing when you noticed this)*
+Notes on G20/BRICS subtopic covered angles and linkages correctly but didn't explain the concepts themselves sufficiently (e.g. India as BRICS chair 2026 warranted deeper coverage).
 
 **The problem:**
-the notes generated for a session covers all the important dimensions for a subtopic correctly but the explaination around the core concept is missing (for eg: the note on g20, brics subtopic session correctly identified organisations, broader concepts about how are they structured in globalised world, geopolitical angles, pyq angles, current affairs but did not sufficiently explained the confusing concepts or facts, it also should have explained a bit more on BRICS (given the current affairs mention that india as BRICS chair for 2026 clubbed with its expanding nature makes it automatically a concept which user need to read comprehensively in brief and notes should deliver that
+The notes generated for a session covers all the important dimensions for a subtopic correctly but the explanation around the core concept is missing. Notes should deliver a brief but comprehensive explanation of the concept alongside the angles/linkages.
 
 **Current state of the code:**
-*(Claude to investigate)*
+`prompts/session_notes.txt` — Haiku prompt with 4 fixed sections (Core Concept / PYQ Angles / Current Affairs Linkages / Broader Linkages). Core Concept section may be too brief.
 
 **What's needed to fix:**
-*(Claude to determine)*
+Rewrite the Core Concept section instruction in `prompts/session_notes.txt` to require substantive explanation of confusing/complex facts, not just a one-liner identifier.
 
 **Resolution:** *(pending)*
 
 ---
 
-### ISSUE- — after the session is complete, it does not show as completed in the today's session tab where all the scheduled sessions are, this does not allow the user to keep a track of what is complete and what is left, all the sessions looks exactly similar even after attempting some of them already
+### ISSUE-021 — Click immediately reveals answer — no submit step
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
 **Status:** Open
@@ -408,45 +90,208 @@ the notes generated for a session covers all the important dimensions for a subt
 **Linked feature:** *(to be linked)*
 
 **What happened:**
-*(fill in — what were you doing when you noticed this)*
+User was attempting a quiz and a single click on an option immediately saved the response and showed the answer.
 
 **The problem:**
-after the session is complete, it does not show as completed in the today's session tab where all the scheduled sessions are, this does not allow the user to keep a track of what is complete and what is left, all the sessions looks exactly similar even after attempting some of them already
+While attempting the question a simple click saves the user response and shows the answer immediately; instead create an option at the bottom of options which let user submit the response himself.
 
 **Current state of the code:**
-*(Claude to investigate)*
+`web/src/app/diagnostic/page.tsx` — `submitAnswer()` is called directly on option click. A `pendingAnswer` state and Submit button were partially added in a recent session but may not be wired fully.
 
 **What's needed to fix:**
-*(Claude to determine)*
+Confirm the Submit button flow is complete: option click sets `pendingAnswer` (highlighted), Submit button calls `submitAnswer(pendingAnswer)`, answer only revealed after Submit.
 
 **Resolution:** *(pending)*
 
 ---
 
-### ISSUE-008 — once a session is complete, there is no option to access it back as of now, this blocks users revisiting the session to revise a question or concept from the notes of the session
-**Noticed:** 2026-05-12
+### ISSUE-020 — "Medium" label on sessions is unclear
+**Noticed:** 2026-05-13
 **Reported by:** Rahul
 **Status:** Open
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
 **What happened:**
-*(fill in — what were you doing when you noticed this)*
+User noticed a yellow "Medium" label on session cards and couldn't tell what it referred to.
 
 **The problem:**
-once a session is complete, there is no option to access it back as of now, this blocks users revisiting the session to revise a question or concept from the notes of the session
+The sessions shows a label "medium" in yellow text colour — this is unclear what it is. All labels on UI should be self-explanatory for any random user.
 
 **Current state of the code:**
-*(Claude to investigate)*
+*(Claude to investigate — likely the difficulty field on study_plan sessions rendered as a raw string)*
 
 **What's needed to fix:**
-*(Claude to determine)*
+Either replace "medium" with "Medium difficulty" or add a tooltip. Investigate which component renders this label.
 
 **Resolution:** *(pending)*
 
 ---
 
-### ISSUE-007 — there is no option to go back to previous question while attempting the quiz, this feature enables user to navigate independently within quiz (just like normal online exams, quizes happen)
+### ISSUE-019 — Note-taking box should reset per question and autosave
+**Noticed:** 2026-05-13
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User tried to take per-question notes during a session.
+
+**The problem:**
+The note taking box at the right bottom corner should appear as a completely new note with each question and if user takes any note it should autosave linked to that particular question.
+
+**Current state of the code:**
+`session_user_notes` table exists. Notes are linked at session level, not per-question. The `question_context_index` column exists in the schema but the UI may not use it correctly per question.
+
+**What's needed to fix:**
+Ensure note textarea clears on `currentQ` change; autosave links to current `question_context_index`; on question return, repopulate note for that question index.
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-018 — No end-of-session revision notes for incorrect attempts
+**Noticed:** 2026-05-13
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User finished a session and wanted brief revision notes on concepts where they answered incorrectly.
+
+**The problem:**
+At the end of the session, give brief revision notes around the concepts which user attempted incorrectly, so the user can consume them right after the quiz session to lock in the concepts in memory.
+
+**Current state of the code:**
+`POST /sessions/{session_id}/revision-notes` already exists and the diagnostic page already calls it and renders the revision deck. This issue may already be partially shipped — verify if it's working end-to-end and only open if revision deck is missing from session page (adaptive sessions).
+
+**What's needed to fix:**
+Verify revision deck appears in both `diagnostic/page.tsx` and `session/page.tsx`. If missing from session page, add the same finish-flow logic.
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-017 — Note-taking as model feedback and training data
+**Noticed:** 2026-05-13
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User realised the note-taking box could double as a feedback mechanism for improving prompts.
+
+**The problem:**
+The note-taking button can serve as a tool to train our model — user can give feedback on what was correct, what should have been included, what could have been omitted, and what is incorrect. This generates training data linked to each question/session. Notes need to be stored well-indexed and organised.
+
+**Current state of the code:**
+`session_user_notes` table stores free-text. `plan_generator.fetch_user_notes_signals()` reads `still_weak` flag. No structured feedback taxonomy or prompt refinement loop exists yet.
+
+**What's needed to fix:**
+Spec required before implementing. Write `plans/feedback_training.md`.
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-016 — Session completion box missing score
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User finished a diagnostic session and saw the "complete" status box but no score.
+
+**The problem:**
+At the end of the session, it is correctly showing the status as complete but missing the data on how many questions the user did right. Add score information within the box which shows complete status.
+
+**Current state of the code:**
+`diagnostic/page.tsx` `finished` view already renders score (`{correct} / {attempted} correct`). This may be specific to the `session/page.tsx` (adaptive sessions) — investigate which page is missing the score.
+
+**What's needed to fix:**
+Check `session/page.tsx` finished state and confirm score summary is rendered there.
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-015 — Evaluate integrating an AI chat tool for topic exploration
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P2
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User wanted to explore a topic deeper while in a session and asked about chat integration.
+
+**The problem:**
+Can we integrate other AI tools like ChatGPT as a chat tool inside the model so that user can ask/explore more about a topic? What will be the cost vs the existing deep-dive and explain-selection features?
+
+**Current state of the code:**
+Existing on-demand features: "Dive deeper →" (`expand_concept`), "Explain selected text" (`expand_notes_selection`). Both use Claude Haiku, user-triggered, per-click cost.
+
+**What's needed to fix:**
+Spec + cost analysis before any implementation. The existing Dive deeper / Explain selection features may already cover this need — evaluate first.
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-014 — Time tracker for portal
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P2
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User wanted to track how much time they spend in different sections of the portal.
+
+**The problem:**
+Introduce a time tracker that tracks time the user spends on the portal. The details section deep-dives into time spent on each section (sessions, diagnostics, self-attestation quizzes, etc.).
+
+**Current state of the code:**
+`time_taken_sec` is tracked per question in `session_answers`. No portal-level time tracking exists.
+
+**What's needed to fix:**
+New feature — spec required before implementing. Write `plans/time_tracker.md`.
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-012 — CSAT must be removed from readiness scoring and plan generation
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+CSAT diagnostic test generated by the model marked wrong answers and contradicted itself in explanations — LLMs are unreliable at maths calculations.
+
+**The problem:**
+Remove CSAT from the tracker, from readiness scoring, and from plan generation entirely. Keep CSAT section as a completely standalone system. Assess preparation level for GS Paper 1 only. Build the model for GS1 paper only for now.
+
+**Current state of the code:**
+`scripts/plan_generator.py` already excludes CSAT from subject list (added May 12). `scripts/batch_analyse.py` may still include CSAT in overall readiness. Dashboard tracker may show CSAT row. `data/study_plan.json` CSAT sessions already removed.
+
+**What's needed to fix:**
+1. Audit `batch_analyse.py` to confirm CSAT excluded from readiness %
+2. Remove CSAT row from dashboard tracker UI
+3. Confirm plan_generator.py exclusion is complete
+
+**Resolution:** *(pending)*
+
+---
+
+### ISSUE-008 — Completed sessions not accessible for review
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
 **Status:** Open
@@ -454,18 +299,135 @@ once a session is complete, there is no option to access it back as of now, this
 **Linked feature:** *(to be linked)*
 
 **What happened:**
-*(fill in — what were you doing when you noticed this)*
+User finished a session and wanted to go back to review a question or concept from the notes.
 
 **The problem:**
-there is no option to go back to previous question while attempting the quiz, this feature enables user to navigate independently within quiz (just like normal online exams, quizes happen)
+Once a session is complete, there is no option to access it back as of now; this blocks users revisiting the session to revise a question or concept from the notes.
 
 **Current state of the code:**
-*(Claude to investigate)*
+`GET /sessions/{session_id}` endpoint exists and returns session + answers. No frontend page or route to display past sessions.
 
 **What's needed to fix:**
-*(Claude to determine)*
+New page `web/src/app/sessions/[id]/page.tsx` that fetches and renders a completed session in read-only mode (notes + all questions with correct answers revealed).
 
 **Resolution:** *(pending)*
+
+---
+
+### ISSUE-007 — No previous question navigation in quiz
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User wanted to go back to a previous question during a quiz (standard behaviour in online exams).
+
+**The problem:**
+There is no option to go back to previous question while attempting the quiz. This feature enables user to navigate independently within quiz (just like normal online exams).
+
+**Current state of the code:**
+`diagnostic/page.tsx` and `session/page.tsx` — forward-only navigation. `currentQ` state increments only.
+
+**What's needed to fix:**
+Add "← Previous" button that decrements `currentQ` when `currentQ > 0`. Answers/revealed state is already keyed by question index so past answers will still show correctly on return. Unanswered questions should remain answerable on revisit; revealed questions should show in read-only mode.
+
+**Resolution:** *(pending)*
+
+---
+
+## Resolved
+
+---
+
+### ISSUE-013 — Explanation enrichment: wrong options not explained
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User noticed per-question explanations only stated the correct concept without explaining why each wrong option was incorrect or misleading. Raised twice (once for revision deck, once for in-quiz explanations).
+
+**The problem:**
+Explanations should include: (1) brief explanation of why the correct option is right, and (2) brief explanation of why each wrong option is incorrect — facts, concepts, or distinctions relevant to each distractor.
+
+**Current state of the code (at time of fix):**
+`prompts/diagnostic_quiz.txt`, `adaptive_session.txt`, `adaptive_quiz_only.txt` all had weak/empty explanation specs ("2-3 sentences" or "...").
+
+**What's needed to fix:**
+Update explanation instruction in all three quiz generation prompts.
+
+**Resolution:** Resolved 2026-05-14.
+- `prompts/diagnostic_quiz.txt`, `prompts/adaptive_session.txt`, `prompts/adaptive_quiz_only.txt` — explanation spec updated: lead with the core fact for the correct option, then one sentence per wrong option explaining what is incorrect or misleading about it.
+
+---
+
+### ISSUE-011 — Statement-based questions not formatted in UPSC style
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User noticed statement-based questions had all statements crammed into a single line instead of each on its own line (standard UPSC format).
+
+**The problem:**
+Statement-based questions should follow UPSC format with each numbered statement starting on a new line (clean visual layout).
+
+**Current state of the code (at time of fix):**
+No instruction to use `\n` in question_text for statements. Question text rendered as `<p>` without `whitespace-pre-wrap`.
+
+**Resolution:** Resolved 2026-05-14.
+- `prompts/diagnostic_quiz.txt`, `prompts/adaptive_session.txt`, `prompts/adaptive_quiz_only.txt` — added rule: each numbered statement must be on its own line using `\n`.
+- `web/src/app/diagnostic/page.tsx`, `web/src/app/session/page.tsx` — added `whitespace-pre-wrap` to question text paragraph so `\n` renders correctly.
+
+---
+
+### ISSUE-010 — Revision deck wastes space on obvious information
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User read the revision deck after a session and found the first 2-3 lines just restated which option was chosen and that it was wrong — information already visible in the UI.
+
+**The problem:**
+The revision deck explanation should skip the obvious preamble and cover more useful dimensions of the concept instead.
+
+**Current state of the code (at time of fix):**
+`prompts/revision_notes.txt` instructed Haiku to "explain why the student's choice was wrong" — triggering preamble. UI already shows "You chose: (X)" and "Correct: (Y)" labels separately.
+
+**Resolution:** Resolved 2026-05-14. `prompts/revision_notes.txt` rewritten: explicit instruction not to restate what student chose or what the correct answer is (UI shows this). Explanation leads straight with the core fact.
+
+---
+
+### ISSUE-009 — Revision deck produces contradictory or false explanations
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+User reviewed the post-session revision deck and found explanations that contradicted the correct answer or mixed up information between options.
+
+**The problem:**
+The revision deck was generating explanations where the correct answer was sometimes misidentified and the explanation was factually wrong or internally contradictory.
+
+**Current state of the code (at time of fix):**
+`backend/routes/sessions.py` `get_revision_notes()` selected only `question_text, correct_answer, user_answer` — the option texts were never fetched or passed to Haiku. Haiku was explaining options it could not read. `max_tokens=300` was also insufficient for a full 4-option explanation.
+
+**Resolution:** Resolved 2026-05-14.
+- `sessions.py` — SELECT now includes `options` column; options JSON parsed and substituted into `{{option_a}}` / `{{option_b}}` / `{{option_c}}` / `{{option_d}}` in the prompt.
+- `prompts/revision_notes.txt` — rewritten to include full option text context, explain correct option fact + one sentence per wrong option.
+- `max_tokens` increased from 300 → 600.
+- Cache key bumped to `:v2` so stale entries (generated without option texts) are not reused.
 
 ---
 
@@ -513,55 +475,48 @@ Fixed. Replaced with `synthesize_notes_cached()`.
 
 ---
 
-### ISSUE-004 — this is a test for issue log through terminal
+### ISSUE-003 — Session notes: explore links, parallel notetaking, plan personalisation
 **Noticed:** 2026-05-12
-**Reported by:** Rahul
-**Status:** Open
+**Reported by:** Rahul (approved scope same day)
+**Status:** Resolved
 **Priority:** P1
-**Linked feature:** *(to be linked)*
+**Linked feature:** `FEATURES.md` — Notes deep-links + selection explain; Parallel session notes + plan signals
 
 **What happened:**
-*(fill in — what were you doing when you noticed this)*
+User approved (1) actionable links inside vector-sourced notes + on-demand "explain selection", (2) parallel structured notetaking during read + quiz, (3) notes drawer **closed by default** once a session starts, (4) entries in FEATURES + ISSUES.
 
 **The problem:**
-this is a test for issue log through terminal
+Notes lacked per-excerpt source links; no way to deep-dive a highlighted phrase from the notes card; no persisted parallel notes; planner did not see self-reported weak signals.
 
-**Current state of the code:**
-*(Claude to investigate)*
+**Current state of the code (2026-05-12):**
+- `quiz.py` — `build_notes_from_vector_chunks`: after each excerpt, *Open full source:* → `/api/backend/library/file?rel=…` when resolvable under `UPSC_CONTENT_PATH`.
+- `POST /sessions/expand-notes-selection`, `prompts/expand_notes_selection.txt` (Haiku, user-triggered only).
+- `session_user_notes` in `scripts/db_init.py`; `server.py` lifespan creates table if missing.
+- `GET` / `PUT` `/sessions/{session_id}/user-notes` in `backend/routes/sessions.py`.
+- `web/src/app/session/page.tsx` — "Explain selected text" under Key Concepts; **My notes** FAB + slide-over; debounced save; `flushUserNotes` on Finish.
+- `plan_generator.fetch_user_notes_signals()` + `plan_generation.txt` `{{user_notes_signals}}` + rule to prioritise `still_weak` subtopics.
 
-**What's needed to fix:**
-*(Claude to determine)*
-
-**Resolution:** *(pending)*
+**Resolution:** Shipped 2026-05-12. **Stretch (post–20 May):** PDF page anchors in links, NLP on free-text notes, automatic merge into `prep_profile.json`.
 
 ---
 
 ### ISSUE-002 — Planned session (notes then quiz) shows quiz only, no notes
-**Noticed:** 2026-05-12  
-**Reported by:** Rahul  
-**Status:** In progress — parser fix landed 2026-05-12; Rahul to confirm after 2026-05-13 session  
-**Priority:** P1  
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
 **Linked feature:** Plan session formats (`plan_generation.txt` `notes_then_quiz`); adaptive quiz generation (`prompts/adaptive_session.txt`, `backend/routes/quiz.py`, `web/src/app/session/page.tsx`)
 
-**What happened:**  
-A planned session whose format is **notes then quiz** was started from Today’s Sessions. The UI should show the “Key Concepts — Read Before Quiz” block (`quiz.notes_summary`) before questions; only the quiz appeared.
+**What happened:**
+A planned session whose format is **notes then quiz** was started from Today's Sessions. The UI should show the "Key Concepts — Read Before Quiz" block (`quiz.notes_summary`) before questions; only the quiz appeared.
 
-**The problem:**  
-Notes block never appears even when the plan says notes-then-quiz. User only gets questions.
+**The problem:**
+Notes block never appeared even when the plan said notes-then-quiz. User only got questions.
 
-**Current state of the code:**  
-- Frontend correctly sets `show_notes: session.format === "notes_then_quiz"` when calling `api.generateQuiz` (`web/src/app/session/page.tsx`).  
-- Prompt template `adaptive_session.txt` asks for JSON with `notes_summary` + `questions` when the notes branch is active.  
-- **Bug in `generate_quiz` JSON extraction:** `quiz.py` uses `start = raw.find("[") if "[" in raw else raw.find("{")`. For a normal object response `{"notes_summary":"...","questions":[...]}`, `"[" in raw` is true (the questions array), so the slice is **only the questions array**. Parser then treats the result as a `list`, so `notes_summary` is dropped (`notes = None`). Same symptom if the model returns a perfect object.  
-- UI only renders notes when `quiz.notes_summary` is truthy (`session/page.tsx`).
+**Current state of the code:**
+Fixed 2026-05-12.
 
-**What's needed to fix:**  
-1. **Parser:** Prefer extracting a top-level JSON **object** when `{` appears before the opening `[` of `questions` (or always try object bounds first for adaptive / `show_notes` responses).  
-2. **Optional hardening:** If `show_notes` and `notes` is null after parse, retry or log server-side for debugging.  
-3. After fix, re-test a `notes_then_quiz` planned session end-to-end.
-
-**Resolution:** *(pending user verification)*  
-2026-05-12: **Root cause** was `quiz.py` choosing the first `[` in the model output, which for `{"notes_summary":...,"questions":[...]}` slices only the questions array so `notes_summary` is always `null`. Replaced with logic that prefers a top-level JSON object when `{` appears before `[`. Move to **Resolved** after tomorrow’s session confirms notes appear; if not, re-open investigation (model omitting `notes_summary`, proxy stripping fields, etc.).
+**Resolution:** Resolved 2026-05-12. Root cause was `quiz.py` choosing the first `[` in the model output, which for `{"notes_summary":...,"questions":[...]}` sliced only the questions array so `notes_summary` was always `null`. Replaced with logic that prefers a top-level JSON object when `{` appears before `[`. Confirmed working by Rahul 2026-05-14.
 
 ---
 
@@ -580,90 +535,33 @@ abandonment of the session, which doesn't reflect actual exam conditions.
 
 **The problem:**
 No Skip button exists in the diagnostic session UI. Users cannot intentionally skip a
-question the way they would in the real exam. This also means:
-- No record of which questions the user chose not to attempt
-- No data on skip patterns per subject/topic (which would signal uncertainty clusters)
-- Exam strategy practice is unrealistic without the skip option
+question the way they would in the real exam.
 
 **Current state of the code:**
-Backend is **100% complete** — no backend work needed:
-- `session_answers.skipped` column exists in the DB schema
-- `score_engine.record_answer()` already stores the `skipped` flag (`answer.get("skipped")`)
-- `close_session()` already excludes skipped answers from score: `correct / max(total - skipped, 1)`
-- `_store_session_summary()`, `_update_subtopic_scores()`, `_update_subtopic_difficulties()`
-  all already handle `skipped=True` rows correctly
-
-Frontend (`web/src/app/diagnostic/page.tsx`): **zero skip functionality** — no button, no
-state, nothing. Grep for "skip" returns no results in the file.
-
-**What's needed to fix:**
-
-*Part A — Skip button (est. ~1–2 hrs frontend only):*
-1. Add a `[Skip →]` button below the answer options (before the user has selected anything)
-2. On click: call `api.submitAnswer({ ..., skipped: true, user_answer: null, is_correct: false })`
-3. Button should disappear once an option is selected or answer is revealed
-4. Advance to next question the same way a normal answer does
-
-*Part B — Skip metacognition (est. ~1 hr, depends on `plans/metacognition_capture.md` Phase 2):*
-After user clicks Skip, show a lightweight prompt before advancing:
-```
-Why are you skipping?
-[ Uncertain — can't decide ]   [ Risky — avoiding negative marking ]
-[ Completely unfamiliar ]      [ Running out of time ]
-                                                    [ Skip without reason → ]
-```
-Store as a new `skip_reason` field in `answer_metacognition` table.
-This data signals: is the user applying good exam strategy (skipping tactically) or
-skipping out of disengagement?
-
-*Part B is optional and should be built as part of the metacognition capture feature, not
-as a prerequisite for Part A. Ship Part A first independently.*
+Fixed. Backend was already complete.
 
 **Resolution:** Fixed 2026-05-11. Added `skipQuestion()` in `web/src/app/diagnostic/page.tsx` — calls `api.submitAnswer` with `skipped: true, user_answer: null`, sets `revealed` so Next/Finish buttons appear. Skip button hidden once any option is selected. Skipped card shows correct answer. Finish screen shows skipped count separately; score % is calculated over attempted questions only (not skipped). Backend was already complete.
 
 ---
 
-## Resolved
-
-### ISSUE-003 — Session notes: explore links, parallel notetaking, plan personalisation
-**Noticed:** 2026-05-12  
-**Reported by:** Rahul (approved scope same day)  
-**Status:** Resolved  
-**Priority:** P1  
-**Linked feature:** `FEATURES.md` — Notes deep-links + selection explain; Parallel session notes + plan signals
-
-**What happened:**  
-User approved (1) actionable links inside vector-sourced notes + on-demand “explain selection”, (2) parallel structured notetaking during read + quiz, (3) notes drawer **closed by default** once a session starts, (4) entries in FEATURES + ISSUES.
-
-**The problem:**  
-Notes lacked per-excerpt source links; no way to deep-dive a highlighted phrase from the notes card; no persisted parallel notes; planner did not see self-reported weak signals.
-
-**Current state of the code (2026-05-12):**  
-- `quiz.py` — `build_notes_from_vector_chunks`: after each excerpt, *Open full source:* → `/api/backend/library/file?rel=…` when resolvable under `UPSC_CONTENT_PATH`.  
-- `POST /sessions/expand-notes-selection`, `prompts/expand_notes_selection.txt` (Haiku, user-triggered only).  
-- `session_user_notes` in `scripts/db_init.py`; `server.py` lifespan creates table if missing.  
-- `GET` / `PUT` `/sessions/{session_id}/user-notes` in `backend/routes/sessions.py`.  
-- `web/src/app/session/page.tsx` — “Explain selected text” under Key Concepts; **My notes** FAB + slide-over; debounced save; `flushUserNotes` on Finish.  
-- `plan_generator.fetch_user_notes_signals()` + `plan_generation.txt` `{{user_notes_signals}}` + rule to prioritise `still_weak` subtopics.
-
-**Resolution:** Shipped 2026-05-12. **Stretch (post–20 May):** PDF page anchors in links, NLP on free-text notes, automatic merge into `prep_profile.json`.
-
----
-
-### ISSUE-001 — see Open section above (moved to Resolved 2026-05-11)
-
----
-
 ## Won't fix
 
-*(none yet)*
+---
+
+### ISSUE-004 — Test issue log entry
+**Noticed:** 2026-05-12
+**Reported by:** Rahul
+**Status:** Won't fix
+**Priority:** P1
+
+**Resolution:** This was a test of the issue logging workflow. No code change needed.
 
 ---
 
 ## How to add a new issue
 
 1. Copy the format block at the top
-2. Increment the issue number (ISSUE-002, etc.)
+2. Increment the issue number (next: ISSUE-024)
 3. Fill in all fields — especially "Current state of the code" so the next person
    doesn't have to re-investigate
 4. Add it under **Open**
