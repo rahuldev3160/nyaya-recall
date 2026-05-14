@@ -51,6 +51,30 @@ Claude picks it up at the next session start.
 
 *(Claude reviews these at session start and fills in the analysis block)*
 
+### IDEA-002 — test feature from terminal after shell reload
+**Logged:** 2026-05-14
+**Source:** terminal
+**Status:** Raw
+**Priority guess:** P2
+
+**What's the idea:**
+test feature from terminal after shell reload
+
+**Why it matters:**
+*(fill in — what friction does this solve?)*
+
+---
+
+**[Claude] Recommendation:** *(to be filled)*
+**[Claude] Feasibility:** *(to be filled)*
+**[Claude] Impact on prep:** *(to be filled)*
+**[Claude] Effort estimate:** *(to be filled)*
+**[Claude] Verdict:** *(to be filled)*
+**[Claude] If dropping — reason:** *(to be filled)*
+
+---
+
+
 ---
 
 ### IDEA-001 — Test: verify feature inbox pipeline works end-to-end
@@ -100,4 +124,4 @@ Validates the full phone → GitHub Issue → FEATURE_IDEAS.md → Claude review
 
 ---
 
-## Next IDEA number: 002
+## Next IDEA number: 003
