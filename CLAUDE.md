@@ -110,6 +110,41 @@ sessions. Everything is logged in FEATURES.md, ISSUES.md, and plans/. An AI agen
 Code) picks up tasks from those files and implements them. Rahul approves via GitHub PR on
 his phone. He is not a developer — keep him in the loop only for critical approvals.
 
+### Feature idea inbox — run this FIRST at every session start
+
+Before picking up any dev work, process the feature idea inbox:
+
+1. **Sync GitHub Issues:**
+   ```bash
+   /opt/homebrew/bin/gh issue list --repo rahuldev3160/upsc-ai-prep --label feature-request --state open --json number,title,body,createdAt
+   ```
+   For each issue not already referenced in `FEATURE_IDEAS.md` (check for `GitHub Issue #N`):
+   - Assign next IDEA-NNN (read `## Next IDEA number:` from the file)
+   - Add it to the `## Raw` section with Source: `GitHub Issue #N`
+   - Close the GitHub Issue with comment: `"Logged as IDEA-NNN in FEATURE_IDEAS.md — will be evaluated this session."`
+
+2. **Evaluate every idea in `## Raw`:**
+   For each Raw idea, fill in the `[Claude]` analysis block:
+   - **Feasibility:** can it be built with FastAPI + Next.js + SQLite + Claude API in <1 day?
+   - **Impact on prep:** does it meaningfully help UPSC study in the remaining days?
+   - **Effort estimate:** rough hours
+   - **Recommendation:** one of — `Implement` | `Spec first` | `Defer post-exam` | `Drop`
+   - Move the idea from `## Raw` to `## Reviewed`
+
+3. **Route reviewed ideas:**
+   - `Implement` or `Spec first` → add to `FEATURES.md → 📋 Queued`, create stub `plans/<slug>.md` (3-4 bullet outline), move idea to `## Staged`
+   - `Drop` → move to `## Won't Build (Suggested)`, do NOT delete
+   - `Defer post-exam` → move to `## Reviewed` (leave there, low priority)
+
+4. **Flag Won't Build (Suggested) ideas to Rahul:**
+   At the start of the session summary, list any ideas in `## Won't Build (Suggested)` and ask:
+   `"IDEA-NNN ('title') flagged for removal: [reason]. Confirm to move to Won't Build (Confirmed)?"`
+   Only move to `## Won't Build (Confirmed)` after explicit confirmation.
+
+5. **Update `## Next IDEA number:`** at the bottom of `FEATURE_IDEAS.md` after any additions.
+
+---
+
 ### How to pick up work each session
 
 1. Read `ISSUES.md` → any **Open** items are highest priority (live bugs blocking study)
