@@ -51,52 +51,7 @@ Claude picks it up at the next session start.
 
 *(Claude reviews these at session start and fills in the analysis block)*
 
-### IDEA-002 — test feature from terminal after shell reload
-**Logged:** 2026-05-14
-**Source:** terminal
-**Status:** Raw
-**Priority guess:** P2
-
-**What's the idea:**
-test feature from terminal after shell reload
-
-**Why it matters:**
-*(fill in — what friction does this solve?)*
-
----
-
-**[Claude] Recommendation:** *(to be filled)*
-**[Claude] Feasibility:** *(to be filled)*
-**[Claude] Impact on prep:** *(to be filled)*
-**[Claude] Effort estimate:** *(to be filled)*
-**[Claude] Verdict:** *(to be filled)*
-**[Claude] If dropping — reason:** *(to be filled)*
-
----
-
-
----
-
-### IDEA-001 — Test: verify feature inbox pipeline works end-to-end
-**Logged:** 2026-05-14
-**Source:** GitHub Issue #1
-**Status:** Raw
-**Priority guess:** P3
-
-**What's the idea:**
-Test run to confirm Claude can read GitHub Issues from the phone and sync them into this file.
-
-**Why it matters:**
-Validates the full phone → GitHub Issue → FEATURE_IDEAS.md → Claude review pipeline before relying on it.
-
----
-
-**[Claude] Recommendation:** *(to be filled)*
-**[Claude] Feasibility:** *(to be filled)*
-**[Claude] Impact on prep:** *(to be filled)*
-**[Claude] Effort estimate:** *(to be filled)*
-**[Claude] Verdict:** *(to be filled)*
-**[Claude] If dropping — reason:** *(to be filled)*
+*(none)*
 
 ---
 
@@ -115,6 +70,26 @@ Validates the full phone → GitHub Issue → FEATURE_IDEAS.md → Claude review
 ## Won't Build (Suggested) — awaiting Rahul's confirmation
 
 *(Claude flagged these as not worth building. Rahul must explicitly confirm before they move to Won't Build (Confirmed). Do NOT delete until confirmed.)*
+
+### IDEA-002 — test feature from terminal after shell reload
+**Logged:** 2026-05-14
+**Source:** terminal
+**Status:** Won't Build (Suggested)
+
+**[Claude] Recommendation:** Drop
+**[Claude] Verdict:** This is a test log entry for verifying the `log-feature` alias works. No real feature idea here.
+**[Claude] If dropping — reason:** Test entry — no functional idea to build.
+
+---
+
+### IDEA-001 — Test: verify feature inbox pipeline works end-to-end
+**Logged:** 2026-05-14
+**Source:** GitHub Issue #1
+**Status:** Won't Build (Suggested)
+
+**[Claude] Recommendation:** Drop
+**[Claude] Verdict:** Pipeline is confirmed working (this entry was successfully synced and reviewed). No code to build.
+**[Claude] If dropping — reason:** Test entry — pipeline verified, nothing to implement.
 
 ---
 

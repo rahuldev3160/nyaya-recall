@@ -133,15 +133,39 @@ def expand_notes_selection(body: dict):
     return {"explanation": explanation}
 
 
+def _ensure_question_notes_table(con: sqlite3.Connection) -> None:
+    """Create per-question notes table if it doesn't exist (additive — no ALTER TABLE)."""
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS session_question_notes (
+            session_id   TEXT NOT NULL,
+            question_index INTEGER NOT NULL,
+            user_id      TEXT DEFAULT 'user_1',
+            note_text    TEXT DEFAULT '',
+            updated_at   TEXT DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (session_id, question_index)
+        )
+        """
+    )
+    con.commit()
+
+
 @router.get("/{session_id}/user-notes")
 def get_user_notes(session_id: str):
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
+    _ensure_question_notes_table(con)
     row = con.execute(
         "SELECT * FROM session_user_notes WHERE session_id=? AND user_id='user_1'",
         (session_id,),
     ).fetchone()
+    # Also return per-question notes as a dict keyed by question index
+    q_rows = con.execute(
+        "SELECT question_index, note_text FROM session_question_notes WHERE session_id=? AND user_id='user_1'",
+        (session_id,),
+    ).fetchall()
     con.close()
+    per_question: dict = {str(r["question_index"]): r["note_text"] for r in q_rows}
     if not row:
         return {
             "session_id": session_id,
@@ -151,9 +175,11 @@ def get_user_notes(session_id: str):
             "question_context_index": None,
             "subtopic_id": "",
             "subject_id": "",
+            "per_question_notes": per_question,
         }
     d = dict(row)
     d["still_weak"] = bool(d.get("still_weak"))
+    d["per_question_notes"] = per_question
     return d
 
 
@@ -164,6 +190,7 @@ def put_user_notes(session_id: str, body: dict):
         raise HTTPException(status_code=400, detail="subtopic_id required")
 
     con = sqlite3.connect(DB_PATH)
+    _ensure_question_notes_table(con)
     exists = con.execute("SELECT 1 FROM quiz_sessions WHERE id=?", (session_id,)).fetchone()
     if not exists:
         con.close()
@@ -180,6 +207,7 @@ def put_user_notes(session_id: str, body: dict):
     subject_id = str(body.get("subject_id", "") or "")
     now = datetime.now(timezone.utc).isoformat()
 
+    # Save session-level fields (mnemonic, still_weak) and per-question confusion note
     con.execute(
         """
         INSERT INTO session_user_notes
@@ -206,6 +234,21 @@ def put_user_notes(session_id: str, body: dict):
             now,
         ),
     )
+
+    # If a per-question note is included, save it keyed by question_index
+    note_text = body.get("note_text")
+    if note_text is not None and qidx is not None:
+        con.execute(
+            """
+            INSERT INTO session_question_notes (session_id, question_index, user_id, note_text, updated_at)
+            VALUES (?, ?, 'user_1', ?, ?)
+            ON CONFLICT(session_id, question_index) DO UPDATE SET
+                note_text=excluded.note_text,
+                updated_at=excluded.updated_at
+            """,
+            (session_id, qidx, str(note_text)[:8000], now),
+        )
+
     con.commit()
     con.close()
     return {"status": "saved"}
