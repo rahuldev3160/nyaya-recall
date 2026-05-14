@@ -16,6 +16,7 @@ Generate exactly {{num_questions}} MCQs in UPSC Prelims style.
 
 Rules:
 - Use varied formats: statement-based ("Consider the following statements…"), direct recall, match-the-following
+- Statement-based questions: each numbered statement MUST be on its own line using \n (e.g. "Consider the following statements:\n1. ...\n2. ...\n3. ...\nWhich of the above is/are correct?") — never run statements together on one line
 - easy = factual recall, medium = application/inference, hard = multi-statement with close distractors
 - Where current affairs context relates to a subtopic, include at least 1 current-affairs-linked question for it
 - Correct answer must be unambiguously derivable from content or established UPSC standard
@@ -30,7 +31,7 @@ Return a JSON array. Each object:
     "option_c": "...",
     "option_d": "...",
     "correct_answer": "a|b|c|d",
-    "explanation": "2-3 sentences citing the specific concept",
+    "explanation": "Lead with the specific fact or concept that makes the correct option right (1–2 sentences). Then add one short sentence per wrong option explaining what is incorrect or misleading about it. Do NOT open with 'The answer is...' or repeat the option letter as an opener — lead straight with the fact.",
     "subtopic_id": "<exact subtopic_id from allocation>",
     "difficulty": "easy|medium|hard"
   }

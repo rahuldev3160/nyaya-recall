@@ -1,6 +1,51 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import type { Components } from "react-markdown";
 import { api } from "@/lib/api";
+
+const notesMarkdownComponents: Partial<Components> = {
+  h2: ({ children, ...props }) => (
+    <h2 className="text-lg font-semibold text-blue-200 mt-4 first:mt-0 mb-2" {...props}>{children}</h2>
+  ),
+  h3: ({ children, ...props }) => (
+    <h3 className="text-base font-semibold text-blue-100 mt-4 mb-2" {...props}>{children}</h3>
+  ),
+  h4: ({ children, ...props }) => (
+    <h4 className="text-sm font-medium text-gray-200 mt-3 mb-1.5" {...props}>{children}</h4>
+  ),
+  p: ({ children, ...props }) => (
+    <p className="text-gray-200 text-sm leading-relaxed mb-2 last:mb-0" {...props}>{children}</p>
+  ),
+  ul: ({ children, ...props }) => (
+    <ul className="list-disc pl-5 text-gray-200 text-sm space-y-1 mb-3" {...props}>{children}</ul>
+  ),
+  ol: ({ children, ...props }) => (
+    <ol className="list-decimal pl-5 text-gray-200 text-sm space-y-1 mb-3" {...props}>{children}</ol>
+  ),
+  li: ({ children, ...props }) => (
+    <li className="leading-relaxed" {...props}>{children}</li>
+  ),
+  a: ({ children, ...props }) => (
+    <a className="text-blue-400 hover:text-blue-300 underline underline-offset-2" target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
+  ),
+  strong: ({ children, ...props }) => (
+    <strong className="font-semibold text-gray-100" {...props}>{children}</strong>
+  ),
+  em: ({ children, ...props }) => (
+    <em className="italic text-gray-300" {...props}>{children}</em>
+  ),
+  code: ({ children, ...props }) => (
+    <code className="rounded bg-gray-900/80 px-1.5 py-0.5 text-xs text-amber-100/90" {...props}>{children}</code>
+  ),
+  hr: () => <hr className="border-gray-700 my-4" />,
+  blockquote: ({ children, ...props }) => (
+    <blockquote className="border-l-2 border-blue-600 pl-3 text-gray-400 text-sm italic my-2" {...props}>{children}</blockquote>
+  ),
+};
+
+type UserNotesState = { confusion: string; mnemonic: string; still_weak: boolean };
 
 export default function SessionPage() {
   const [plan, setPlan] = useState<any>(null);
@@ -14,18 +59,103 @@ export default function SessionPage() {
   const [finished, setFinished] = useState(false);
   const [expanded, setExpanded] = useState<Record<number, string>>({});
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
+
   const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
   const [completedSessions, setCompletedSessions] = useState<Set<number>>(new Set());
+  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+  const [userNotes, setUserNotes] = useState<UserNotesState>({
+    confusion: "",
+    mnemonic: "",
+    still_weak: false,
+  });
+  const notesDirty = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { api.getPlan().then(setPlan).catch(() => {}); }, []);
+  const [notesExplainLoading, setNotesExplainLoading] = useState(false);
+  const [notesExplainText, setNotesExplainText] = useState<string | null>(null);
+  const [notesExplainErr, setNotesExplainErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.getPlan().then(setPlan).catch(() => {});
+  }, []);
+
+  const sessionMeta = plan?.sessions?.[activeSession ?? -1];
+
+  const flushUserNotes = useCallback(async () => {
+    if (!quiz?.session_id || !notesDirty.current || activeSession === null) return;
+    const s = plan?.sessions?.[activeSession];
+    if (!s?.subtopic_id) return;
+    try {
+      await api.putUserNotes(quiz.session_id, {
+        subtopic_id: s.subtopic_id,
+        subject_id: s.subject_id ?? "",
+        confusion: userNotes.confusion,
+        mnemonic: userNotes.mnemonic,
+        still_weak: userNotes.still_weak,
+        question_context_index: currentQ,
+      });
+      notesDirty.current = false;
+    } catch {
+      /* ignore */
+    }
+  }, [quiz?.session_id, activeSession, plan, userNotes, currentQ]);
 
   useEffect(() => {
     setPendingAnswer(null);
   }, [currentQ]);
 
+  useEffect(() => {
+    if (!quiz?.session_id) return;
+    setNotesPanelOpen(false);
+    notesDirty.current = false;
+    setNotesExplainText(null);
+    setNotesExplainErr(null);
+    api
+      .getUserNotes(quiz.session_id)
+      .then((d) => {
+        setUserNotes({
+          confusion: d.confusion || "",
+          mnemonic: d.mnemonic || "",
+          still_weak: !!d.still_weak,
+        });
+      })
+      .catch(() => {});
+  }, [quiz?.session_id]);
+
+  useEffect(() => {
+    if (!quiz?.session_id || activeSession === null || !notesDirty.current) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      const s = plan?.sessions?.[activeSession];
+      if (!s?.subtopic_id) return;
+      api
+        .putUserNotes(quiz.session_id, {
+          subtopic_id: s.subtopic_id,
+          subject_id: s.subject_id ?? "",
+          confusion: userNotes.confusion,
+          mnemonic: userNotes.mnemonic,
+          still_weak: userNotes.still_weak,
+          question_context_index: currentQ,
+        })
+        .then(() => {
+          notesDirty.current = false;
+        })
+        .catch(() => {});
+    }, 700);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [userNotes, quiz?.session_id, currentQ, activeSession, plan]);
+
+  const patchUserNotes = (patch: Partial<UserNotesState>) => {
+    notesDirty.current = true;
+    setUserNotes((n) => ({ ...n, ...patch }));
+  };
+
   const startSession = async (session: any, index: number) => {
     setLoading(true);
     setError(null);
+    setPendingAnswer(null);
     setActiveSession(index);
     try {
       const data = await api.generateQuiz({
@@ -44,7 +174,6 @@ export default function SessionPage() {
       setAnswers({});
       setRevealed({});
       setFinished(false);
-      setPendingAnswer(null);
     } catch (e: any) {
       setError("Failed to generate session questions. Please try again.");
       setActiveSession(null);
@@ -58,7 +187,6 @@ export default function SessionPage() {
     const q = quiz.questions[currentQ];
     setAnswers((a) => ({ ...a, [currentQ]: opt }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
-    setPendingAnswer(null);
     await api.submitAnswer({
       session_id: quiz.session_id,
       question_hash: `${quiz.session_id}_${currentQ}`,
@@ -75,8 +203,15 @@ export default function SessionPage() {
 
   const finishSession = async () => {
     if (!quiz) return;
-    try { await api.closeSession(quiz.session_id); } catch {}
-    setCompletedSessions((prev) => new Set([...prev, activeSession!]));
+    await flushUserNotes();
+    try {
+      await api.closeSession(quiz.session_id);
+    } catch {
+      /* ignore */
+    }
+    if (activeSession !== null) {
+      setCompletedSessions((prev) => { const next = new Set(prev); next.add(activeSession); return next; });
+    }
     setFinished(true);
   };
 
@@ -98,6 +233,31 @@ export default function SessionPage() {
       setExpanded((e) => ({ ...e, [idx]: "Unable to load deep dive. Please try again." }));
     } finally {
       setExpandLoading((l) => ({ ...l, [idx]: false }));
+    }
+  };
+
+  const explainNotesSelection = async () => {
+    const sel = typeof window !== "undefined" ? window.getSelection()?.toString().trim() ?? "" : "";
+    if (!quiz || !sessionMeta?.subtopic_id) return;
+    if (sel.length < 12) {
+      setNotesExplainErr("Select a phrase in Key Concepts (at least ~12 characters), then try again.");
+      setNotesExplainText(null);
+      return;
+    }
+    setNotesExplainErr(null);
+    setNotesExplainLoading(true);
+    try {
+      const data = await api.expandNotesSelection({
+        selected_excerpt: sel,
+        subtopic_id: sessionMeta.subtopic_id,
+        subject_id: sessionMeta.subject_id ?? "",
+      });
+      setNotesExplainText(data.explanation);
+    } catch {
+      setNotesExplainErr("Could not load explanation. Try a shorter selection.");
+      setNotesExplainText(null);
+    } finally {
+      setNotesExplainLoading(false);
     }
   };
 
@@ -129,11 +289,20 @@ export default function SessionPage() {
           <div className="text-gray-400">{correct} / {total} correct</div>
         </div>
         <div className="flex gap-4">
-          <button onClick={() => { setQuiz(null); setFinished(false); setActiveSession(null); }}
-            className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm">
+          <button
+            onClick={() => {
+              setQuiz(null);
+              setFinished(false);
+              setActiveSession(null);
+            }}
+            className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm"
+          >
             Next Session
           </button>
-          <a href="/" className="flex-1 text-center border border-gray-700 text-gray-300 hover:text-white py-2 rounded-lg text-sm">
+          <a
+            href="/"
+            className="flex-1 text-center border border-gray-700 text-gray-300 hover:text-white py-2 rounded-lg text-sm"
+          >
             Dashboard
           </a>
         </div>
@@ -150,35 +319,33 @@ export default function SessionPage() {
           <div className="bg-red-950 border border-red-800 rounded-lg px-4 py-3 text-red-300 text-sm">{error}</div>
         )}
 
-        {(!plan.sessions || plan.sessions.length === 0) ? (
+        {!plan.sessions || plan.sessions.length === 0 ? (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-gray-400">
             <p>No sessions in today&apos;s plan.</p>
-            <a href="/planner" className="text-amber-400 text-sm hover:underline mt-2 block">Regenerate plan →</a>
+            <a href="/planner" className="text-amber-400 text-sm hover:underline mt-2 block">
+              Regenerate plan →
+            </a>
           </div>
         ) : (
           <div className="space-y-3">
             {plan.sessions.map((s: any, i: number) => {
               const done = completedSessions.has(i);
               return (
-                <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
-                  done ? "bg-green-950/30 border-green-900" : "bg-gray-900 border-gray-800"
-                }`}>
+                <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${done ? "bg-green-950/30 border-green-900/50" : "bg-gray-900 border-gray-800"}`}>
                   <div className="flex-1">
-                    <div className={`font-medium ${done ? "text-green-400" : "text-white"}`}>
+                    <div className={`font-medium ${done ? "text-green-300" : "text-white"}`}>
                       {done && <span className="mr-2">✓</span>}
                       {s.subject_id?.replace(/_/g, " ")} → {s.subtopic_id?.replace(/_/g, " ")}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
                       {s.format?.replace(/_/g, " ")} · {s.estimated_minutes} min
                       {s.difficulty && s.difficulty !== "mixed" && (
-                        <span className="ml-2 text-amber-400">· {s.difficulty} difficulty</span>
+                        <span className="ml-2 text-amber-400">· Difficulty: {s.difficulty}</span>
                       )}
                     </div>
                   </div>
                   {done ? (
-                    <span className="text-green-400 text-sm font-medium px-3 py-1 bg-green-900/40 rounded-lg">
-                      Completed
-                    </span>
+                    <span className="text-green-400 text-sm font-medium px-4 py-2">Completed</span>
                   ) : (
                     <button
                       onClick={() => startSession(s, i)}
@@ -199,110 +366,203 @@ export default function SessionPage() {
 
   const q = quiz.questions[currentQ];
   const options = [
-    { key: "a", text: q.option_a ?? "" }, { key: "b", text: q.option_b ?? "" },
-    { key: "c", text: q.option_c ?? "" }, { key: "d", text: q.option_d ?? "" },
+    { key: "a", text: q.option_a ?? "" },
+    { key: "b", text: q.option_b ?? "" },
+    { key: "c", text: q.option_c ?? "" },
+    { key: "d", text: q.option_d ?? "" },
   ];
   const isLast = currentQ === quiz.questions.length - 1;
-  const isAnswered = !!answers[currentQ];
 
   return (
-    <div className="max-w-2xl space-y-6">
-      {quiz.notes_summary && !answers[0] && (
-        <div className="bg-blue-950 border border-blue-800 rounded-xl p-5">
-          <h3 className="text-blue-300 font-semibold mb-3">Key Concepts — Read Before Quiz</h3>
-          <p className="text-gray-200 text-sm whitespace-pre-wrap">{quiz.notes_summary}</p>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center">
-        <h2 className="font-semibold">Q {currentQ + 1} / {quiz.questions.length}</h2>
-        <span className="text-gray-400 text-sm">{plan.sessions?.[activeSession!]?.subject_id?.replace(/_/g, " ")}</span>
-      </div>
-
-      <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
-        <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
-      </div>
-
-      <div className="space-y-3">
-        {options.map((opt) => {
-          const isPending = pendingAnswer === opt.key;
-          const chosen = answers[currentQ] === opt.key;
-          const correct = q.correct_answer === opt.key;
-          const show = revealed[currentQ];
-          return (
-            <button key={opt.key}
-              onClick={() => !isAnswered && setPendingAnswer(opt.key)}
-              disabled={isAnswered}
-              className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
-                show && correct ? "border-green-500 bg-green-500/10 text-green-300" :
-                show && chosen ? "border-red-500 bg-red-500/10 text-red-300" :
-                isPending ? "border-blue-500 bg-blue-500/10 text-blue-200" :
-                "border-gray-700 hover:border-gray-500 text-gray-200"
-              }`}>
-              <span className="font-medium mr-3 text-gray-500">({opt.key})</span>{opt.text}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Submit button — only shown when option selected but not yet submitted */}
-      {pendingAnswer && !isAnswered && (
-        <button
-          onClick={() => submitAnswer(pendingAnswer)}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors"
-        >
-          Submit Answer
-        </button>
-      )}
-
-      {revealed[currentQ] && q.explanation && (
-        <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-3">
-          <p className="text-amber-300 text-sm font-medium mb-1">Explanation</p>
-          <p className="text-gray-300 text-sm">{q.explanation}</p>
-
-          {!expanded[currentQ] && (
-            <button
-              onClick={() => diveDeeperInto(currentQ)}
-              disabled={expandLoading[currentQ]}
-              className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50 flex items-center gap-1 transition-colors"
-            >
-              {expandLoading[currentQ] ? "Loading deep dive..." : "Dive deeper →"}
-            </button>
-          )}
-
-          {expanded[currentQ] && (
-            <div className="border-t border-gray-700 pt-3 mt-2">
-              <p className="text-blue-300 text-xs font-medium mb-2">Deep Dive</p>
-              <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
-                {expanded[currentQ]}
-              </div>
+    <div className="relative min-h-[60vh]">
+      <div className="max-w-2xl space-y-6 pb-24">
+        {quiz.notes_summary && !answers[0] && (
+          <div className="bg-blue-950 border border-blue-800 rounded-xl p-5">
+            <h3 className="text-blue-300 font-semibold mb-3">Key Concepts — Read Before Quiz</h3>
+            <div className="max-h-[50vh] overflow-y-auto pr-1 text-sm">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={notesMarkdownComponents}>
+                {quiz.notes_summary}
+              </ReactMarkdown>
             </div>
+            <div className="mt-4 pt-3 border-t border-blue-800/60 space-y-2">
+              <p className="text-xs text-blue-200/80">
+                Select text above, then run an on-demand deep dive (uses a fast model call only when you click).
+              </p>
+              <button
+                type="button"
+                onClick={explainNotesSelection}
+                disabled={notesExplainLoading}
+                className="text-sm bg-blue-800 hover:bg-blue-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg"
+              >
+                {notesExplainLoading ? "Explaining…" : "Explain selected text"}
+              </button>
+              {notesExplainErr && <p className="text-xs text-red-400">{notesExplainErr}</p>}
+              {notesExplainText && (
+                <div className="mt-2 rounded-lg bg-gray-950/80 border border-blue-900/50 p-3 text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
+                  {notesExplainText}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center">
+          <h2 className="font-semibold">Q {currentQ + 1} / {quiz.questions.length}</h2>
+          <span className="text-gray-400 text-sm">
+            {plan.sessions?.[activeSession!]?.subject_id?.replace(/_/g, " ")}
+          </span>
+        </div>
+
+        <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
+          <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
+        </div>
+
+        <div className="space-y-3">
+          {options.map((opt) => {
+            const chosen = answers[currentQ] === opt.key;
+            const correct = q.correct_answer === opt.key;
+            const show = revealed[currentQ];
+            return (
+              <button
+                key={opt.key}
+                onClick={() => {
+                  if (!answers[currentQ]) setPendingAnswer(pendingAnswer === opt.key ? null : opt.key);
+                }}
+                disabled={!!answers[currentQ]}
+                className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                  show && correct
+                    ? "border-green-500 bg-green-500/10 text-green-300"
+                    : show && chosen
+                      ? "border-red-500 bg-red-500/10 text-red-300"
+                      : !show && pendingAnswer === opt.key
+                        ? "border-blue-500 bg-blue-500/10 text-blue-200"
+                        : "border-gray-700 hover:border-gray-500 text-gray-200"
+                }`}
+              >
+                <span className="font-medium mr-3 text-gray-500">({opt.key})</span>
+                {opt.text}
+              </button>
+            );
+          })}
+        </div>
+
+        {pendingAnswer && !answers[currentQ] && (
+          <button
+            onClick={() => { submitAnswer(pendingAnswer); setPendingAnswer(null); }}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors"
+          >
+            Submit Answer
+          </button>
+        )}
+
+        {revealed[currentQ] && q.explanation && (
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-3">
+            <p className="text-amber-300 text-sm font-medium mb-1">Explanation</p>
+            <p className="text-gray-300 text-sm">{q.explanation}</p>
+
+            {!expanded[currentQ] && (
+              <button
+                onClick={() => diveDeeperInto(currentQ)}
+                disabled={expandLoading[currentQ]}
+                className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50 flex items-center gap-1 transition-colors"
+              >
+                {expandLoading[currentQ] ? "Loading deep dive..." : "Dive deeper →"}
+              </button>
+            )}
+
+            {expanded[currentQ] && (
+              <div className="border-t border-gray-700 pt-3 mt-2">
+                <p className="text-blue-300 text-xs font-medium mb-2">Deep Dive</p>
+                <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
+                  {expanded[currentQ]}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-4">
+          {currentQ > 0 && (
+            <button onClick={() => setCurrentQ(currentQ - 1)}
+              className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
+              ← Previous
+            </button>
+          )}
+          {revealed[currentQ] && !isLast && (
+            <button
+              onClick={() => setCurrentQ(currentQ + 1)}
+              className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg"
+            >
+              Next →
+            </button>
+          )}
+          {revealed[currentQ] && isLast && (
+            <button onClick={finishSession} className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-lg">
+              Finish Session
+            </button>
           )}
         </div>
-      )}
-
-      <div className="flex gap-4">
-        {/* Previous — available any time except Q1 */}
-        {currentQ > 0 && (
-          <button onClick={() => setCurrentQ(currentQ - 1)}
-            className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
-            ← Previous
-          </button>
-        )}
-
-        {isAnswered && !isLast && (
-          <button onClick={() => setCurrentQ(currentQ + 1)}
-            className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg">
-            Next →
-          </button>
-        )}
-        {isAnswered && isLast && (
-          <button onClick={finishSession}
-            className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-lg">
-            Finish Session
-          </button>
-        )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => setNotesPanelOpen((o) => !o)}
+        className="fixed bottom-6 right-5 z-40 rounded-full border border-amber-700/80 bg-amber-950/95 px-4 py-2.5 text-sm font-medium text-amber-100 shadow-lg hover:bg-amber-900"
+      >
+        {notesPanelOpen ? "Close notes" : "My notes"}
+      </button>
+
+      {notesPanelOpen && (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/55"
+            aria-label="Close notes panel"
+            onClick={() => setNotesPanelOpen(false)}
+          />
+          <aside className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-md flex-col border-l border-gray-800 bg-gray-950 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
+              <h2 className="text-sm font-semibold text-white">Parallel notes</h2>
+              <button type="button" className="text-gray-400 hover:text-white text-sm" onClick={() => setNotesPanelOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <p className="px-4 pt-2 text-xs text-gray-500">
+              Auto-saves. Tied to session: {sessionMeta?.subtopic_id?.replace(/_/g, " ") ?? "—"} · Q{currentQ + 1}
+            </p>
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-gray-400">What feels unclear?</span>
+                <textarea
+                  value={userNotes.confusion}
+                  onChange={(e) => patchUserNotes({ confusion: e.target.value })}
+                  rows={5}
+                  className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600"
+                  placeholder="Concepts, facts, or question logic you want to revisit…"
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-gray-400">Mnemonic / one-liner</span>
+                <input
+                  value={userNotes.mnemonic}
+                  onChange={(e) => patchUserNotes({ mnemonic: e.target.value })}
+                  className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600"
+                  placeholder="Your own hook to remember this block…"
+                />
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={userNotes.still_weak}
+                  onChange={(e) => patchUserNotes({ still_weak: e.target.checked })}
+                  className="rounded border-gray-600 bg-gray-900"
+                />
+                <span className="text-sm text-gray-300">Still weak — prioritise this subtopic in the next plan</span>
+              </label>
+            </div>
+          </aside>
+        </>
+      )}
     </div>
   );
 }

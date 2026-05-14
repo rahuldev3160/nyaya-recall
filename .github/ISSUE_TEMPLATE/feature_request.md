@@ -1,17 +1,17 @@
 ---
 name: Feature request
-about: Idea that would improve the prep experience
+about: Idea that would improve the prep experience — Claude picks this up at next session start
 labels: feature-request
 ---
 
-**What's the problem this solves**
+**What's the idea (one line)**
+<!-- Keep it short — this becomes the IDEA title in FEATURE_IDEAS.md -->
+
+**What problem does it solve**
 <!-- What friction or gap in your study flow does this address? -->
 
-**Proposed solution**
-<!-- What should it do? Be as specific as you want. -->
+**Why now vs post-exam**
+<!-- Would this improve daily study meaningfully, or is it a nice-to-have after May 20? -->
 
-**Priority for the 10-day sprint**
-<!-- Would this improve daily study meaningfully? Or is it a nice-to-have after the exam? -->
-
-**Rough design (optional)**
-<!-- Any sketch or description of how it should look/work -->
+**Any rough design in mind (optional)**
+<!-- Sketch, description, or example of how it should work -->

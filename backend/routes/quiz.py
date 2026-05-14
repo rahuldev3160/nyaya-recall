@@ -1,10 +1,13 @@
 from __future__ import annotations
+import hashlib
 import os
 import sys
 import json
 import uuid
 import sqlite3
 from pathlib import Path
+from typing import Any
+from urllib.parse import quote
 from fastapi import APIRouter, HTTPException
 import anthropic
 import chromadb
@@ -18,7 +21,11 @@ DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 CHROMA_PATH = os.getenv("CHROMA_PATH", "vector_store")
 PROMPT_DIR = Path(__file__).parent.parent.parent / "prompts"
 _SYLLABUS_PATH = Path(__file__).parent.parent.parent / "data" / "syllabus.json"
+_NOTES_CACHE_PATH = Path(__file__).parent.parent.parent / "cache" / "explanations.json"
 _SUBJECT_ALIAS = {"history": "history_amac"}
+
+# How many Chroma chunks to retrieve for notes synthesis.
+_NOTES_QUERY_K = 14
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 chroma = chromadb.PersistentClient(path=CHROMA_PATH)
@@ -131,6 +138,120 @@ def fetch_chunks(subject_id: str, subtopic_id: str, k: int = 5) -> list[str]:
     return results["documents"][0] if results["documents"] else []
 
 
+def _content_root_path() -> Path:
+    return Path(os.getenv("UPSC_CONTENT_PATH", "/Users/rahulsingh/Desktop/UPSC/Prelims")).expanduser().resolve()
+
+
+def fetch_chunks_with_meta(subject_id: str, subtopic_id: str, k: int) -> list[dict[str, Any]]:
+    """Chroma excerpts with ingestion metadata (source_file, file_path) for notes + links."""
+    col = get_collection()
+    results = col.query(
+        query_texts=[subtopic_id.replace("_", " ")],
+        n_results=k,
+        where={"subject_id": subject_id},
+        include=["documents", "metadatas"],
+    )
+    docs = results["documents"][0] if results.get("documents") else []
+    metas = results["metadatas"][0] if results.get("metadatas") else []
+    if not metas:
+        metas = [{}] * len(docs)
+    return [{"text": d, "meta": m or {}} for d, m in zip(docs, metas)]
+
+
+def _library_link_url(rel_posix: str) -> str:
+    return f"/api/backend/library/file?rel={quote(rel_posix, safe='')}"
+
+
+def _meta_rel_label(meta: dict[str, Any]) -> tuple[str | None, str]:
+    """Relative path under UPSC_CONTENT_PATH (for API link), and display label."""
+    file_path = (meta or {}).get("file_path") or ""
+    source_file = (meta or {}).get("source_file") or ""
+    label = source_file or (Path(file_path).name if file_path else "source")
+    if not file_path:
+        return None, label
+    root = _content_root_path()
+    try:
+        fp = Path(str(file_path)).expanduser().resolve()
+        rel = fp.relative_to(root)
+        return str(rel).replace("\\", "/"), label
+    except Exception:
+        return None, label
+
+
+def _build_source_links_md(rows: list[dict[str, Any]]) -> str:
+    """Return a '### Sources' markdown block with library links, or empty string."""
+    seen_docs: dict[str, str] = {}
+    for row in rows:
+        rel, label = _meta_rel_label(row["meta"])
+        if rel and rel not in seen_docs:
+            seen_docs[rel] = label
+    if not seen_docs:
+        return ""
+    lines = ["### Sources", ""]
+    for rel, label in sorted(seen_docs.items(), key=lambda x: x[1].lower()):
+        lines.append(f"- [{label}]({_library_link_url(rel)})")
+    return "\n".join(lines)
+
+
+def _notes_cache_key(subtopic_id: str, chunk_texts: list[str]) -> str:
+    content = subtopic_id + "|" + "|".join(chunk_texts)
+    return "notes:" + hashlib.sha256(content.encode()).hexdigest()[:20]
+
+
+def synthesize_notes_cached(
+    rows: list[dict[str, Any]],
+    subtopic_id: str,
+    subject_id: str,
+) -> str:
+    """LLM-synthesised revision notes, cached by subtopic+content hash."""
+    chunk_texts = [r["text"] for r in rows]
+    cache_key = _notes_cache_key(subtopic_id, chunk_texts)
+
+    cache: dict = {}
+    if _NOTES_CACHE_PATH.exists():
+        try:
+            cache = json.loads(_NOTES_CACHE_PATH.read_text())
+        except Exception:
+            pass
+
+    if cache_key in cache:
+        return cache[cache_key]
+
+    if not rows:
+        synth_md = (
+            f"## {subtopic_id.replace('_', ' ').title()}\n\n"
+            f"No indexed materials found for this subtopic. "
+            f"Add study materials under `UPSC_CONTENT_PATH` and run `scripts/ingest.py`."
+        )
+    else:
+        prompt_template = (PROMPT_DIR / "session_notes.txt").read_text()
+        prompt = (
+            prompt_template
+            .replace("{{subject_name}}", subject_id)
+            .replace("{{subtopic_name}}", subtopic_id.replace("_", " "))
+            .replace("{{content_chunks}}", "\n\n---\n\n".join(chunk_texts))
+        )
+        resp = client.messages.create(
+            model=os.getenv("AI_MODEL_FAST", "claude-haiku-4-5-20251001"),
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        synth_md = resp.content[0].text.strip()
+
+    source_links = _build_source_links_md(rows)
+    if source_links:
+        synth_md = synth_md + "\n\n---\n\n" + source_links
+
+    cache[cache_key] = synth_md
+    try:
+        _NOTES_CACHE_PATH.parent.mkdir(exist_ok=True)
+        _NOTES_CACHE_PATH.write_text(json.dumps(cache, indent=2))
+    except Exception:
+        pass
+
+    return synth_md
+
+
 def fetch_ca_chunks(topic_keyword: str, k: int = 2) -> list[str]:
     col = get_collection()
     results = col.query(
@@ -195,18 +316,36 @@ def generate_quiz(config: dict):
     else:
         difficulty = "mixed"  # subject-level diagnostics use mixed difficulty
 
-    prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
-    prompt_template = (PROMPT_DIR / prompt_file).read_text()
+    prebuilt_notes: str | None = None
 
     if subtopic_id:
         # ── Single-subtopic mode (session from plan or user-chosen subtopic) ────
-        chunks = fetch_chunks(subject_id, subtopic_id)
         ca_chunks = fetch_ca_chunks(subtopic_id.replace("_", " "))
-        if not chunks:
-            chunks = [
-                f"Standard UPSC Prelims content on {subject_id}: "
-                f"{subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
-            ]
+        use_vector_notes = (
+            session_type == "adaptive"
+            and config.get("show_notes")
+        )
+        if use_vector_notes:
+            # Synthesise structured notes via Haiku (cached by subtopic+content hash).
+            note_rows = fetch_chunks_with_meta(subject_id, subtopic_id, k=_NOTES_QUERY_K)
+            if not note_rows:
+                chunks = [
+                    f"Standard UPSC Prelims content on {subject_id}: "
+                    f"{subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+                ]
+            else:
+                chunks = [r["text"] for r in note_rows]
+            prebuilt_notes = synthesize_notes_cached(note_rows, subtopic_id, subject_id)
+            prompt_file = "adaptive_quiz_only.txt"
+        else:
+            chunks = fetch_chunks(subject_id, subtopic_id)
+            if not chunks:
+                chunks = [
+                    f"Standard UPSC Prelims content on {subject_id}: "
+                    f"{subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+                ]
+            prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
+
         subtopic_allocation = (
             f"Subtopic: {subtopic_id}\n"
             f"Generate all {num_q} questions on this subtopic. "
@@ -215,6 +354,7 @@ def generate_quiz(config: dict):
         content_chunks_str = "\n\n---\n\n".join(chunks)
         ca_str = "\n\n---\n\n".join(ca_chunks)
     else:
+        prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
         # ── Multi-subtopic diagnostic mode ───────────────────────────────────────
         allocation = _allocate_questions_across_subtopics(subject_id, num_q)
         if allocation:
@@ -238,6 +378,7 @@ def generate_quiz(config: dict):
             content_chunks_str = "\n\n---\n\n".join(chunks)
             ca_str = "\n\n---\n\n".join(ca_chunks)
 
+    prompt_template = (PROMPT_DIR / prompt_file).read_text()
     prompt = (
         prompt_template
         .replace("{{subject_name}}",           subject_id)
@@ -264,13 +405,23 @@ def generate_quiz(config: dict):
     )
     raw = response.content[0].text.strip()
 
-    # Parse JSON — handle both array and object with questions key
+    # Parse JSON — handle both array and object with questions key.
+    # IMPORTANT: object responses like {"notes_summary":"...","questions":[...]}
+    # contain "[" inside the string; naive "prefer [" would slice only the array
+    # and drop notes_summary. Prefer top-level object when "{" comes first.
     try:
-        start = raw.find("[") if "[" in raw else raw.find("{")
-        end = (raw.rfind("]") + 1) if "[" in raw else (raw.rfind("}") + 1)
+        first_brace = raw.find("{")
+        first_bracket = raw.find("[")
+        if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
+            start, end = first_brace, raw.rfind("}") + 1
+        else:
+            start, end = first_bracket, raw.rfind("]") + 1
         parsed = json.loads(raw[start:end])
         questions = parsed if isinstance(parsed, list) else parsed.get("questions", [])
-        notes = None if isinstance(parsed, list) else parsed.get("notes_summary")
+        if prebuilt_notes is not None:
+            notes = prebuilt_notes
+        else:
+            notes = None if isinstance(parsed, list) else parsed.get("notes_summary")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse quiz JSON: {e}")
 

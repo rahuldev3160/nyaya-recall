@@ -55,9 +55,14 @@ def compute_subtopic_coverage() -> dict:
     except Exception:
         pass
 
+    # CSAT excluded — user is not preparing for CSAT
+    _EXCLUDED_SUBJECTS = {"csat"}
+
     result: dict = {}
     for subj in syllabus.get("subjects", []):
         sid = subj["id"]
+        if sid in _EXCLUDED_SUBJECTS:
+            continue
         all_subs = [
             st["id"]
             for topic in subj.get("topics", [])
@@ -82,6 +87,41 @@ def compute_subtopic_coverage() -> dict:
         }
 
     return result
+
+
+def fetch_user_notes_signals() -> list[dict]:
+    """
+    Recent parallel session notes (per quiz session), for plan personalisation.
+    """
+    try:
+        con = sqlite3.connect(DB_PATH)
+        rows = con.execute(
+            """
+            SELECT subtopic_id, confusion, mnemonic, still_weak, updated_at
+            FROM session_user_notes
+            WHERE user_id='user_1'
+            ORDER BY updated_at DESC
+            LIMIT 24
+            """
+        ).fetchall()
+        con.close()
+    except sqlite3.OperationalError:
+        return []
+
+    out: list[dict] = []
+    for sub, conf, mnem, weak, upd in rows:
+        if not sub:
+            continue
+        out.append(
+            {
+                "subtopic_id": sub,
+                "confusion_excerpt": (conf or "")[:450],
+                "mnemonic_excerpt": (mnem or "")[:220],
+                "still_weak": bool(weak),
+                "updated_at": upd,
+            }
+        )
+    return out
 
 
 def load_config() -> dict:
@@ -129,12 +169,14 @@ def generate_plan(available_hours: float | None = None) -> dict:
     total_days = int(config.get("total_days", 10))
 
     subtopic_coverage = compute_subtopic_coverage()
+    user_notes_signals = fetch_user_notes_signals()
 
     prompt_template = PROMPT_PATH.read_text()
     prompt = (
         prompt_template
         .replace("{{prep_profile}}",       json.dumps(profile, indent=2))
         .replace("{{subtopic_coverage}}",  json.dumps(subtopic_coverage, indent=2))
+        .replace("{{user_notes_signals}}", json.dumps(user_notes_signals, indent=2))
         .replace("{{day_number}}",         str(day_number))
         .replace("{{days_remaining}}",     str(remaining))
         .replace("{{total_days}}",         str(total_days))
