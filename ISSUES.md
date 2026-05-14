@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — the explaination after attempting a question should include brief explaination of the correct answer and a brief explaination of why the other options are wrong (i.e brief explainations of the concepts/facts of other wrong options)- this will make the model better in equiping the user useful information in a highly effective manner (question answer format is good for making a user learn new concepts and avoid possible mistakes by explaining about the wrong options in the question)
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the explaination after attempting a question should include brief explaination of the correct answer and a brief explaination of why the other options are wrong (i.e brief explainations of the concepts/facts of other wrong options)- this will make the model better in equiping the user useful information in a highly effective manner (question answer format is good for making a user learn new concepts and avoid possible mistakes by explaining about the wrong options in the question)
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — introduce a time tracker that tracks time the user spents on the model/portal (if published for public), the time tracker has details section too which deep dives into time spent on each section of the model (i.e on attending sessions, doing quizes (diagnostics sections renamed), self attestation quizes, etc)
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
