@@ -39,7 +39,7 @@
 ### ISSUE-023 — Sessions not marked complete after finishing
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -55,14 +55,14 @@ After the session is complete, it does not show as completed in the today's sess
 **What's needed to fix:**
 *(Claude to determine)*
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2 (fix/session-ux-improvements). Completed sessions now show green ✓ badge in Today's Sessions list.
 
 ---
 
 ### ISSUE-022 — Session notes missing core concept depth
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -78,14 +78,14 @@ The notes generated for a session covers all the important dimensions for a subt
 **What's needed to fix:**
 Rewrite the Core Concept section instruction in `prompts/session_notes.txt` to require substantive explanation of confusing/complex facts, not just a one-liner identifier.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. prompts/session_notes.txt Core Concept section rewritten to require substantive 3-5 sentence explanation including concept definition, UPSC relevance, and common traps.
 
 ---
 
 ### ISSUE-021 — Click immediately reveals answer — no submit step
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -101,14 +101,14 @@ While attempting the question a simple click saves the user response and shows t
 **What's needed to fix:**
 Confirm the Submit button flow is complete: option click sets `pendingAnswer` (highlighted), Submit button calls `submitAnswer(pendingAnswer)`, answer only revealed after Submit.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. Option click highlights blue (pendingAnswer state); Submit button calls submitAnswer. Both diagnostic/page.tsx and session/page.tsx.
 
 ---
 
 ### ISSUE-020 — "Medium" label on sessions is unclear
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -124,14 +124,14 @@ The sessions shows a label "medium" in yellow text colour — this is unclear wh
 **What's needed to fix:**
 Either replace "medium" with "Medium difficulty" or add a tooltip. Investigate which component renders this label.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Difficulty badge now shows "Easy/Medium/Hard difficulty" instead of raw lowercase string. Fixed in web/src/app/session/page.tsx.
 
 ---
 
 ### ISSUE-019 — Note-taking box should reset per question and autosave
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -147,14 +147,16 @@ The note taking box at the right bottom corner should appear as a completely new
 **What's needed to fix:**
 Ensure note textarea clears on `currentQ` change; autosave links to current `question_context_index`; on question return, repopulate note for that question index.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14.
+- `backend/routes/sessions.py` — added `session_question_notes` table (created lazily, no ALTER TABLE). PUT endpoint now accepts `note_text` + `question_context_index` and saves per-question row; GET returns `per_question_notes` dict keyed by question index.
+- `web/src/app/session/page.tsx` — added `perQuestionNotes: Record<number, string>` state. Per-question note textarea (amber border, "Note for Q{N}") in the notes drawer shows/clears per `currentQ`, autosaves with 700ms debounce linked to question index. Loaded from backend on session start. Session-level confusion/mnemonic/still_weak fields remain unchanged.
 
 ---
 
 ### ISSUE-018 — No end-of-session revision notes for incorrect attempts
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -170,7 +172,8 @@ At the end of the session, give brief revision notes around the concepts which u
 **What's needed to fix:**
 Verify revision deck appears in both `diagnostic/page.tsx` and `session/page.tsx`. If missing from session page, add the same finish-flow logic.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14.
+- `web/src/app/session/page.tsx` — added `revisionNotes` and `revisionLoading` state. `finishSession()` now calls `api.getRevisionNotes(quiz.session_id)` after closing the session. The `finished` view renders the full revision deck (loading pulse, clean-sweep message, or wrong-answer cards with question text + chosen/correct labels + explanation) — identical pattern to `diagnostic/page.tsx`.
 
 ---
 
@@ -200,7 +203,7 @@ Spec required before implementing. Write `plans/feedback_training.md`.
 ### ISSUE-016 — Session completion box missing score
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -216,7 +219,7 @@ At the end of the session, it is correctly showing the status as complete but mi
 **What's needed to fix:**
 Check `session/page.tsx` finished state and confirm score summary is rendered there.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. session/page.tsx finished state now renders score % and correct/total count.
 
 ---
 
@@ -269,7 +272,7 @@ New feature — spec required before implementing. Write `plans/time_tracker.md`
 ### ISSUE-012 — CSAT must be removed from readiness scoring and plan generation
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -287,14 +290,14 @@ Remove CSAT from the tracker, from readiness scoring, and from plan generation e
 2. Remove CSAT row from dashboard tracker UI
 3. Confirm plan_generator.py exclusion is complete
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. scripts/batch_analyse.py _build_syllabus_map() now excludes CSAT. Watch-out: tracker UI CSAT row may still display — verify separately.
 
 ---
 
 ### ISSUE-008 — Completed sessions not accessible for review
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -310,14 +313,14 @@ Once a session is complete, there is no option to access it back as of now; this
 **What's needed to fix:**
 New page `web/src/app/sessions/[id]/page.tsx` that fetches and renders a completed session in read-only mode (notes + all questions with correct answers revealed).
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #4 (fix/issue-008-session-review). New pages: web/src/app/sessions/page.tsx (history list) and web/src/app/sessions/[id]/page.tsx (read-only review).
 
 ---
 
 ### ISSUE-007 — No previous question navigation in quiz
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -333,7 +336,7 @@ There is no option to go back to previous question while attempting the quiz. Th
 **What's needed to fix:**
 Add "← Previous" button that decrements `currentQ` when `currentQ > 0`. Answers/revealed state is already keyed by question index so past answers will still show correctly on return. Unanswered questions should remain answerable on revisit; revealed questions should show in read-only mode.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. ← Previous button added to both diagnostic/page.tsx and session/page.tsx; decrements currentQ when > 0.
 
 ---
 

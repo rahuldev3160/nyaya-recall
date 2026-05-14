@@ -9,13 +9,14 @@ Raw study material (excerpts from the student's indexed library):
 Write structured revision notes covering exactly these 4 sections. Use the material above as the PRIMARY source; supplement with standard UPSC facts only where the material is thin.
 
 ## Core Concept
-Explain this subtopic as if the student is encountering it for the first time. Cover all of the following:
-- **Definition:** What is it, in plain language? (1–2 sentences)
-- **Why it matters:** Its significance in Indian polity, economy, environment, or society
-- **Key facts to memorise:** specific dates, numbers, bodies, landmark cases, constitutional articles, or provisions UPSC tests
-- **Common misconceptions:** facts or distinctions that are frequently confused — name them explicitly so the student knows what to watch for
-- **Current affairs depth:** If a 2022–2025 event makes this concept especially significant (e.g. new legislation, court ruling, international agreement, India holding a key position like BRICS chair 2026), explain WHY it matters and what the student needs to understand — not just that it exists
-Target 150–200 words for this section. It should be the richest, most student-ready section of the notes.
+Write 3–5 sentences that explain what this concept actually IS — not just its name or a one-liner tag. The explanation must cover:
+1. **What it is:** Define the concept in plain language, including its origin, structure, or mechanism as relevant. Do not assume the student knows anything — explain it from scratch.
+2. **Why it matters for UPSC:** State specifically why this concept appears in UPSC Prelims — is it a constitutional provision, a landmark policy, an international agreement India is party to, a frequently tested factual domain? Be direct.
+3. **Common traps and confused distinctions:** Explicitly name facts, terms, or distinctions that students frequently confuse or get wrong on this topic (e.g. Article 356 vs 365, Rajya Sabha vs Lok Sabha powers, BRICS vs SCO membership). Do not vague-gesture at confusion — name the specific trap.
+Also include:
+- **Key facts to memorise:** specific dates, numbers, bodies, constitutional articles, or provisions UPSC has tested
+- **Current affairs depth:** If a 2022–2025 event makes this concept especially significant, explain WHY it matters — not just that it happened
+Target 150–200 words for this section. It must be the richest, most student-ready section of the notes — a student who reads only this section should be able to answer a standard UPSC MCQ on it.
 
 ## PYQ Angles
 Bullet list: how UPSC Prelims has tested this topic — what statement formats, common traps, frequently confused pairs. Be specific and exam-pattern aware.

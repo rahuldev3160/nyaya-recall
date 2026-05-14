@@ -1,5 +1,19 @@
 # HANDOFF.md — Dev Session Update (May 14, 2026 — evening)
 
+### Quick wins — ISSUE-022 / ISSUE-020 / ISSUES.md housekeeping — 2026-05-14
+- prompts/session_notes.txt: Core Concept section rewritten with substantive explanation requirement
+- web: difficulty badge now shows "Medium difficulty" instead of raw "medium"
+- ISSUES.md: ISSUE-007, 008, 012, 016, 021, 023 marked Resolved (were fixed in merged PRs)
+
+---
+
+### ISSUE-018 + ISSUE-019 — session/page.tsx revision deck + per-question notes — May 14
+
+- `web/src/app/session/page.tsx`: revision deck now shows after adaptive session finish (matches diagnostic page) — `revisionNotes` + `revisionLoading` state added, `finishSession()` calls `api.getRevisionNotes`, finished view renders wrong-answer cards with explanation.
+- `web/src/app/session/page.tsx` + `backend/routes/sessions.py`: notes textarea in My Notes drawer resets per question (`perQuestionNotes[currentQ]` state), autosaves with 700ms debounce linked to `question_context_index`, reloads saved note on question return. Backend adds `session_question_notes` table (lazy `CREATE TABLE IF NOT EXISTS`, no ALTER TABLE) and extends PUT/GET user-notes endpoints to handle per-question rows.
+
+---
+
 > Read `COLLAB.md` first for the full project context and architecture overview.
 > This file covers what changed in the most recent dev session and what still needs work.
 
