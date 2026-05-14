@@ -1,4 +1,4 @@
-# HANDOFF.md — Dev Session Update (May 11, 2026)
+# HANDOFF.md — Dev Session Update (May 14, 2026)
 
 > Read `COLLAB.md` first for the full project context and architecture overview.
 > This file covers what changed in the most recent dev session and what still needs work.
@@ -344,19 +344,82 @@ No backend changes needed — the DB column and API field already existed.
 
 ---
 
+## What changed — May 12 (synthesised session notes — ISSUE-005 / ISSUE-006)
+
+Session notes in `notes_then_quiz` sessions now use Claude Haiku to synthesise structured
+revision notes instead of dumping raw vector excerpts. Notes cover 4 fixed sections:
+Core Concept · PYQ Angles · Current Affairs Linkages · Broader Linkages.
+Results are cached by `SHA256(subtopic_id + chunk_texts)` in `cache/explanations.json` —
+cache hit = 0 API tokens for repeat sessions on the same subtopic.
+
+Source links (from ISSUE-003) are preserved and appended after the synthesised section.
+
+CSAT sessions removed from today's plan and excluded from future plan generation.
+
+**Files changed:**
+```
+prompts/session_notes.txt     new — Haiku prompt for structured notes synthesis
+backend/routes/quiz.py        synthesize_notes_cached() replaces build_notes_from_vector_chunks()
+scripts/prewarm_notes_cache.py  new — pre-warms cache for today's notes_then_quiz sessions
+data/study_plan.json          CSAT sessions removed
+scripts/plan_generator.py     CSAT excluded from subject list for future plans
+```
+
+---
+
 ## Files changed in this session
 
 ```
 backend/routes/config.py      redirect_slashes fix
-backend/routes/quiz.py        multi-subtopic allocation, chunk fetching per subtopic
+backend/routes/quiz.py        multi-subtopic allocation, chunk fetching per subtopic; synthesised notes (May 12)
 backend/routes/tracker.py     SAR endpoint row_factory fix
 prompts/batch_analysis.txt    added coverage_report section, Claude no longer sets numbers
 prompts/diagnostic_quiz.txt   rewritten to use {{subtopic_allocation}} block
 prompts/plan_generation.txt   rewritten with 8 scheduling rules + {{subtopic_coverage}}
+prompts/session_notes.txt     new — Haiku notes synthesis prompt (May 12)
 scripts/batch_analyse.py      compute_weighted_readiness(), SUBJECT_ALIASES, coverage_report
-scripts/plan_generator.py     compute_subtopic_coverage(), syllabus+DB+PYQ integration
+scripts/plan_generator.py     compute_subtopic_coverage(), syllabus+DB+PYQ integration; CSAT excluded (May 12)
+scripts/prewarm_notes_cache.py  new — prewarm notes cache for today (May 12)
 scripts/repair_subtopics.py   one-time historical data fix (can delete)
 scripts/score_engine.py       close_session backfill, IS ? NULL fix, .get() → [] fix
 web/src/app/page.tsx          sequential fetches, handleSync fix
 web/src/lib/api.ts            relative BASE url, AbortController timeout
 ```
+
+---
+
+## What changed — May 14 (explanation quality overhaul — ISSUE-009/010/011/013)
+
+### Root causes fixed
+
+**Revision deck contradictory/false explanations (ISSUE-009):**
+`get_revision_notes()` in `sessions.py` was selecting only `question_text, correct_answer, user_answer` — the option texts were never fetched from the DB. Haiku was generating explanations for options it couldn't read, causing hallucinated or contradictory content.
+
+**Fix:**
+- `backend/routes/sessions.py` — SELECT now includes `options` (stored as JSON); parsed and injected as `{{option_a}}` / `{{option_b}}` / `{{option_c}}` / `{{option_d}}` into the prompt.
+- `prompts/revision_notes.txt` — rewritten: includes all 4 option texts, explicit instruction not to restate "you chose X / correct is Y" (UI already shows this), leads with the correct fact then explains why each wrong option is wrong.
+- `max_tokens` bumped 300 → 600 (needed for full 4-option explanation).
+- Cache key changed to `:v2` — stale entries (generated without option texts) will not be served; all past wrong-answer sessions will regenerate on next view.
+
+**Per-question explanation enrichment (ISSUE-013):**
+All three quiz generation prompts had weak/empty explanation specs. Updated in all three files to: lead with the core fact for the correct option, then one sentence per wrong option.
+
+**Statement-based question formatting (ISSUE-011):**
+No prompt instruction to use `\n` between statements; question text paragraphs lacked `whitespace-pre-wrap`. Fixed in both prompts and both frontend pages.
+
+### Files changed (May 14)
+
+```
+prompts/diagnostic_quiz.txt    explanation spec + statement \n format rule
+prompts/adaptive_session.txt   explanation spec updated (was "...")
+prompts/adaptive_quiz_only.txt explanation spec + statement \n format rule
+prompts/revision_notes.txt     full rewrite — options context, no preamble, explains wrong options
+backend/routes/sessions.py     fetch options column, parse + inject into prompt, max_tokens 600, cache :v2
+web/src/app/diagnostic/page.tsx whitespace-pre-wrap on question text and revision deck question text
+web/src/app/session/page.tsx   whitespace-pre-wrap on question text
+ISSUES.md                      all unnumbered issues assigned ISSUE-009 through ISSUE-023; ISSUE-002 resolved; ISSUE-004 won't fix
+```
+
+### Watch-outs
+- All cached revision notes from previous sessions will regenerate on next view (by design — stale cache was the problem). Cost: ~$0.001 per wrong answer (Haiku).
+- Quiz generation prompts changed — new sessions will produce longer explanations (4-6 sentences instead of 2-3). This increases output tokens slightly per quiz generation call.

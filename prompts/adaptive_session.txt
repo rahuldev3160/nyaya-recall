@@ -27,7 +27,7 @@ Return JSON:
       "option_c": "...",
       "option_d": "...",
       "correct_answer": "a|b|c|d",
-      "explanation": "...",
+      "explanation": "Lead with the specific fact or concept that makes the correct option right (1–2 sentences). Then add one short sentence per wrong option explaining what is incorrect or misleading about it. Do NOT open with 'The answer is...' — lead straight with the fact.",
       "difficulty": "easy|medium|hard",
       "subtopic_id": "{{subtopic_id}}"
     }
