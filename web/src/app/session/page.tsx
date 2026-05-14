@@ -47,6 +47,8 @@ const notesMarkdownComponents: Partial<Components> = {
 
 type UserNotesState = { confusion: string; mnemonic: string; still_weak: boolean };
 
+const ACTIVE_QUIZ_KEY = "upsc_active_quiz";
+
 export default function SessionPage() {
   const [plan, setPlan] = useState<any>(null);
   const [activeSession, setActiveSession] = useState<number | null>(null);
@@ -75,6 +77,7 @@ export default function SessionPage() {
   const notesDirty = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const perQuestionSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restoredRef = useRef(false);
 
   const [notesExplainLoading, setNotesExplainLoading] = useState(false);
   const [notesExplainText, setNotesExplainText] = useState<string | null>(null);
@@ -83,6 +86,81 @@ export default function SessionPage() {
   useEffect(() => {
     api.getPlan().then(setPlan).catch(() => {});
   }, []);
+
+  // Restore completed session indices from localStorage on mount (keyed by date so it resets each day)
+  useEffect(() => {
+    try {
+      const key = `upsc_completed_${new Date().toISOString().split("T")[0]}`;
+      const raw = localStorage.getItem(key);
+      if (raw) setCompletedSessions(new Set(JSON.parse(raw) as number[]));
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save completed session indices to localStorage whenever they change
+  useEffect(() => {
+    if (completedSessions.size === 0) return;
+    try {
+      const key = `upsc_completed_${new Date().toISOString().split("T")[0]}`;
+      localStorage.setItem(key, JSON.stringify([...completedSessions]));
+    } catch {}
+  }, [completedSessions]);
+
+  // Restore active in-progress quiz from localStorage once plan loads (runs once per page load)
+  useEffect(() => {
+    if (!plan || restoredRef.current || quiz) return;
+    restoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(ACTIVE_QUIZ_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        session_id: string;
+        questions: any[];
+        notes_summary: string | null;
+        currentQ: number;
+        answers: Record<number, string>;
+        revealed: Record<number, boolean>;
+        activeSession: number;
+      };
+      if (!saved.session_id || !Array.isArray(saved.questions) || !saved.questions.length) {
+        localStorage.removeItem(ACTIVE_QUIZ_KEY);
+        return;
+      }
+      api.getSession(saved.session_id)
+        .then((data) => {
+          if (data?.session && !data.session.end_time) {
+            setQuiz({ session_id: saved.session_id, questions: saved.questions, notes_summary: saved.notes_summary });
+            setCurrentQ(saved.currentQ ?? 0);
+            setAnswers(saved.answers ?? {});
+            setRevealed(saved.revealed ?? {});
+            setActiveSession(saved.activeSession ?? null);
+          } else {
+            localStorage.removeItem(ACTIVE_QUIZ_KEY);
+          }
+        })
+        .catch(() => localStorage.removeItem(ACTIVE_QUIZ_KEY));
+    } catch {
+      localStorage.removeItem(ACTIVE_QUIZ_KEY);
+    }
+  }, [plan]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist active quiz state to localStorage after every meaningful state change
+  useEffect(() => {
+    if (!quiz?.session_id || finished) return;
+    try {
+      localStorage.setItem(
+        ACTIVE_QUIZ_KEY,
+        JSON.stringify({
+          session_id: quiz.session_id,
+          questions: quiz.questions,
+          notes_summary: quiz.notes_summary ?? null,
+          currentQ,
+          answers,
+          revealed,
+          activeSession,
+        })
+      );
+    } catch {}
+  }, [quiz, currentQ, answers, revealed, activeSession, finished]);
 
   const sessionMeta = plan?.sessions?.[activeSession ?? -1];
 
@@ -227,6 +305,7 @@ export default function SessionPage() {
 
   const finishSession = async () => {
     if (!quiz) return;
+    try { localStorage.removeItem(ACTIVE_QUIZ_KEY); } catch {}
     await flushUserNotes();
     try {
       await api.closeSession(quiz.session_id);
