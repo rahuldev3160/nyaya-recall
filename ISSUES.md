@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — the revision deck generated to revise the incorrect attempts in the diagnostic tests is producing contradictory explainations with the actual answers (which itslef are marked correct by model but the explaination is false and mixes the inforamtion)
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the revision deck generated to revise the incorrect attempts in the diagnostic tests is producing contradictory explainations with the actual answers (which itslef are marked correct by model but the explaination is false and mixes the inforamtion)
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the revision deck after the end of diagnostic explains unnecessarry details which user already know, it is consuming first 2-3 lines just to reiterate which the correct option is and what user choose and that its incorrect (this detail is completely unnecessary as user is able to infer this himself), the explaination could cover more dimensions of the concept asked which are relevant for upsc instead
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
