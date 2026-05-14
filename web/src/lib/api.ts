@@ -41,4 +41,16 @@ export const api = {
   submitAttestation: (body: object) => post("/attestation/claim", body),
   validateAttestation: (body: object) => post("/attestation/validate", body),
   expandConcept: (body: object) => post("/sessions/expand-concept", body),
+  expandNotesSelection: (body: object) => post("/sessions/expand-notes-selection", body),
+  getUserNotes: (sessionId: string) => get(`/sessions/${sessionId}/user-notes`),
+  getRevisionNotes: (sessionId: string) => post(`/sessions/${sessionId}/revision-notes`),
+  putUserNotes: (sessionId: string, body: object) =>
+    fetch(`${BASE}/sessions/${sessionId}/user-notes`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }),
 };

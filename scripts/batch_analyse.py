@@ -15,7 +15,7 @@ import sys
 import json
 import sqlite3
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 import anthropic
 from dotenv import load_dotenv
 
@@ -25,10 +25,11 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent))
 from priority_scorer import compute_all_priorities
 
-DB_PATH      = os.getenv("DB_PATH", "data/upsc.db")
-PROFILE_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
+DB_PATH       = os.getenv("DB_PATH", "data/upsc.db")
+PROFILE_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
+CONFIG_PATH   = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
 SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
-PROMPT_PATH  = Path(__file__).parent.parent / "prompts" / "batch_analysis.txt"
+PROMPT_PATH   = Path(__file__).parent.parent / "prompts" / "batch_analysis.txt"
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
@@ -67,9 +68,14 @@ def _build_syllabus_map() -> dict[str, dict]:
         syllabus = json.loads(SYLLABUS_PATH.read_text())
     except Exception:
         return {}
+    # CSAT excluded — user is not preparing for CSAT
+    _EXCLUDED = {"csat"}
+
     result: dict[str, dict] = {}
     for subject in syllabus.get("subjects", []):
         sid = subject["id"]
+        if sid in _EXCLUDED:
+            continue
         subtopics: list[str] = []
         for topic in subject.get("topics", []):
             for st in topic.get("subtopics", []):
@@ -351,7 +357,12 @@ def run_analysis() -> dict:
     profile["last_analysis"]     = analysis.get("summary", "")
     profile["priority_focus"]    = analysis.get("priority_focus", [])
     profile["time_estimates"]    = analysis.get("time_estimates", {})
-    profile["day_number"]        = profile.get("day_number", 1) + 1
+    try:
+        config = json.loads(CONFIG_PATH.read_text()) if CONFIG_PATH.exists() else {}
+        start = date.fromisoformat(config["start_date"])
+        profile["day_number"] = (date.today() - start).days + 1
+    except Exception:
+        profile["day_number"] = profile.get("day_number", 1) + 1
 
     all_expanded: list[str] = []
     for s in summaries:

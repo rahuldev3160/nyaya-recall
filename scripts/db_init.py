@@ -136,6 +136,18 @@ def init_db():
         last_updated        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS session_user_notes (
+        session_id               TEXT PRIMARY KEY,
+        user_id                  TEXT DEFAULT 'user_1',
+        subject_id               TEXT,
+        subtopic_id              TEXT NOT NULL,
+        confusion                TEXT DEFAULT '',
+        mnemonic                 TEXT DEFAULT '',
+        still_weak               INTEGER DEFAULT 0,
+        question_context_index   INTEGER,
+        updated_at               TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     INSERT OR IGNORE INTO sar_scores (user_id) VALUES ('user_1');
     """)
     con.commit()

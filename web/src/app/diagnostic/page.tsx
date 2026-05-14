@@ -31,9 +31,13 @@ export default function DiagnosticPage() {
   const [expanded, setExpanded] = useState<Record<number, string>>({});
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+  const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
+  const [revisionNotes, setRevisionNotes] = useState<any[] | null>(null);
+  const [revisionLoading, setRevisionLoading] = useState(false);
 
   useEffect(() => {
     setQuestionStartTime(Date.now());
+    setPendingAnswer(null);
   }, [currentQ]);
 
   const startSession = async () => {
@@ -57,6 +61,9 @@ export default function DiagnosticPage() {
       setFinished(false);
       setScore(null);
       setQuestionStartTime(Date.now());
+      setPendingAnswer(null);
+      setRevisionNotes(null);
+      setRevisionLoading(false);
     } catch (e: any) {
       setError("Failed to generate questions. Please try again.");
     } finally {
@@ -113,6 +120,15 @@ export default function DiagnosticPage() {
       setScore(result);
     } catch (e) {}
     setFinished(true);
+    setRevisionLoading(true);
+    try {
+      const data = await api.getRevisionNotes(session.session_id);
+      setRevisionNotes(data.notes ?? []);
+    } catch {
+      setRevisionNotes([]);
+    } finally {
+      setRevisionLoading(false);
+    }
   };
 
   const diveDeeperInto = async (idx: number) => {
@@ -215,6 +231,33 @@ export default function DiagnosticPage() {
           )}
         </div>
         <p className="text-gray-400 text-sm">Session saved. Run Sync & Plan on the dashboard to update your profile.</p>
+
+        {revisionLoading && (
+          <div className="text-gray-500 text-sm text-center animate-pulse">Generating revision notes for wrong answers...</div>
+        )}
+
+        {!revisionLoading && revisionNotes && revisionNotes.length === 0 && (
+          <div className="bg-green-950/30 border border-green-900/50 rounded-xl p-4 text-center">
+            <p className="text-green-400 font-medium">Clean sweep — nothing to review!</p>
+          </div>
+        )}
+
+        {!revisionLoading && revisionNotes && revisionNotes.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-base font-semibold text-red-300">Concepts to Review ({revisionNotes.length})</h2>
+            {revisionNotes.map((n, i) => (
+              <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2">
+                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{n.question_text}</p>
+                <div className="flex gap-4 text-xs font-medium">
+                  <span className="text-red-400">You chose: ({n.user_answer})</span>
+                  <span className="text-green-400">Correct: ({n.correct_answer})</span>
+                </div>
+                <p className="text-sm text-amber-200 leading-relaxed border-t border-gray-700 pt-2">{n.explanation}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-4">
           <button onClick={() => { setSession(null); setFinished(false); }}
             className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm">
@@ -245,7 +288,7 @@ export default function DiagnosticPage() {
       </div>
 
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <p className="text-white leading-relaxed">{q.question_text}</p>
+        <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
       </div>
 
       <div className="space-y-3">
@@ -256,11 +299,15 @@ export default function DiagnosticPage() {
           return (
             <button
               key={opt.key}
-              onClick={() => submitAnswer(opt.key)}
+              onClick={() => {
+                if (!answers[currentQ] && !skipped[currentQ])
+                  setPendingAnswer(pendingAnswer === opt.key ? null : opt.key);
+              }}
               disabled={!!answers[currentQ] || !!skipped[currentQ]}
               className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                 show && isCorrect ? "border-green-500 bg-green-500/10 text-green-300" :
                 show && chosen && !isCorrect ? "border-red-500 bg-red-500/10 text-red-300" :
+                !show && pendingAnswer === opt.key ? "border-blue-500 bg-blue-500/10 text-blue-200" :
                 "border-gray-700 hover:border-gray-500 text-gray-200"
               }`}
             >
@@ -270,12 +317,21 @@ export default function DiagnosticPage() {
         })}
       </div>
 
-      {!answers[currentQ] && !skipped[currentQ] && (
+      {!answers[currentQ] && !skipped[currentQ] && !pendingAnswer && (
         <button
           onClick={skipQuestion}
           className="text-sm text-gray-500 hover:text-gray-300 border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-colors"
         >
           Skip →
+        </button>
+      )}
+
+      {pendingAnswer && !answers[currentQ] && !skipped[currentQ] && (
+        <button
+          onClick={() => { submitAnswer(pendingAnswer); setPendingAnswer(null); }}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors"
+        >
+          Submit Answer
         </button>
       )}
 
