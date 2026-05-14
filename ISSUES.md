@@ -32,6 +32,29 @@
 
 ---
 
+### ISSUE- — the explaination of the answers can be enriched - it should include a brief explaination of the correct option (which contains the core concept or facts etc) and also include brief explaination of why the other given options are not correct/explaintion of the concepts involved in wrong options/facts related to wrong options. This will give an enriched explaination to the user to better prepare for the exam
+**Noticed:** 2026-05-14
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the explaination of the answers can be enriched - it should include a brief explaination of the correct option (which contains the core concept or facts etc) and also include brief explaination of why the other given options are not correct/explaintion of the concepts involved in wrong options/facts related to wrong options. This will give an enriched explaination to the user to better prepare for the exam
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
+
 ### ISSUE- — the explaination after attempting a question should include brief explaination of the correct answer and a brief explaination of why the other options are wrong (i.e brief explainations of the concepts/facts of other wrong options)- this will make the model better in equiping the user useful information in a highly effective manner (question answer format is good for making a user learn new concepts and avoid possible mistakes by explaining about the wrong options in the question)
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
