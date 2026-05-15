@@ -56,8 +56,12 @@ def main():
     known_subjects = set()
     if SYLLABUS_PATH.exists():
         syllabus = json.loads(SYLLABUS_PATH.read_text())
-        for subj in syllabus:
-            known_subjects.add(subj.get("id") or subj.get("subject_id") or "")
+        subjects_list = syllabus if isinstance(syllabus, list) else syllabus.get("subjects", [])
+        for subj in subjects_list:
+            if isinstance(subj, dict):
+                known_subjects.add(subj.get("id") or subj.get("subject_id") or "")
+            elif isinstance(subj, str):
+                known_subjects.add(subj)
 
     print(f"{'Subject':<30} {'Chunks':>8}  {'Status'}")
     print("-" * 55)
