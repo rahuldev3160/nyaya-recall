@@ -99,7 +99,7 @@ export default function SessionPage() {
     try {
       const key = `upsc_completed_${new Date().toISOString().split("T")[0]}`;
       const raw = localStorage.getItem(key);
-      if (raw) setCompletedSessions(new Set(JSON.parse(raw) as number[]));
+      if (raw) setCompletedSessions(prev => new Set([...prev, ...(JSON.parse(raw) as string[])]));
     } catch {}
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
