@@ -8,6 +8,8 @@ Session format decided: {{format}}
 Content from user's notes:
 {{content_chunks}}
 
+{{recent_questions_block}}
+
 {{#if show_notes}}
 First, generate a concise NOTES SUMMARY (max 300 words) of the most important points from the content above for this subtopic. Use bullet points. Focus on facts, not explanations.
 

@@ -6,6 +6,8 @@ Total questions: {{num_questions}}
 
 {{subtopic_allocation}}
 
+{{recent_questions_block}}
+
 Study material (organised by subtopic — use the section heading to match questions to subtopics):
 {{content_chunks}}
 

@@ -11,6 +11,8 @@ Study material (verbatim excerpts from the learner's indexed library — base ev
 Recent current affairs context (if applicable):
 {{current_affairs_chunks}}
 
+{{recent_questions_block}}
+
 Generate exactly {{num_questions}} MCQs in UPSC Prelims style for this subtopic.
 
 Rules:

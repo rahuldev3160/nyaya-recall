@@ -11,7 +11,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, HTTPException
 import anthropic
 import chromadb
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 
@@ -61,6 +61,46 @@ def _get_tested_subtopics_for_subject(subject_id: str) -> set[str]:
         return {r[0] for r in rows if r[0]}
     except Exception:
         return set()
+
+
+def _fetch_recent_question_texts(subject_id: str, days: int = 30, limit: int = 40) -> list[str]:
+    """Return up to `limit` question texts seen for this subject in the last `days` days."""
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    try:
+        con = sqlite3.connect(DB_PATH)
+        rows = con.execute(
+            """
+            SELECT sa.question_text
+            FROM session_answers sa
+            JOIN quiz_sessions qs ON sa.session_id = qs.id
+            WHERE sa.subject_id = ?
+              AND sa.question_text IS NOT NULL
+              AND sa.question_text != ''
+              AND qs.start_time >= ?
+            ORDER BY qs.start_time DESC
+            LIMIT ?
+            """,
+            (subject_id, since, limit),
+        ).fetchall()
+        con.close()
+        return [r[0] for r in rows if r[0]]
+    except Exception:
+        return []
+
+
+def _build_recent_questions_block(subject_id: str) -> str:
+    """Build the {{recent_questions_block}} prompt injection string."""
+    texts = _fetch_recent_question_texts(subject_id)
+    if not texts:
+        return ""
+    lines = ["IMPORTANT — Avoid repeating these questions the student has already seen:"]
+    for i, text in enumerate(texts, 1):
+        lines.append(f"{i}. {text[:100]}")
+    lines.append(
+        "Generate completely new questions on different facts/angles, "
+        "even if the subtopic overlaps."
+    )
+    return "\n".join(lines)
 
 
 def _allocate_questions_across_subtopics(subject_id: str, num_q: int) -> list[dict]:
@@ -378,6 +418,8 @@ def generate_quiz(config: dict):
             content_chunks_str = "\n\n---\n\n".join(chunks)
             ca_str = "\n\n---\n\n".join(ca_chunks)
 
+    recent_questions_block = _build_recent_questions_block(subject_id)
+
     prompt_template = (PROMPT_DIR / prompt_file).read_text()
     prompt = (
         prompt_template
@@ -387,6 +429,7 @@ def generate_quiz(config: dict):
         .replace("{{difficulty}}",             difficulty)
         .replace("{{content_chunks}}",         content_chunks_str)
         .replace("{{current_affairs_chunks}}", ca_str)
+        .replace("{{recent_questions_block}}", recent_questions_block)
         # legacy placeholders kept for adaptive_session.txt compatibility
         .replace("{{topic_name}}",             topic_id)
         .replace("{{subtopic_name}}",          subtopic_id)
