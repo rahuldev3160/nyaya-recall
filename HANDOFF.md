@@ -15,8 +15,6 @@
 
 ---
 
-# HANDOFF.md — Dev Session Update (May 14, 2026 — evening)
-
 ### Quick wins — ISSUE-022 / ISSUE-020 / ISSUES.md housekeeping — 2026-05-14
 - prompts/session_notes.txt: Core Concept section rewritten with substantive explanation requirement
 - web: difficulty badge now shows "Medium difficulty" instead of raw "medium"
@@ -33,6 +31,26 @@
 
 > Read `COLLAB.md` first for the full project context and architecture overview.
 > This file covers what changed in the most recent dev session and what still needs work.
+
+---
+
+## What changed — May 15 session
+
+### 1. Session completed state now persists across page reloads (ISSUE-023, ISSUE-024)
+
+Two bugs fixed in `fix/issue-024-session-status-persistence` (PR open, awaiting merge):
+
+**Bug 1 — Completed sessions reset on page refresh:**
+- Root cause: `completedSessions` was `Set<number>` (index-based) in React state only — wiped on every navigation.
+- Fix: New `GET /plan/today-status` backend endpoint queries `session_answers JOIN quiz_sessions` for subtopics completed today. Frontend hydrates `completedSessions` (now `Set<string>` keyed by subtopic_id) from this on mount.
+- Files: `backend/routes/plan.py`, `web/src/lib/api.ts`, `web/src/app/session/page.tsx`
+
+**Bug 2 — Re-generating plan mid-day re-schedules already-done subtopics:**
+- Root cause: `compute_subtopic_coverage()` only read `subtopic_scores` (updated by Sync). Sessions done today but not yet synced were invisible to the plan generator.
+- Fix: `_get_todays_completed_subtopics()` in `plan_generator.py` queries today's `session_answers` directly, computes real scores, merges into coverage. Claude now sees today's work when generating any new plan.
+- File: `scripts/plan_generator.py`
+
+**Watch-out:** Restart both backend and frontend after merging.
 
 ---
 

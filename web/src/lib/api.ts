@@ -30,6 +30,7 @@ export const api = {
   importSession: (data: object) => post("/sessions/import", data),
   syncAnalysis: () => post("/analysis/sync"),
   getPlan: () => get("/plan/today"),
+  getPlanStatus: () => get("/plan/today-status"),
   generatePlan: (hours: number) => post("/plan/generate", { available_hours: hours }),
   getProfile: () => get("/tracker/profile"),
   getSubjects: () => get("/tracker/subjects"),
