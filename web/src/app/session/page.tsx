@@ -61,7 +61,7 @@ export default function SessionPage() {
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
 
   const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
-  const [completedSessions, setCompletedSessions] = useState<Set<number>>(new Set());
+  const [completedSessions, setCompletedSessions] = useState<Set<string>>(new Set());
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [userNotes, setUserNotes] = useState<UserNotesState>({
     confusion: "",
@@ -77,6 +77,13 @@ export default function SessionPage() {
 
   useEffect(() => {
     api.getPlan().then(setPlan).catch(() => {});
+    api.getPlanStatus()
+      .then((s: { completed_subtopics: string[] }) => {
+        if (s?.completed_subtopics?.length) {
+          setCompletedSessions(new Set(s.completed_subtopics));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const sessionMeta = plan?.sessions?.[activeSession ?? -1];
@@ -210,7 +217,10 @@ export default function SessionPage() {
       /* ignore */
     }
     if (activeSession !== null) {
-      setCompletedSessions((prev) => { const next = new Set(prev); next.add(activeSession); return next; });
+      const subtopicId = plan?.sessions?.[activeSession]?.subtopic_id;
+      if (subtopicId) {
+        setCompletedSessions((prev) => { const next = new Set(prev); next.add(subtopicId); return next; });
+      }
     }
     setFinished(true);
   };
@@ -329,7 +339,7 @@ export default function SessionPage() {
         ) : (
           <div className="space-y-3">
             {plan.sessions.map((s: any, i: number) => {
-              const done = completedSessions.has(i);
+              const done = completedSessions.has(s.subtopic_id);
               return (
                 <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${done ? "bg-green-950/30 border-green-900/50" : "bg-gray-900 border-gray-800"}`}>
                   <div className="flex-1">

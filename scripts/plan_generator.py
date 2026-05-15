@@ -26,10 +26,44 @@ DB_PATH       = os.getenv("DB_PATH", "data/upsc.db")
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 
+def _get_todays_completed_subtopics() -> dict[str, dict[str, float]]:
+    """
+    Returns {subject_id: {subtopic_id: score}} for quiz sessions completed today
+    that may not yet be in subtopic_scores (unsynced).
+    Score is computed from today's session_answers (% correct, 0–100).
+    """
+    result: dict[str, dict[str, float]] = {}
+    try:
+        con = sqlite3.connect(DB_PATH)
+        rows = con.execute(
+            """
+            SELECT sa.subject_id, sa.subtopic_id,
+                   COUNT(*) AS total,
+                   SUM(CASE WHEN sa.is_correct = 1 THEN 1 ELSE 0 END) AS correct
+            FROM session_answers sa
+            JOIN quiz_sessions qs ON qs.id = sa.session_id
+            WHERE qs.end_time IS NOT NULL
+            AND substr(qs.start_time, 1, 10) = date('now')
+            AND sa.subtopic_id IS NOT NULL
+            AND (sa.skipped IS NULL OR sa.skipped = 0)
+            GROUP BY sa.subject_id, sa.subtopic_id
+            """
+        ).fetchall()
+        con.close()
+        for subj_id, st_id, total, correct in rows:
+            if subj_id and st_id and total:
+                result.setdefault(subj_id, {})[st_id] = round((correct / total) * 100, 1)
+    except Exception:
+        pass
+    return result
+
+
 def compute_subtopic_coverage() -> dict:
     """
     Returns {subject_id: {total, untested: [{id, pyq_weight}], tested: [{id, score, pyq_weight}]}}.
     untested list is sorted by pyq_weight descending — this is the scheduling priority order.
+    Merges today's completed quiz sessions (even unsynced) so re-planning mid-day
+    doesn't re-schedule subtopics already done this session.
     """
     try:
         syllabus = json.loads(SYLLABUS_PATH.read_text())
@@ -54,6 +88,13 @@ def compute_subtopic_coverage() -> dict:
                 tested_map.setdefault(subj_id, {})[st_id] = sc
     except Exception:
         pass
+
+    # Merge today's completed sessions (may not be in subtopic_scores yet if unsynced)
+    todays_done = _get_todays_completed_subtopics()
+    for subj_id, st_scores in todays_done.items():
+        for st_id, score in st_scores.items():
+            if st_id not in tested_map.get(subj_id, {}):
+                tested_map.setdefault(subj_id, {})[st_id] = score
 
     # CSAT excluded — user is not preparing for CSAT
     _EXCLUDED_SUBJECTS = {"csat"}

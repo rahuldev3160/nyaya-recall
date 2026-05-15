@@ -36,26 +36,53 @@
 3. structure, organise model cleanly so that it can be utilized for upsc mains preperation, indian economics services exam, RBI depr exams too. There is overlap with all these 3 exams 
 4.
 
+### ISSUE-024 — Re-generating plan mid-day re-schedules already-completed subtopics
+**Noticed:** 2026-05-15
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(none)*
+
+**What happened:**
+User completed several quiz sessions today, then clicked "Plan Today" again from the Planner page to regenerate. The new plan included subtopics they had already done that same day — resulting in duplicate sessions for the same subtopics.
+
+**The problem:**
+`generate_plan()` reads from `subtopic_scores` (updated only by batch analysis / Sync). Sessions completed today but not yet synced are invisible to the plan generator, so those subtopics appear as untested and get re-scheduled.
+
+**Current state of the code:**
+`scripts/plan_generator.py` — `compute_subtopic_coverage()` only queries `subtopic_scores`. Today's `quiz_sessions` (with `synced=0` or completed after last sync) are not considered.
+
+**What's needed to fix:**
+Query `session_answers JOIN quiz_sessions` for today's completed sessions and merge those subtopics into the coverage data passed to Claude, so re-planning mid-day doesn't re-include subtopics already covered.
+
+**Resolution:** Resolved 2026-05-15. Fixed in `fix/issue-024-session-status-persistence`.
+- `scripts/plan_generator.py` — added `_get_todays_completed_subtopics()`: queries `session_answers JOIN quiz_sessions` for today's end_time-set sessions, computes real per-subtopic % scores, merges into `tested_map` before coverage is built. Plan generator now sees today's work even without a sync.
+
+---
+
 ### ISSUE-023 — Sessions not marked complete after finishing
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
-**Linked feature:** *(to be linked)*
+**Linked feature:** *(none)*
 
 **What happened:**
 After completing a session, the today's sessions tab still shows it looking identical to unstarted sessions.
 
 **The problem:**
-After the session is complete, it does not show as completed in the today's session tab where all the scheduled sessions are, this does not allow the user to keep a track of what is complete and what is left, all the sessions looks exactly similar even after attempting some of them already.
+Two bugs. (1) `completedSessions` was `Set<number>` (index-based) — if the plan was regenerated, old indices mapped to wrong sessions in the new plan. (2) State reset on every page load, so completing sessions and refreshing the page lost all progress markers.
 
 **Current state of the code:**
-*(Claude to investigate)*
+`web/src/app/session/page.tsx` — `completedSessions` was transient React state, keyed by array index. No DB-backed check on mount.
 
 **What's needed to fix:**
-*(Claude to determine)*
+Switch tracking to subtopic_id (stable key). Add a backend endpoint that checks which plan subtopics were covered in today's completed quiz sessions, and hydrate frontend state from it on mount.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-15. Fixed in `fix/issue-024-session-status-persistence`.
+- `backend/routes/plan.py` — new `GET /plan/today-status` returns `completed_subtopics: string[]` by querying `session_answers JOIN quiz_sessions` for sessions completed today.
+- `web/src/lib/api.ts` — added `getPlanStatus()`.
+- `web/src/app/session/page.tsx` — `completedSessions` now `Set<string>` (subtopic_id). Hydrated from `today-status` on mount. `finishSession` adds subtopic_id. Survives page refresh and server restart.
 
 ---
 
