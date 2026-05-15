@@ -85,16 +85,15 @@ export default function SessionPage() {
 
   useEffect(() => {
     api.getPlan().then(setPlan).catch(() => {});
+    // API is authoritative — always overwrite with server state so stale localStorage never wins
     api.getPlanStatus()
       .then((s: { completed_subtopics: string[] }) => {
-        if (s?.completed_subtopics?.length) {
-          setCompletedSessions(new Set(s.completed_subtopics));
-        }
+        setCompletedSessions(new Set(s?.completed_subtopics ?? []));
       })
       .catch(() => {});
   }, []);
 
-  // Restore completed session indices from localStorage on mount (keyed by date so it resets each day)
+  // Restore from localStorage on mount for instant UI (API result overwrites this once resolved)
   useEffect(() => {
     try {
       const key = `upsc_completed_${new Date().toISOString().split("T")[0]}`;

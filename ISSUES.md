@@ -64,26 +64,24 @@ During back-to-back diagnostic sessions on the same subject, many questions repe
 
 ---
 
-### ISSUE-025 — Sessions generated after 4pm re-plan shown as complete without being attempted
+### ISSUE-025 — session/today-status uses start_time; localStorage race overwrites API result
 **Noticed:** 2026-05-16
-**Reported by:** Rahul
+**Reported by:** Claude (code review during planning)
 **Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(none)*
 
 **What happened:**
-User completed morning sessions, then re-generated the plan in the afternoon. Some new sessions in the afternoon plan were immediately shown as complete (green checkmark) without being started.
+Noticed during root-cause analysis of session completion display bugs.
 
 **The problem:**
-Three layered bugs: (A) plan generator re-scheduled already-completed subtopics (fixed in ISSUE-024); (B) `get_plan_status()` used `substr(start_time, 1, 10)` instead of `date(end_time)` — in-progress sessions with a `start_time` today counted as completed; (C) localStorage restore in `session/page.tsx` used `Set<number>` but state was `Set<string>`, causing a type mismatch and silent failure.
+Two bugs found in `get_plan_status()` + `session/page.tsx`:
+1. `GET /plan/today-status` filtered completed sessions by `substr(qs.start_time, 1, 10) = date('now')` instead of `date(qs.end_time) = date('now')`. Sessions started yesterday but completed today would be missed; semantically, "completed today" should key off end_time.
+2. In `session/page.tsx`, two `useEffect` hooks both call `setCompletedSessions`. The localStorage restore (synchronous) ran first; the API call (async) only overwrote if `completed_subtopics.length > 0`. If the API returned an empty list, stale localStorage data persisted in UI state. Also, localStorage was cast to `number[]` but stored as `string[]` subtopic IDs.
 
-**What's needed to fix:**
-- Change `today-status` query to filter by `date(qs.end_time)` not `start_time`
-- Fix localStorage restore to merge into `Set<string>` instead of replacing with `Set<number>`
-
-**Resolution:** Resolved 2026-05-16. Fixed in `feature/superplan-trajectory` (PR #14).
-- `web/src/app/session/page.tsx` — localStorage restore now merges with `prev` state as `string[]`, not `number[]`
-- Note: `plan.py` `end_time` query fix is already on branch `fix/issue-024-session-status-persistence` (PR #13); layer B fix in that PR, layer C fix in PR #14.
+**Resolution:** Resolved 2026-05-16.
+- `backend/routes/plan.py` — filter changed to `date(qs.end_time) = date('now')` (PR #13).
+- `web/src/app/session/page.tsx` — API effect now always overwrites (no length guard), making it the authoritative source. localStorage restore now merges into prev state (not replaces) for instant initial UI, then API result wins. Fixed type cast from `number[]` → `string[]` (PR #14).
 
 ---
 
@@ -698,7 +696,7 @@ Fixed. Backend was already complete.
 ## How to add a new issue
 
 1. Copy the format block at the top
-2. Increment the issue number (next: ISSUE-025)
+2. Increment the issue number (next: ISSUE-026)
 3. Fill in all fields — especially "Current state of the code" so the next person
    doesn't have to re-investigate
 4. Add it under **Open**
