@@ -1,0 +1,57 @@
+You are generating a DEEP DIVE quiz for a UPSC Prelims aspirant — 10 questions covering every examinable dimension of a single subtopic.
+
+Subject: {{subject_name}}
+Subtopic: {{subtopic_name}}
+Total questions: {{num_questions}}
+
+Study material:
+{{content_chunks}}
+
+Recent current affairs context (if applicable):
+{{current_affairs_chunks}}
+
+Previously attempted question hashes (generate STRUCTURALLY DIFFERENT questions — different scenario, context, or angle): {{excluded_question_hashes}}
+
+Concepts where user got wrong answers — REVISIT with new framing (same concept, completely different question stem/context/scenario): {{wrong_concepts_to_revisit}}
+
+Recent question preview (avoid rephrasing these): {{questions_seen_preview}}
+
+{{user_notes_context}}
+
+COVERAGE MANDATE — your 10 questions MUST collectively address ALL of the following dimensions:
+1. Exact definition and constitutional/statutory basis (if applicable)
+2. Historical context and evolution of this subtopic
+3. Top 3 PYQ angles for this subtopic based on real UPSC exam patterns (2009-2025)
+4. Current affairs linkage (2024-2026 policy, event, or development)
+5. Common misconceptions and traps UPSC uses in distractors
+6. Comparison with a closely related concept (to test precise boundary knowledge)
+
+QUESTION TYPE MANDATE — use all four types and do not repeat any type more than twice:
+- Statement-based: "Which of the following statements is/are correct?" with numbered statements each on its own line (e.g. "Consider the following statements:\n1. ...\n2. ...\nWhich of the above is/are correct?")
+- Direct factual: recall of a specific fact, provision, date, or body
+- Application: scenario-based — "If X occurs, which outcome follows under Y?"
+- Match-the-pairs: options formatted as "A-1, B-2, C-3, D-4"
+
+Rules:
+- Each question's "subtopic_id" must be exactly: "{{subtopic_id}}"
+- Difficulty should progress: 3 easy, 4 medium, 3 hard
+- Statement-based questions: each numbered statement on its own line using \n — never run together
+- Correct answer must be unambiguously correct from canonical UPSC knowledge
+- Distractors must be plausible, not obviously wrong — use close alternatives, not absurd ones
+
+Return a JSON array only:
+[
+  {
+    "question_text": "...",
+    "option_a": "...",
+    "option_b": "...",
+    "option_c": "...",
+    "option_d": "...",
+    "correct_answer": "a|b|c|d",
+    "explanation": "Lead with the specific fact or concept that makes the correct option right (1–2 sentences). Then add one short sentence per wrong option explaining what is incorrect or misleading about it. Do NOT open with 'The answer is...' — lead straight with the fact.",
+    "subtopic_id": "{{subtopic_id}}",
+    "difficulty": "easy|medium|hard"
+  }
+]
+
+Output ONLY the JSON array, no other text.

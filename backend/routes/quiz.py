@@ -22,6 +22,7 @@ CHROMA_PATH = os.getenv("CHROMA_PATH", "vector_store")
 PROMPT_DIR = Path(__file__).parent.parent.parent / "prompts"
 _SYLLABUS_PATH = Path(__file__).parent.parent.parent / "data" / "syllabus.json"
 _NOTES_CACHE_PATH = Path(__file__).parent.parent.parent / "cache" / "explanations.json"
+_PLAN_PATH = Path(os.getenv("PLAN_PATH", "data/study_plan.json"))
 _SUBJECT_ALIAS = {"history": "history_amac"}
 
 # How many Chroma chunks to retrieve for notes synthesis.
@@ -61,6 +62,131 @@ def _get_tested_subtopics_for_subject(subject_id: str) -> set[str]:
         return {r[0] for r in rows if r[0]}
     except Exception:
         return set()
+
+
+def _get_quiz_intelligence(subject_id: str, subtopic_id: str | None = None) -> dict:
+    """
+    Queries DB for context that makes question generation smarter.
+    Returns:
+    {
+      "excluded_hashes": list[str],        # question_hash seen in last 30 days for this subject
+      "wrong_concepts": list[str],         # subtopic_ids where user got answers wrong recently
+      "question_texts_seen": list[str],    # last 20 question_texts (for semantic dedup)
+      "user_notes_context": str,           # confusion/mnemonic notes for this subtopic (empty = neutral)
+    }
+    If no history exists, return empty lists/strings (neutral signal).
+    """
+    result: dict = {
+        "excluded_hashes": [],
+        "wrong_concepts": [],
+        "question_texts_seen": [],
+        "user_notes_context": "",
+    }
+    try:
+        con = sqlite3.connect(DB_PATH)
+
+        # excluded_hashes: question_hash seen in last 30 days for this subject
+        try:
+            rows = con.execute(
+                """SELECT DISTINCT question_hash FROM session_answers
+                   WHERE subject_id=? AND created_at >= date('now','-30 days')
+                   AND question_hash IS NOT NULL""",
+                (subject_id,),
+            ).fetchall()
+            result["excluded_hashes"] = [r[0] for r in rows if r[0]]
+        except sqlite3.OperationalError:
+            pass
+
+        # wrong_concepts: subtopic_ids with wrong answers in last 30 days
+        try:
+            rows = con.execute(
+                """SELECT DISTINCT subtopic_id FROM session_answers
+                   WHERE subject_id=? AND is_correct=0
+                   AND (skipped IS NULL OR skipped=0)
+                   AND created_at >= date('now','-30 days')
+                   AND subtopic_id IS NOT NULL""",
+                (subject_id,),
+            ).fetchall()
+            result["wrong_concepts"] = [r[0] for r in rows if r[0]]
+        except sqlite3.OperationalError:
+            pass
+
+        # question_texts_seen: last 20 question_text values for this subject
+        try:
+            rows = con.execute(
+                """SELECT question_text FROM session_answers
+                   WHERE subject_id=? AND question_text IS NOT NULL
+                   ORDER BY created_at DESC LIMIT 20""",
+                (subject_id,),
+            ).fetchall()
+            result["question_texts_seen"] = [r[0] for r in rows if r[0]]
+        except sqlite3.OperationalError:
+            pass
+
+        # user_notes_context: confusion/mnemonic for this subtopic
+        if subtopic_id:
+            try:
+                row = con.execute(
+                    """SELECT confusion, mnemonic FROM session_user_notes
+                       WHERE subtopic_id=? AND user_id='user_1'
+                       ORDER BY updated_at DESC LIMIT 1""",
+                    (subtopic_id,),
+                ).fetchone()
+                if row:
+                    parts = []
+                    if row[0]:
+                        parts.append(f"User confusion: {row[0]}")
+                    if row[1]:
+                        parts.append(f"User mnemonic: {row[1]}")
+                    result["user_notes_context"] = "\n".join(parts)
+            except sqlite3.OperationalError:
+                # session_user_notes may not exist yet
+                pass
+
+        con.close()
+    except Exception:
+        pass
+
+    return result
+
+
+def _get_spillover_subtopics(subject_id: str, primary_subtopic: str, n: int = 2) -> str:
+    """
+    Read data/study_plan.json and find untested subtopics for subject_id
+    that aren't primary_subtopic. Returns a formatted spillover instruction string,
+    or "" if none found or plan doesn't exist.
+    """
+    try:
+        plan_path = _PLAN_PATH
+        if not plan_path.is_absolute():
+            plan_path = Path(__file__).parent.parent.parent / plan_path
+        if not plan_path.exists():
+            return ""
+
+        plan = json.loads(plan_path.read_text())
+        today_sessions = plan.get("today", {}).get("sessions", [])
+
+        tested = _get_tested_subtopics_for_subject(subject_id)
+
+        spillover_candidates: list[str] = []
+        for session in today_sessions:
+            if session.get("subject_id") != subject_id:
+                continue
+            st = session.get("subtopic_id")
+            if st and st != primary_subtopic and st not in tested:
+                spillover_candidates.append(st)
+
+        if not spillover_candidates:
+            return ""
+
+        selected = spillover_candidates[:n]
+        return (
+            f"Spillover: if all distinct question dimensions for the primary subtopic "
+            f"are exhausted before reaching {{num_q}}, generate remaining questions on: "
+            f"{', '.join(selected)}"
+        )
+    except Exception:
+        return ""
 
 
 def _allocate_questions_across_subtopics(subject_id: str, num_q: int) -> list[dict]:
@@ -318,6 +444,16 @@ def generate_quiz(config: dict):
 
     prebuilt_notes: str | None = None
 
+    # ── Gather quiz intelligence (dedup, wrong concepts, user notes) ─────────
+    intel = _get_quiz_intelligence(subject_id, subtopic_id or None)
+
+    # ── Prompt file selection ─────────────────────────────────────────────────
+    if session_type == "deep_dive":
+        prompt_file = "deep_dive_quiz.txt"
+        # deep_dive always uses single-subtopic mode, no multi-subtopic allocation
+        if not subtopic_id:
+            raise HTTPException(status_code=400, detail="deep_dive session_type requires subtopic_id")
+
     if subtopic_id:
         # ── Single-subtopic mode (session from plan or user-chosen subtopic) ────
         ca_chunks = fetch_ca_chunks(subtopic_id.replace("_", " "))
@@ -336,7 +472,8 @@ def generate_quiz(config: dict):
             else:
                 chunks = [r["text"] for r in note_rows]
             prebuilt_notes = synthesize_notes_cached(note_rows, subtopic_id, subject_id)
-            prompt_file = "adaptive_quiz_only.txt"
+            if session_type != "deep_dive":
+                prompt_file = "adaptive_quiz_only.txt"
         else:
             chunks = fetch_chunks(subject_id, subtopic_id)
             if not chunks:
@@ -344,7 +481,11 @@ def generate_quiz(config: dict):
                     f"Standard UPSC Prelims content on {subject_id}: "
                     f"{subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
                 ]
-            prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
+            if session_type not in ("adaptive", "deep_dive"):
+                prompt_file = "diagnostic_quiz.txt"
+            elif session_type == "adaptive":
+                prompt_file = "adaptive_session.txt"
+            # deep_dive keeps prompt_file set above
 
         subtopic_allocation = (
             f"Subtopic: {subtopic_id}\n"
@@ -353,8 +494,15 @@ def generate_quiz(config: dict):
         )
         content_chunks_str = "\n\n---\n\n".join(chunks)
         ca_str = "\n\n---\n\n".join(ca_chunks)
+
+        # Spillover logic for adaptive sessions only
+        spillover_block = ""
+        if session_type == "adaptive":
+            spillover_block = _get_spillover_subtopics(subject_id, subtopic_id, n=2)
+
     else:
-        prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
+        if session_type != "deep_dive":
+            prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
         # ── Multi-subtopic diagnostic mode ───────────────────────────────────────
         allocation = _allocate_questions_across_subtopics(subject_id, num_q)
         if allocation:
@@ -377,6 +525,7 @@ def generate_quiz(config: dict):
             )
             content_chunks_str = "\n\n---\n\n".join(chunks)
             ca_str = "\n\n---\n\n".join(ca_chunks)
+        spillover_block = ""
 
     prompt_template = (PROMPT_DIR / prompt_file).read_text()
     prompt = (
@@ -396,6 +545,15 @@ def generate_quiz(config: dict):
         .replace("{{#if show_notes}}",         "" if config.get("show_notes") else "<!--")
         .replace("{{else}}",                   "-->" if config.get("show_notes") else "")
         .replace("{{/if}}",                    "" if not config.get("show_notes") else "-->")
+        # ── Quiz intelligence replacements ────────────────────────────────────
+        .replace("{{excluded_question_hashes}}",
+                 ", ".join(intel["excluded_hashes"][:50]) or "none")
+        .replace("{{wrong_concepts_to_revisit}}",
+                 ", ".join(intel["wrong_concepts"]) or "none")
+        .replace("{{questions_seen_preview}}",
+                 "; ".join(t[:80] for t in intel["question_texts_seen"][:20]) or "none")
+        .replace("{{user_notes_context}}",     intel["user_notes_context"])
+        .replace("{{spillover_subtopics}}",    spillover_block)
     )
 
     response = client.messages.create(
