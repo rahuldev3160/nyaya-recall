@@ -149,6 +149,12 @@ def init_db():
     );
 
     INSERT OR IGNORE INTO sar_scores (user_id) VALUES ('user_1');
+
+    CREATE INDEX IF NOT EXISTS idx_sa_session ON session_answers(session_id);
+    CREATE INDEX IF NOT EXISTS idx_sa_subj_sub ON session_answers(subject_id, subtopic_id);
+    CREATE INDEX IF NOT EXISTS idx_qs_end ON quiz_sessions(end_time);
+    CREATE INDEX IF NOT EXISTS idx_qs_start ON quiz_sessions(start_time);
+    CREATE INDEX IF NOT EXISTS idx_subtopic_scores_lookup ON subtopic_scores(user_id, subject_id);
     """)
     con.commit()
     con.close()

@@ -252,6 +252,13 @@ export default function SessionPage() {
     };
   }, [userNotes, perQuestionNotes, quiz?.session_id, currentQ, activeSession, plan]);
 
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (perQuestionSaveTimer.current) clearTimeout(perQuestionSaveTimer.current);
+    };
+  }, []);
+
   const patchUserNotes = (patch: Partial<UserNotesState>) => {
     notesDirty.current = true;
     setUserNotes((n) => ({ ...n, ...patch }));
