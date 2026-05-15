@@ -1,3 +1,29 @@
+export interface QuizQuestion {
+  question_text: string;
+  options: string[];
+  correct_answer: string;
+  subtopic_id: string;
+  explanation: string;
+}
+
+export interface QuizSession {
+  session_id: string;
+  questions: QuizQuestion[];
+  notes_summary: string | null;
+}
+
+export interface PlanSession {
+  subtopic_id: string;
+  subject_id: string;
+  format: string;
+  num_questions: number;
+}
+
+export interface StudyPlan {
+  sessions: PlanSession[];
+  date: string;
+}
+
 // All calls go through the Next.js proxy (/api/backend → port 8000).
 const BASE = "/api/backend";
 
