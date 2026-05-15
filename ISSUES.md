@@ -32,6 +32,38 @@
 
 ---
 
+### ISSUE-026 — Diagnostic and session questions repeat; no adaptive difficulty or note feedback
+**Noticed:** 2026-05-16
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(none)*
+
+**What happened:**
+During back-to-back diagnostic sessions on the same subject, many questions repeated verbatim. Wrong answers were re-asked in the same framing rather than revisited from a different angle. Questions also clustered to the same type (mostly statement-based), which doesn't reflect actual UPSC question variety.
+
+**The problem:**
+`generate_quiz()` was fully stateless — no awareness of question history, user notes, or wrong-concept signals. Questions were generated fresh each session with no deduplication or adaptive reuse of feedback.
+
+**Current state of the code:**
+`backend/routes/quiz.py` — quiz generation had no history queries. Prompt templates had no intelligence variables.
+
+**What's needed to fix:**
+- Dedup via `question_hash` exclusion from recent sessions
+- Wrong-concept revisiting in new framing
+- User notes injection (`session_user_notes` table)
+- UPSC question-type variety mandate in prompts
+- Spillover to adjacent subtopics when one subtopic's dimensions are exhausted
+- Deep Dive mode for focused single-subtopic drilling (10Q, 6 mandatory dimensions)
+
+**Resolution:** Resolved 2026-05-16. Implemented in `fix/issue-026-adaptive-quiz` (PR #15).
+- `backend/routes/quiz.py` — new `_get_quiz_intelligence()` helper queries excluded hashes, wrong concepts, recent question texts, and user notes; new `_get_spillover_subtopics()` helper reads today's plan; `generate_quiz()` injects 5 new template vars into all prompts
+- `prompts/diagnostic_quiz.txt`, `adaptive_session.txt`, `adaptive_quiz_only.txt` — updated with intelligence block and UPSC variety mandate (5 question types, min 3 per set)
+- `prompts/deep_dive_quiz.txt` — NEW: 10Q single-subtopic prompt covering 6 mandatory dimensions
+- `web/src/app/diagnostic/page.tsx` — default count 10→15; Deep Dive mode toggle with per-subject subtopic selector
+
+---
+
 ### ISSUE-025 — session/today-status uses start_time; localStorage race overwrites API result
 **Noticed:** 2026-05-16
 **Reported by:** Claude (code review during planning)
@@ -48,8 +80,8 @@ Two bugs found in `get_plan_status()` + `session/page.tsx`:
 2. In `session/page.tsx`, two `useEffect` hooks both call `setCompletedSessions`. The localStorage restore (synchronous) ran first; the API call (async) only overwrote if `completed_subtopics.length > 0`. If the API returned an empty list, stale localStorage data persisted in UI state. Also, localStorage was cast to `number[]` but stored as `string[]` subtopic IDs.
 
 **Resolution:** Resolved 2026-05-16.
-- `backend/routes/plan.py` — filter changed to `date(qs.end_time) = date('now')`.
-- `web/src/app/session/page.tsx` — API effect now always overwrites (no length guard), making it the authoritative source. localStorage restore now merges into prev state (not replaces) for instant initial UI, then API result wins. Fixed type cast from `number[]` → `string[]`.
+- `backend/routes/plan.py` — filter changed to `date(qs.end_time) = date('now')` (PR #13).
+- `web/src/app/session/page.tsx` — API effect now always overwrites (no length guard), making it the authoritative source. localStorage restore now merges into prev state (not replaces) for instant initial UI, then API result wins. Fixed type cast from `number[]` → `string[]` (PR #14).
 
 ---
 
