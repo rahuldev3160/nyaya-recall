@@ -11,6 +11,32 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
+_SYLLABUS_PATH = Path(__file__).parent.parent / "data" / "syllabus.json"
+_syllabus_cache: dict | None = None
+
+
+def _load_syllabus() -> dict:
+    global _syllabus_cache
+    if _syllabus_cache is None:
+        try:
+            _syllabus_cache = json.loads(_SYLLABUS_PATH.read_text())
+        except Exception:
+            _syllabus_cache = {}
+    return _syllabus_cache
+
+
+def _canonical_topic_id(subject_id: str, subtopic_id: str) -> str | None:
+    """Look up canonical topic_id from syllabus.json for a subject+subtopic pair."""
+    _ALIAS = {"history": "history_amac"}
+    sid = _ALIAS.get(subject_id, subject_id)
+    for subj in _load_syllabus().get("subjects", []):
+        if subj["id"] != sid:
+            continue
+        for topic in subj.get("topics", []):
+            for st in topic.get("subtopics", []):
+                if st["id"] == subtopic_id:
+                    return topic["id"]
+    return None
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -97,6 +123,11 @@ def close_session(session_id: str) -> dict:
                         a["subtopic_id"] = cfg_subtopic
         except Exception:
             pass
+
+    # Second pass: for answers still missing topic_id, look up from syllabus per subtopic
+    for a in answers:
+        if not a.get("topic_id") and a.get("subject_id") and a.get("subtopic_id"):
+            a["topic_id"] = _canonical_topic_id(a["subject_id"], a["subtopic_id"])
 
     total = len(answers)
     correct = sum(1 for a in answers if a["is_correct"])
