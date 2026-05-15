@@ -28,6 +28,32 @@ _SUBJECT_ALIAS = {"history": "history_amac"}
 # How many Chroma chunks to retrieve for notes synthesis.
 _NOTES_QUERY_K = 14
 
+_syllabus_cache: dict | None = None
+
+
+def _load_syllabus() -> dict:
+    global _syllabus_cache
+    if _syllabus_cache is None:
+        try:
+            _syllabus_cache = json.loads(_SYLLABUS_PATH.read_text())
+        except Exception:
+            _syllabus_cache = {}
+    return _syllabus_cache
+
+
+def get_canonical_topic_id(subject_id: str, subtopic_id: str) -> str | None:
+    """Look up topic_id from syllabus.json for a given subject+subtopic pair."""
+    sid = _SUBJECT_ALIAS.get(subject_id, subject_id)
+    syllabus = _load_syllabus()
+    for subj in syllabus.get("subjects", []):
+        if subj["id"] != sid:
+            continue
+        for topic in subj.get("topics", []):
+            for st in topic.get("subtopics", []):
+                if st["id"] == subtopic_id:
+                    return topic["id"]
+    return None
+
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 chroma = chromadb.PersistentClient(path=CHROMA_PATH)
 
@@ -426,8 +452,13 @@ def _build_multi_subtopic_prompt_parts(
 @router.post("/generate")
 def generate_quiz(config: dict):
     subject_id = config.get("subject_id", "")
-    topic_id   = config.get("topic_id", "")
     subtopic_id = config.get("subtopic_id", "")
+    # Resolve canonical topic_id from syllabus; prefer over whatever the caller sent
+    topic_id = (
+        get_canonical_topic_id(subject_id, subtopic_id)
+        if subtopic_id
+        else config.get("topic_id", "")
+    ) or config.get("topic_id", "")
     num_q = config.get("num_questions", 10)
     session_type = config.get("session_type", "diagnostic")
 
@@ -583,18 +614,24 @@ def generate_quiz(config: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse quiz JSON: {e}")
 
-    # Create session record
+    # Create session record — store canonical topic_id in both column and config
     session_id = str(uuid.uuid4())
+    stored_config = {**config, "topic_id": topic_id or config.get("topic_id", "")}
     con = sqlite3.connect(DB_PATH)
     con.execute("""
         INSERT INTO quiz_sessions (id, session_type, subject_id, topic_id, mode, config, start_time, total_questions)
         VALUES (?,?,?,?,?,?,?,?)
     """, (session_id, session_type, subject_id, topic_id, config.get("mode", "fixed_set"),
-          json.dumps(config), datetime.now(timezone.utc).isoformat(), len(questions)))
+          json.dumps(stored_config), datetime.now(timezone.utc).isoformat(), len(questions)))
     con.commit()
     con.close()
 
-    return {"session_id": session_id, "questions": questions, "notes_summary": notes}
+    return {
+        "session_id": session_id,
+        "questions": questions,
+        "notes_summary": notes,
+        "topic_id": topic_id or None,
+    }
 
 
 @router.post("/pyq")

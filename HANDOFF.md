@@ -1,3 +1,34 @@
+# HANDOFF.md — Dev Session Update (May 16, 2026)
+
+### FEATURE-028 Phase 0+1 — PYQ retag + canonical topic_id plumbing — 2026-05-16
+
+**Phase 0 (prerequisite):**
+- Ran `scripts/retag_pyq_subtopics.py` — 714 PYQ rows reclassified to canonical syllabus subtopic_ids (was ~70% stuck at DEFAULT_WEIGHT=1.0).
+- Ran `scripts/priority_scorer.py` to recompute PYQ weights with real data.
+
+**Phase 1 — Canonical topic_id plumbing:**
+
+`backend/routes/quiz.py`:
+- Added `_load_syllabus()` (cached) + `get_canonical_topic_id(subject_id, subtopic_id)` — looks up canonical topic_id from syllabus.json for any subject+subtopic pair.
+- `generate_quiz()` now resolves canonical `topic_id` from syllabus (not from caller config) for single-subtopic sessions; stores it in both the `quiz_sessions` column and the config JSON blob.
+- Quiz response now includes `"topic_id"` field.
+
+`scripts/score_engine.py`:
+- Added `_canonical_topic_id()` (mirrors quiz.py logic) and `_load_syllabus()`.
+- `close_session()` now does a second pass after the config backfill: any answer still missing `topic_id` gets looked up per-subtopic from syllabus.
+
+`scripts/backfill_topic_ids.py` (new):
+- One-time backfill script — runs on existing DB rows.
+- Handles UNIQUE constraint conflicts by merging duplicate rows (accumulates attempts+correct, keeps newer last_tested).
+- **Already run:** session_answers: 656/701 fixed (45 are Claude-invented subtopics from old diagnostics); subtopic_scores: 144/173 fixed, 2 merged, 1 not in syllabus.
+
+**Watch-outs:**
+- The 45 remaining NULL topic_id rows in session_answers are questions from multi-subtopic diagnostic sessions where Claude invented non-canonical subtopic names. These can't be back-filled without re-running the retag script on session_answers (not worth it — they're old data).
+- `subtopic_scores` UNIQUE constraint now correctly covers `(user_id, subject_id, topic_id, subtopic_id)` — backfill merged 2 duplicate rows.
+- Phase 2 (topic-level coverage in batch_analyse.py) is next.
+
+---
+
 # HANDOFF.md — Dev Session Update (May 15, 2026)
 
 ### ISSUE-024 — Session progress persisted across server restarts — 2026-05-15
