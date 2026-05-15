@@ -1,5 +1,34 @@
 # HANDOFF.md — Dev Session Update (May 15, 2026)
 
+### ISSUE-024 — Session progress persisted across server restarts — 2026-05-15
+
+**Two bugs fixed in `web/src/app/session/page.tsx` only (no backend changes):**
+
+1. **`completedSessions` now survives page refresh** — Stored in localStorage as `upsc_completed_{YYYY-MM-DD}` (date-keyed so it auto-resets each day). Restored on mount; saved on every change.
+
+2. **In-progress session auto-resumes after server restart** — Active quiz state (`session_id`, `questions`, `currentQ`, `answers`, `revealed`, `activeSession`) stored in localStorage key `upsc_active_quiz`. On page load (after plan loads, runs once via `restoredRef`), calls `GET /sessions/{id}` to verify the session is still open (no `end_time`). If open → restores full state silently. If session already closed or missing → discards localStorage entry. `finishSession()` explicitly removes the entry on clean finish.
+
+**Watch-outs:**
+- Individual answers were already persisted to SQLite on submit — this fix only restores the UI state, not the data.
+- The restore verification requires the backend to be running (it calls `GET /sessions/{id}`). If backend is down when page loads, the active quiz won't restore that visit.
+- `notes_summary` (session notes) is also stored and restored — so notes-then-quiz sessions resume with notes intact.
+
+---
+
+### Quick wins — ISSUE-022 / ISSUE-020 / ISSUES.md housekeeping — 2026-05-14
+- prompts/session_notes.txt: Core Concept section rewritten with substantive explanation requirement
+- web: difficulty badge now shows "Medium difficulty" instead of raw "medium"
+- ISSUES.md: ISSUE-007, 008, 012, 016, 021, 023 marked Resolved (were fixed in merged PRs)
+
+---
+
+### ISSUE-018 + ISSUE-019 — session/page.tsx revision deck + per-question notes — May 14
+
+- `web/src/app/session/page.tsx`: revision deck now shows after adaptive session finish (matches diagnostic page) — `revisionNotes` + `revisionLoading` state added, `finishSession()` calls `api.getRevisionNotes`, finished view renders wrong-answer cards with explanation.
+- `web/src/app/session/page.tsx` + `backend/routes/sessions.py`: notes textarea in My Notes drawer resets per question (`perQuestionNotes[currentQ]` state), autosaves with 700ms debounce linked to `question_context_index`, reloads saved note on question return. Backend adds `session_question_notes` table (lazy `CREATE TABLE IF NOT EXISTS`, no ALTER TABLE) and extends PUT/GET user-notes endpoints to handle per-question rows.
+
+---
+
 > Read `COLLAB.md` first for the full project context and architecture overview.
 > This file covers what changed in the most recent dev session and what still needs work.
 

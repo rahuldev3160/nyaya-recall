@@ -31,6 +31,58 @@
 ## Open
 
 ---
+
+### ISSUE-024 — Session progress lost on server restart; completed sessions reset on page refresh
+**Noticed:** 2026-05-15
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P0
+**Linked feature:** *(none)*
+
+**What happened:**
+User killed the server mid-session (or server crashed). On restart, Today's Sessions showed all sessions as "Start" again, including ones already completed. Clicking Start regenerated a new quiz from scratch, discarding the in-progress work.
+
+**The problem:**
+Two bugs:
+1. `completedSessions` is pure React state (`Set<number>`). Page refresh wipes it — all completed sessions re-appear as "Start" even though answers are in SQLite.
+2. Active quiz state (`session_id`, `questions`, `currentQ`, `answers`, `revealed`) lives only in React memory. Server restart → frontend reload → `startSession()` generates a NEW session_id/questions. Old in-progress session is orphaned in DB with no `end_time`, never counted.
+
+Note: individual answers ARE persisted to SQLite immediately on submit (via `record_answer()`). The data is not lost — only the UI state is lost.
+
+**Current state of the code:**
+`web/src/app/session/page.tsx` — all session state is transient React state. No localStorage or DB-backed restoration. `list_sessions` query filters `end_time IS NOT NULL`, so in-progress sessions are invisible to the frontend.
+
+**What's needed to fix:**
+localStorage for both stores (no backend change needed):
+- `upsc_completed_{date}` → `number[]` of completed plan-session indices (by date so it auto-resets next day)
+- `upsc_active_quiz` → full quiz snapshot; verified against `GET /sessions/{id}` on restore; discarded if session has `end_time`
+
+**Resolution:** Resolved 2026-05-15. `web/src/app/session/page.tsx` — added `ACTIVE_QUIZ_KEY` constant; four new effects: restore completedSessions on mount, save completedSessions on change, restore active quiz when plan loads (verified against DB), persist quiz state on every answer/navigation. `finishSession` clears localStorage on clean finish.
+
+---
+
+### ISSUE-021 — the time taking while generating session/quiz (in diagnostic section) is irritating- need to plan an interactive way for the user to keep engaged with the model/app while the session is generated at the background
+**Noticed:** 2026-05-15
+**Reported by:** Rahul
+**Status:** Open
+**Priority:** P1
+**Linked feature:** *(to be linked)*
+
+**What happened:**
+*(fill in — what were you doing when you noticed this)*
+
+**The problem:**
+the time taking while generating session/quiz (in diagnostic section) is irritating- need to plan an interactive way for the user to keep engaged with the model/app while the session is generated at the background
+
+**Current state of the code:**
+*(Claude to investigate)*
+
+**What's needed to fix:**
+*(Claude to determine)*
+
+**Resolution:** *(pending)*
+
+---
 - 1. the loading time for sessions is 30-40secs, need to minimise this or invent a way to interect with user while session/quiz is genersting in parallel/background.
 -2. the parallel note feature (my notes) is running standalone. theu are on the same screen but the user can either take notes or read notes ( note tab automatically shrink back at the bottom instead it should remain open to have more seamless note taking).
 3. structure, organise model cleanly so that it can be utilized for upsc mains preperation, indian economics services exam, RBI depr exams too. There is overlap with all these 3 exams 
@@ -82,14 +134,14 @@ Switch tracking to subtopic_id (stable key). Add a backend endpoint that checks 
 **Resolution:** Resolved 2026-05-15. Fixed in `fix/issue-024-session-status-persistence`.
 - `backend/routes/plan.py` — new `GET /plan/today-status` returns `completed_subtopics: string[]` by querying `session_answers JOIN quiz_sessions` for sessions completed today.
 - `web/src/lib/api.ts` — added `getPlanStatus()`.
-- `web/src/app/session/page.tsx` — `completedSessions` now `Set<string>` (subtopic_id). Hydrated from `today-status` on mount. `finishSession` adds subtopic_id. Survives page refresh and server restart.
+- `web/src/app/session/page.tsx` — `completedSessions` now `Set<string>` (subtopic_id). Hydrated from `today-status` on mount. `finishSession` adds subtopic_id. Survives page refresh and server restart. Also retains localStorage `upsc_active_quiz` for in-progress quiz resume (from PR #6).
 
 ---
 
 ### ISSUE-022 — Session notes missing core concept depth
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -105,14 +157,14 @@ The notes generated for a session covers all the important dimensions for a subt
 **What's needed to fix:**
 Rewrite the Core Concept section instruction in `prompts/session_notes.txt` to require substantive explanation of confusing/complex facts, not just a one-liner identifier.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. prompts/session_notes.txt Core Concept section rewritten to require substantive 3-5 sentence explanation including concept definition, UPSC relevance, and common traps.
 
 ---
 
 ### ISSUE-021 — Click immediately reveals answer — no submit step
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -128,14 +180,14 @@ While attempting the question a simple click saves the user response and shows t
 **What's needed to fix:**
 Confirm the Submit button flow is complete: option click sets `pendingAnswer` (highlighted), Submit button calls `submitAnswer(pendingAnswer)`, answer only revealed after Submit.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. Option click highlights blue (pendingAnswer state); Submit button calls submitAnswer. Both diagnostic/page.tsx and session/page.tsx.
 
 ---
 
 ### ISSUE-020 — "Medium" label on sessions is unclear
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -151,14 +203,14 @@ The sessions shows a label "medium" in yellow text colour — this is unclear wh
 **What's needed to fix:**
 Either replace "medium" with "Medium difficulty" or add a tooltip. Investigate which component renders this label.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Difficulty badge now shows "Easy/Medium/Hard difficulty" instead of raw lowercase string. Fixed in web/src/app/session/page.tsx.
 
 ---
 
 ### ISSUE-019 — Note-taking box should reset per question and autosave
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -174,14 +226,16 @@ The note taking box at the right bottom corner should appear as a completely new
 **What's needed to fix:**
 Ensure note textarea clears on `currentQ` change; autosave links to current `question_context_index`; on question return, repopulate note for that question index.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14.
+- `backend/routes/sessions.py` — added `session_question_notes` table (created lazily, no ALTER TABLE). PUT endpoint now accepts `note_text` + `question_context_index` and saves per-question row; GET returns `per_question_notes` dict keyed by question index.
+- `web/src/app/session/page.tsx` — added `perQuestionNotes: Record<number, string>` state. Per-question note textarea (amber border, "Note for Q{N}") in the notes drawer shows/clears per `currentQ`, autosaves with 700ms debounce linked to question index. Loaded from backend on session start. Session-level confusion/mnemonic/still_weak fields remain unchanged.
 
 ---
 
 ### ISSUE-018 — No end-of-session revision notes for incorrect attempts
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -197,7 +251,8 @@ At the end of the session, give brief revision notes around the concepts which u
 **What's needed to fix:**
 Verify revision deck appears in both `diagnostic/page.tsx` and `session/page.tsx`. If missing from session page, add the same finish-flow logic.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14.
+- `web/src/app/session/page.tsx` — added `revisionNotes` and `revisionLoading` state. `finishSession()` now calls `api.getRevisionNotes(quiz.session_id)` after closing the session. The `finished` view renders the full revision deck (loading pulse, clean-sweep message, or wrong-answer cards with question text + chosen/correct labels + explanation) — identical pattern to `diagnostic/page.tsx`.
 
 ---
 
@@ -227,7 +282,7 @@ Spec required before implementing. Write `plans/feedback_training.md`.
 ### ISSUE-016 — Session completion box missing score
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -243,7 +298,7 @@ At the end of the session, it is correctly showing the status as complete but mi
 **What's needed to fix:**
 Check `session/page.tsx` finished state and confirm score summary is rendered there.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. session/page.tsx finished state now renders score % and correct/total count.
 
 ---
 
@@ -296,7 +351,7 @@ New feature — spec required before implementing. Write `plans/time_tracker.md`
 ### ISSUE-012 — CSAT must be removed from readiness scoring and plan generation
 **Noticed:** 2026-05-14
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -314,14 +369,14 @@ Remove CSAT from the tracker, from readiness scoring, and from plan generation e
 2. Remove CSAT row from dashboard tracker UI
 3. Confirm plan_generator.py exclusion is complete
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. scripts/batch_analyse.py _build_syllabus_map() now excludes CSAT. Watch-out: tracker UI CSAT row may still display — verify separately.
 
 ---
 
 ### ISSUE-008 — Completed sessions not accessible for review
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -337,14 +392,14 @@ Once a session is complete, there is no option to access it back as of now; this
 **What's needed to fix:**
 New page `web/src/app/sessions/[id]/page.tsx` that fetches and renders a completed session in read-only mode (notes + all questions with correct answers revealed).
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #4 (fix/issue-008-session-review). New pages: web/src/app/sessions/page.tsx (history list) and web/src/app/sessions/[id]/page.tsx (read-only review).
 
 ---
 
 ### ISSUE-007 — No previous question navigation in quiz
 **Noticed:** 2026-05-12
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -360,7 +415,7 @@ There is no option to go back to previous question while attempting the quiz. Th
 **What's needed to fix:**
 Add "← Previous" button that decrements `currentQ` when `currentQ > 0`. Answers/revealed state is already keyed by question index so past answers will still show correctly on return. Unanswered questions should remain answerable on revisit; revealed questions should show in read-only mode.
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2. ← Previous button added to both diagnostic/page.tsx and session/page.tsx; decrements currentQ when > 0.
 
 ---
 
@@ -588,7 +643,7 @@ Fixed. Backend was already complete.
 ## How to add a new issue
 
 1. Copy the format block at the top
-2. Increment the issue number (next: ISSUE-024)
+2. Increment the issue number (next: ISSUE-025)
 3. Fill in all fields — especially "Current state of the code" so the next person
    doesn't have to re-investigate
 4. Add it under **Open**

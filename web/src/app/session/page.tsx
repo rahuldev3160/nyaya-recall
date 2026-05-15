@@ -47,6 +47,8 @@ const notesMarkdownComponents: Partial<Components> = {
 
 type UserNotesState = { confusion: string; mnemonic: string; still_weak: boolean };
 
+const ACTIVE_QUIZ_KEY = "upsc_active_quiz";
+
 export default function SessionPage() {
   const [plan, setPlan] = useState<any>(null);
   const [activeSession, setActiveSession] = useState<number | null>(null);
@@ -59,6 +61,8 @@ export default function SessionPage() {
   const [finished, setFinished] = useState(false);
   const [expanded, setExpanded] = useState<Record<number, string>>({});
   const [expandLoading, setExpandLoading] = useState<Record<number, boolean>>({});
+  const [revisionNotes, setRevisionNotes] = useState<any[] | null>(null);
+  const [revisionLoading, setRevisionLoading] = useState(false);
 
   const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
   const [completedSessions, setCompletedSessions] = useState<Set<string>>(new Set());
@@ -68,8 +72,12 @@ export default function SessionPage() {
     mnemonic: "",
     still_weak: false,
   });
+  // Per-question note text keyed by question index
+  const [perQuestionNotes, setPerQuestionNotes] = useState<Record<number, string>>({});
   const notesDirty = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const perQuestionSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restoredRef = useRef(false);
 
   const [notesExplainLoading, setNotesExplainLoading] = useState(false);
   const [notesExplainText, setNotesExplainText] = useState<string | null>(null);
@@ -86,13 +94,90 @@ export default function SessionPage() {
       .catch(() => {});
   }, []);
 
+  // Restore completed session indices from localStorage on mount (keyed by date so it resets each day)
+  useEffect(() => {
+    try {
+      const key = `upsc_completed_${new Date().toISOString().split("T")[0]}`;
+      const raw = localStorage.getItem(key);
+      if (raw) setCompletedSessions(new Set(JSON.parse(raw) as number[]));
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save completed session indices to localStorage whenever they change
+  useEffect(() => {
+    if (completedSessions.size === 0) return;
+    try {
+      const key = `upsc_completed_${new Date().toISOString().split("T")[0]}`;
+      localStorage.setItem(key, JSON.stringify([...completedSessions]));
+    } catch {}
+  }, [completedSessions]);
+
+  // Restore active in-progress quiz from localStorage once plan loads (runs once per page load)
+  useEffect(() => {
+    if (!plan || restoredRef.current || quiz) return;
+    restoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(ACTIVE_QUIZ_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        session_id: string;
+        questions: any[];
+        notes_summary: string | null;
+        currentQ: number;
+        answers: Record<number, string>;
+        revealed: Record<number, boolean>;
+        activeSession: number;
+      };
+      if (!saved.session_id || !Array.isArray(saved.questions) || !saved.questions.length) {
+        localStorage.removeItem(ACTIVE_QUIZ_KEY);
+        return;
+      }
+      api.getSession(saved.session_id)
+        .then((data) => {
+          if (data?.session && !data.session.end_time) {
+            setQuiz({ session_id: saved.session_id, questions: saved.questions, notes_summary: saved.notes_summary });
+            setCurrentQ(saved.currentQ ?? 0);
+            setAnswers(saved.answers ?? {});
+            setRevealed(saved.revealed ?? {});
+            setActiveSession(saved.activeSession ?? null);
+          } else {
+            localStorage.removeItem(ACTIVE_QUIZ_KEY);
+          }
+        })
+        .catch(() => localStorage.removeItem(ACTIVE_QUIZ_KEY));
+    } catch {
+      localStorage.removeItem(ACTIVE_QUIZ_KEY);
+    }
+  }, [plan]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist active quiz state to localStorage after every meaningful state change
+  useEffect(() => {
+    if (!quiz?.session_id || finished) return;
+    try {
+      localStorage.setItem(
+        ACTIVE_QUIZ_KEY,
+        JSON.stringify({
+          session_id: quiz.session_id,
+          questions: quiz.questions,
+          notes_summary: quiz.notes_summary ?? null,
+          currentQ,
+          answers,
+          revealed,
+          activeSession,
+        })
+      );
+    } catch {}
+  }, [quiz, currentQ, answers, revealed, activeSession, finished]);
+
   const sessionMeta = plan?.sessions?.[activeSession ?? -1];
 
   const flushUserNotes = useCallback(async () => {
-    if (!quiz?.session_id || !notesDirty.current || activeSession === null) return;
+    if (!quiz?.session_id || activeSession === null) return;
     const s = plan?.sessions?.[activeSession];
     if (!s?.subtopic_id) return;
     try {
+      // Flush session-level flags + current per-question note in one call
+      const noteText = perQuestionNotes[currentQ] ?? "";
       await api.putUserNotes(quiz.session_id, {
         subtopic_id: s.subtopic_id,
         subject_id: s.subject_id ?? "",
@@ -100,15 +185,18 @@ export default function SessionPage() {
         mnemonic: userNotes.mnemonic,
         still_weak: userNotes.still_weak,
         question_context_index: currentQ,
+        note_text: noteText,
       });
       notesDirty.current = false;
     } catch {
       /* ignore */
     }
-  }, [quiz?.session_id, activeSession, plan, userNotes, currentQ]);
+  }, [quiz?.session_id, activeSession, plan, userNotes, currentQ, perQuestionNotes]);
 
   useEffect(() => {
     setPendingAnswer(null);
+    // Per-question note: flush any pending save for the previous question before switching
+    if (perQuestionSaveTimer.current) clearTimeout(perQuestionSaveTimer.current);
   }, [currentQ]);
 
   useEffect(() => {
@@ -117,6 +205,7 @@ export default function SessionPage() {
     notesDirty.current = false;
     setNotesExplainText(null);
     setNotesExplainErr(null);
+    setPerQuestionNotes({});
     api
       .getUserNotes(quiz.session_id)
       .then((d) => {
@@ -125,6 +214,14 @@ export default function SessionPage() {
           mnemonic: d.mnemonic || "",
           still_weak: !!d.still_weak,
         });
+        // Load per-question notes returned by the backend (keyed by string index)
+        if (d.per_question_notes && typeof d.per_question_notes === "object") {
+          const loaded: Record<number, string> = {};
+          for (const [k, v] of Object.entries(d.per_question_notes)) {
+            loaded[parseInt(k)] = (v as string) || "";
+          }
+          setPerQuestionNotes(loaded);
+        }
       })
       .catch(() => {});
   }, [quiz?.session_id]);
@@ -135,6 +232,7 @@ export default function SessionPage() {
     saveTimer.current = setTimeout(() => {
       const s = plan?.sessions?.[activeSession];
       if (!s?.subtopic_id) return;
+      const noteText = perQuestionNotes[currentQ] ?? "";
       api
         .putUserNotes(quiz.session_id, {
           subtopic_id: s.subtopic_id,
@@ -143,6 +241,7 @@ export default function SessionPage() {
           mnemonic: userNotes.mnemonic,
           still_weak: userNotes.still_weak,
           question_context_index: currentQ,
+          note_text: noteText,
         })
         .then(() => {
           notesDirty.current = false;
@@ -152,7 +251,7 @@ export default function SessionPage() {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [userNotes, quiz?.session_id, currentQ, activeSession, plan]);
+  }, [userNotes, perQuestionNotes, quiz?.session_id, currentQ, activeSession, plan]);
 
   const patchUserNotes = (patch: Partial<UserNotesState>) => {
     notesDirty.current = true;
@@ -164,6 +263,9 @@ export default function SessionPage() {
     setError(null);
     setPendingAnswer(null);
     setActiveSession(index);
+    setRevisionNotes(null);
+    setRevisionLoading(false);
+    setPerQuestionNotes({});
     try {
       const data = await api.generateQuiz({
         subject_id: session.subject_id,
@@ -210,6 +312,7 @@ export default function SessionPage() {
 
   const finishSession = async () => {
     if (!quiz) return;
+    try { localStorage.removeItem(ACTIVE_QUIZ_KEY); } catch {}
     await flushUserNotes();
     try {
       await api.closeSession(quiz.session_id);
@@ -223,6 +326,15 @@ export default function SessionPage() {
       }
     }
     setFinished(true);
+    setRevisionLoading(true);
+    try {
+      const data = await api.getRevisionNotes(quiz.session_id);
+      setRevisionNotes(data.notes ?? []);
+    } catch {
+      setRevisionNotes([]);
+    } finally {
+      setRevisionLoading(false);
+    }
   };
 
   const diveDeeperInto = async (idx: number) => {
@@ -298,12 +410,42 @@ export default function SessionPage() {
           </div>
           <div className="text-gray-400">{correct} / {total} correct</div>
         </div>
+        <p className="text-gray-400 text-sm">Session saved. Run Sync &amp; Plan on the dashboard to update your profile.</p>
+
+        {revisionLoading && (
+          <div className="text-gray-500 text-sm text-center animate-pulse">Generating revision notes for wrong answers...</div>
+        )}
+
+        {!revisionLoading && revisionNotes && revisionNotes.length === 0 && (
+          <div className="bg-green-950/30 border border-green-900/50 rounded-xl p-4 text-center">
+            <p className="text-green-400 font-medium">Clean sweep — nothing to review!</p>
+          </div>
+        )}
+
+        {!revisionLoading && revisionNotes && revisionNotes.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-base font-semibold text-red-300">Concepts to Review ({revisionNotes.length})</h2>
+            {revisionNotes.map((n, i) => (
+              <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2">
+                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{n.question_text}</p>
+                <div className="flex gap-4 text-xs font-medium">
+                  <span className="text-red-400">You chose: ({n.user_answer})</span>
+                  <span className="text-green-400">Correct: ({n.correct_answer})</span>
+                </div>
+                <p className="text-sm text-amber-200 leading-relaxed border-t border-gray-700 pt-2">{n.explanation}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-4">
           <button
             onClick={() => {
               setQuiz(null);
               setFinished(false);
               setActiveSession(null);
+              setRevisionNotes(null);
+              setPerQuestionNotes({});
             }}
             className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm"
           >
@@ -350,7 +492,12 @@ export default function SessionPage() {
                     <div className="text-sm text-gray-500 mt-1">
                       {s.format?.replace(/_/g, " ")} · {s.estimated_minutes} min
                       {s.difficulty && s.difficulty !== "mixed" && (
-                        <span className="ml-2 text-amber-400">· Difficulty: {s.difficulty}</span>
+                        <span className="ml-2 text-amber-400">· {
+                          s.difficulty === "easy" ? "Easy difficulty" :
+                          s.difficulty === "medium" ? "Medium difficulty" :
+                          s.difficulty === "hard" ? "Hard difficulty" :
+                          s.difficulty
+                        }</span>
                       )}
                     </div>
                   </div>
@@ -542,11 +689,41 @@ export default function SessionPage() {
             </p>
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
               <label className="block space-y-1">
-                <span className="text-xs font-medium text-gray-400">What feels unclear?</span>
+                <span className="text-xs font-medium text-amber-400">Note for Q{currentQ + 1}</span>
+                <textarea
+                  value={perQuestionNotes[currentQ] ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPerQuestionNotes((prev) => ({ ...prev, [currentQ]: val }));
+                    notesDirty.current = true;
+                    // Debounced autosave for per-question note
+                    if (perQuestionSaveTimer.current) clearTimeout(perQuestionSaveTimer.current);
+                    perQuestionSaveTimer.current = setTimeout(() => {
+                      if (!quiz?.session_id || activeSession === null) return;
+                      const s = plan?.sessions?.[activeSession];
+                      if (!s?.subtopic_id) return;
+                      api.putUserNotes(quiz.session_id, {
+                        subtopic_id: s.subtopic_id,
+                        subject_id: s.subject_id ?? "",
+                        confusion: userNotes.confusion,
+                        mnemonic: userNotes.mnemonic,
+                        still_weak: userNotes.still_weak,
+                        question_context_index: currentQ,
+                        note_text: val,
+                      }).then(() => { notesDirty.current = false; }).catch(() => {});
+                    }, 700);
+                  }}
+                  rows={4}
+                  className="w-full rounded-lg border border-amber-800/60 bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600"
+                  placeholder="Note for this question — clears when you move to the next one, reloads when you come back…"
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-gray-400">What feels unclear? (session-level)</span>
                 <textarea
                   value={userNotes.confusion}
                   onChange={(e) => patchUserNotes({ confusion: e.target.value })}
-                  rows={5}
+                  rows={4}
                   className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600"
                   placeholder="Concepts, facts, or question logic you want to revisit…"
                 />
