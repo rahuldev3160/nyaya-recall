@@ -117,7 +117,7 @@ localStorage for both stores (no backend change needed):
 ### ISSUE-021 — the time taking while generating session/quiz (in diagnostic section) is irritating- need to plan an interactive way for the user to keep engaged with the model/app while the session is generated at the background
 **Noticed:** 2026-05-15
 **Reported by:** Rahul
-**Status:** Open
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** *(to be linked)*
 
@@ -133,7 +133,7 @@ the time taking while generating session/quiz (in diagnostic section) is irritat
 **What's needed to fix:**
 *(Claude to determine)*
 
-**Resolution:** *(pending)*
+**Resolution:** Resolved 2026-05-14. Fixed in PR #2 (fix/session-ux-improvements). Completed sessions now show green ✓ badge in Today's Sessions list.
 
 ---
 - 1. the loading time for sessions is 30-40secs, need to minimise this or invent a way to interect with user while session/quiz is genersting in parallel/background.
@@ -701,3 +701,5 @@ Fixed. Backend was already complete.
    doesn't have to re-investigate
 4. Add it under **Open**
 5. When resolved: move it to **Resolved**, fill in the Resolution field, commit
+
+Next issue number: ISSUE-027
