@@ -46,7 +46,7 @@ def get_plan_status():
             FROM session_answers sa
             JOIN quiz_sessions qs ON qs.id = sa.session_id
             WHERE qs.end_time IS NOT NULL
-            AND substr(qs.start_time, 1, 10) = date('now')
+            AND date(qs.end_time) = date('now')
             """
         ).fetchall()
         con.close()
