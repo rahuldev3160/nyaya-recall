@@ -55,4 +55,5 @@ export const api = {
     }),
   getSessionHistory: (limit = 30) => get(`/sessions/?limit=${limit}`),
   getSession: (id: string) => get(`/sessions/${id}`),
+  getTimeStats: () => get("/tracker/time-stats"),
 };
