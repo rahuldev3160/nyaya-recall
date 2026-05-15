@@ -14,10 +14,88 @@ const SUBJECTS = [
   { id: "ir_governance", name: "IR & Governance" },
 ];
 
+// Key subtopics per subject for Deep Dive mode (5-6 per subject)
+const DEEP_DIVE_SUBTOPICS: Record<string, { id: string; name: string }[]> = {
+  polity: [
+    { id: "preamble", name: "Preamble" },
+    { id: "fundamental_rights", name: "Fundamental Rights (FR)" },
+    { id: "dpsp", name: "DPSP (Art 36-51)" },
+    { id: "parliament", name: "Parliament" },
+    { id: "supreme_court", name: "Supreme Court" },
+    { id: "emergency_provisions", name: "Emergency Provisions" },
+  ],
+  history_amac: [
+    { id: "mauryan", name: "Mauryan Empire" },
+    { id: "buddhism", name: "Buddhism" },
+    { id: "mughal_empire", name: "Mughal Empire" },
+    { id: "temple_architecture", name: "Temple Architecture" },
+    { id: "bhakti_sufi", name: "Bhakti & Sufi Movements" },
+    { id: "classical_dance_forms", name: "Classical Dance Forms" },
+  ],
+  modern_history: [
+    { id: "gandhi_mass_movements", name: "Gandhi & Mass Movements" },
+    { id: "revolt_1857_causes", name: "Revolt of 1857" },
+    { id: "inc_formation_phases", name: "INC — Moderates & Extremists" },
+    { id: "civil_disobedience_salt", name: "Salt Satyagraha & CDM" },
+    { id: "revolutionary_movements", name: "Revolutionary Movements" },
+    { id: "constitutional_reforms", name: "Constitutional Reforms" },
+  ],
+  geography: [
+    { id: "monsoon_el_nino", name: "Indian Monsoon & El Nino" },
+    { id: "rivers_india", name: "Rivers of India" },
+    { id: "soils_india", name: "Soils of India" },
+    { id: "geomorphology", name: "Geomorphology" },
+    { id: "ocean_currents", name: "Ocean Currents" },
+    { id: "straits_channels", name: "Straits & Chokepoints" },
+  ],
+  economy: [
+    { id: "monetary_policy_rbi", name: "Monetary Policy & RBI" },
+    { id: "inflation_indices", name: "Inflation & Price Indices" },
+    { id: "gst_structure", name: "GST Structure" },
+    { id: "fiscal_policy_budget", name: "Fiscal Policy & Deficits" },
+    { id: "wto_agreements", name: "WTO Agreements" },
+    { id: "msp_food_security", name: "MSP & Food Security" },
+  ],
+  environment: [
+    { id: "biodiversity_hotspots", name: "Biodiversity Hotspots" },
+    { id: "climate_conventions_cop", name: "Paris Agreement & COP" },
+    { id: "national_parks_sanctuaries", name: "National Parks & Tiger Reserves" },
+    { id: "key_env_acts_india", name: "Key Environmental Acts" },
+    { id: "ecosystems_types", name: "Ecosystems" },
+    { id: "international_env_agreements", name: "International Conventions" },
+  ],
+  science_tech: [
+    { id: "isro_missions_satellites", name: "ISRO Missions" },
+    { id: "genetic_engineering_gmo", name: "Genetic Engineering & CRISPR" },
+    { id: "missiles_drdo", name: "Missiles & DRDO" },
+    { id: "ai_ml_applications", name: "AI & Machine Learning" },
+    { id: "nuclear_tech_treaties", name: "Nuclear Technology" },
+    { id: "cybersecurity_data", name: "Cybersecurity & Data Laws" },
+  ],
+  current_affairs: [
+    { id: "flagship_central_schemes", name: "Central Flagship Schemes" },
+    { id: "new_gi_tags_2024_26", name: "GI Tags (2024-26)" },
+    { id: "bharat_ratna_padma_awards", name: "National Awards" },
+    { id: "defence_acquisitions_news", name: "Defence Acquisitions" },
+    { id: "pib_2026_highlights", name: "PIB Highlights 2026" },
+    { id: "new_modified_schemes_2025_26", name: "New Schemes 2025-26" },
+  ],
+  ir_governance: [
+    { id: "india_neighbours_saarc", name: "India & SAARC Neighbours" },
+    { id: "un_system_agencies", name: "UN System & Agencies" },
+    { id: "g20_g7_brics_sco", name: "G20, BRICS & SCO" },
+    { id: "india_major_powers", name: "India-US / Russia / China" },
+    { id: "ongoing_conflicts", name: "Ongoing Conflicts" },
+    { id: "india_governance_digital", name: "Digital India & e-Governance" },
+  ],
+};
+
 export default function DiagnosticPage() {
   const [selected, setSelected] = useState<string>("");
   const [mode, setMode] = useState<"fixed_set" | "time_boxed">("fixed_set");
-  const [numQ, setNumQ] = useState(10);
+  const [sessionMode, setSessionMode] = useState<"standard" | "deep_dive">("standard");
+  const [deepDiveSubtopic, setDeepDiveSubtopic] = useState<string>("");
+  const [numQ, setNumQ] = useState(15);
   const [minutes, setMinutes] = useState(20);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,19 +118,36 @@ export default function DiagnosticPage() {
     setPendingAnswer(null);
   }, [currentQ]);
 
+  // Reset deep dive subtopic when subject changes
+  useEffect(() => {
+    setDeepDiveSubtopic("");
+  }, [selected]);
+
   const startSession = async () => {
     if (!selected) return;
+    if (sessionMode === "deep_dive" && !deepDiveSubtopic) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await api.generateQuiz({
-        subject_id: selected,
-        session_type: "diagnostic",
-        mode,
-        num_questions: numQ,
-        time_minutes: minutes,
-        difficulty: "mixed",
-      });
+      const payload =
+        sessionMode === "deep_dive"
+          ? {
+              subject_id: selected,
+              session_type: "deep_dive",
+              subtopic_id: deepDiveSubtopic,
+              mode,
+              num_questions: 10,
+              difficulty: "mixed",
+            }
+          : {
+              subject_id: selected,
+              session_type: "diagnostic",
+              mode,
+              num_questions: numQ,
+              time_minutes: minutes,
+              difficulty: "mixed",
+            };
+      const data = await api.generateQuiz(payload);
       setSession(data);
       setCurrentQ(0);
       setAnswers({});
@@ -151,6 +246,9 @@ export default function DiagnosticPage() {
     }
   };
 
+  const availableDeepDiveSubtopics = selected ? (DEEP_DIVE_SUBTOPICS[selected] ?? []) : [];
+  const isDeepDiveReady = sessionMode !== "deep_dive" || (!!deepDiveSubtopic);
+
   if (!session) {
     return (
       <div className="max-w-xl space-y-6">
@@ -187,25 +285,82 @@ export default function DiagnosticPage() {
           ))}
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block text-sm text-gray-400 mb-2">Questions</label>
-            <input type="number" min={5} max={30} value={numQ} onChange={(e) => setNumQ(+e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" />
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm text-gray-400 mb-2">Minutes</label>
-            <input type="number" min={5} max={90} value={minutes} onChange={(e) => setMinutes(+e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" />
+        {/* Deep Dive toggle */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-2">Quiz Mode</label>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setSessionMode("standard")}
+              className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                sessionMode === "standard"
+                  ? "border-blue-500 bg-blue-500/10 text-blue-300"
+                  : "border-gray-700 text-gray-400"
+              }`}
+            >
+              Standard ({numQ}Q)
+            </button>
+            <button
+              onClick={() => setSessionMode("deep_dive")}
+              className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                sessionMode === "deep_dive"
+                  ? "border-purple-500 bg-purple-500/10 text-purple-300"
+                  : "border-gray-700 text-gray-400"
+              }`}
+            >
+              Deep Dive (10Q per subtopic)
+            </button>
           </div>
         </div>
 
+        {/* Deep Dive subtopic picker */}
+        {sessionMode === "deep_dive" && (
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">Subtopic for Deep Dive</label>
+            {availableDeepDiveSubtopics.length > 0 ? (
+              <select
+                value={deepDiveSubtopic}
+                onChange={(e) => setDeepDiveSubtopic(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+              >
+                <option value="">Select subtopic...</option>
+                {availableDeepDiveSubtopics.map((st) => (
+                  <option key={st.id} value={st.id}>{st.name}</option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-gray-500 text-sm">Select a subject first.</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Deep Dive generates 10 questions covering every examinable dimension of a single subtopic.
+            </p>
+          </div>
+        )}
+
+        {sessionMode === "standard" && (
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm text-gray-400 mb-2">Questions</label>
+              <input type="number" min={5} max={30} value={numQ} onChange={(e) => setNumQ(+e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm text-gray-400 mb-2">Minutes</label>
+              <input type="number" min={5} max={90} value={minutes} onChange={(e) => setMinutes(+e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" />
+            </div>
+          </div>
+        )}
+
         <button
           onClick={startSession}
-          disabled={!selected || loading}
+          disabled={!selected || loading || !isDeepDiveReady}
           className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-colors"
         >
-          {loading ? "Generating questions... (15–30s)" : "Start Diagnostic"}
+          {loading
+            ? "Generating questions... (15–30s)"
+            : sessionMode === "deep_dive"
+            ? "Start Deep Dive"
+            : "Start Diagnostic"}
         </button>
       </div>
     );

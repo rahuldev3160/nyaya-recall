@@ -12,6 +12,22 @@ Study material (organised by subtopic — use the section heading to match quest
 Recent current affairs context (if applicable):
 {{current_affairs_chunks}}
 
+Previously attempted question hashes (generate STRUCTURALLY DIFFERENT questions — different scenario, context, or angle): {{excluded_question_hashes}}
+
+Concepts where user got wrong answers — REVISIT with new framing (same concept, completely different question stem/context/scenario): {{wrong_concepts_to_revisit}}
+
+Recent question preview (avoid rephrasing these): {{questions_seen_preview}}
+
+{{user_notes_context}}
+
+Vary question types across UPSC Prelims formats — do NOT cluster the same type:
+- Statement-based: "Which of the following statements is/are correct?" with numbered (1)(2)(3) statements each on its own line
+- Direct factual: recall of a specific fact, date, provision, or body
+- Application: scenario-based — "If X occurs, which outcome follows?"
+- Contemporary-linkage: connect concept to a recent (2024-2026) policy or event
+- Match-the-pairs: options formatted as "A-1, B-2, C-3, D-4"
+Use at least 3 different types across the full question set.
+
 Generate exactly {{num_questions}} MCQs in UPSC Prelims style.
 
 Rules:
