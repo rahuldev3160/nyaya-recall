@@ -32,6 +32,27 @@
 
 ---
 
+### ISSUE-025 — session/today-status uses start_time; localStorage race overwrites API result
+**Noticed:** 2026-05-16
+**Reported by:** Claude (code review during planning)
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** *(none)*
+
+**What happened:**
+Noticed during root-cause analysis of session completion display bugs.
+
+**The problem:**
+Two bugs found in `get_plan_status()` + `session/page.tsx`:
+1. `GET /plan/today-status` filtered completed sessions by `substr(qs.start_time, 1, 10) = date('now')` instead of `date(qs.end_time) = date('now')`. Sessions started yesterday but completed today would be missed; semantically, "completed today" should key off end_time.
+2. In `session/page.tsx`, two `useEffect` hooks both call `setCompletedSessions`. The localStorage restore (synchronous) ran first; the API call (async) only overwrote if `completed_subtopics.length > 0`. If the API returned an empty list, stale localStorage data persisted in UI state. Also, localStorage was cast to `number[]` but stored as `string[]` subtopic IDs.
+
+**Resolution:** Resolved 2026-05-16.
+- `backend/routes/plan.py` — filter changed to `date(qs.end_time) = date('now')`.
+- `web/src/app/session/page.tsx` — API effect now always overwrites (no length guard), making it the authoritative source. localStorage restore now merges into prev state (not replaces) for instant initial UI, then API result wins. Fixed type cast from `number[]` → `string[]`.
+
+---
+
 ### ISSUE-024 — Session progress lost on server restart; completed sessions reset on page refresh
 **Noticed:** 2026-05-15
 **Reported by:** Rahul
@@ -643,7 +664,7 @@ Fixed. Backend was already complete.
 ## How to add a new issue
 
 1. Copy the format block at the top
-2. Increment the issue number (next: ISSUE-025)
+2. Increment the issue number (next: ISSUE-026)
 3. Fill in all fields — especially "Current state of the code" so the next person
    doesn't have to re-investigate
 4. Add it under **Open**
