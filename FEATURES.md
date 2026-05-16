@@ -50,6 +50,7 @@
 | **FEATURE-027: Dimension-aware subtopic coverage (all phases)** | P1 | 205 subtopics × 4–8 testable dimensions in syllabus.json; quiz labels dimension_id per question; session_answers stores dimension_id; subtopic_dimension_scores table tracks per-dimension accuracy; batch_analyse uses dimension-weighted readiness with fallback to subtopic scores | Shipped May 16 (PRs #22–28) |
 | **Timed mode enforcement** | P1 | Live countdown in Timed Quiz mode; auto-close on expiry submitting all unreached questions as skipped; server-side expiry guard in sessions.py (409 on stale submit, auto-close on get_session) | Shipped May 16 (PR #29) |
 | **Open-ended quiz mode ("Open Practice")** | P1 | No upfront count — 10-question lazy-load buffer, +8 more when <2 remain, Save & Close after each revealed answer; UX rename: Practice Set / Timed Quiz / Open Practice | Shipped May 16 (PR #29) |
+| **ChromaDB coverage audit** | P1 | Ran `check_chroma_coverage.py` — 11,146 chunks, all 9 GS subjects healthy. CSAT excluded (separate system). No re-ingestion needed. | Resolved May 16 |
 
 ---
 
@@ -76,7 +77,7 @@ These are ordered by impact. Pick from the top.
 | # | Feature / Fix | Priority | Description | Source |
 |---|---------------|----------|-------------|--------|
 | 1 | ~~PYQ subtopic ID normalisation~~ | ~~P1~~ | ~~SHIPPED~~ | ~~`HANDOFF.md → P1`~~ |
-| 2 | ChromaDB content audit + re-ingestion | P1 | Script written (`scripts/check_chroma_coverage.py`, PR #10) but **never run**. Coverage per subject is unknown. Quiz still falls back to Claude training knowledge for uncovered subtopics. Run script, then re-run `scripts/ingest.py` for thin/missing subjects. | `HANDOFF.md → P2` |
+| 2 | ~~ChromaDB content audit + re-ingestion~~ | ~~P1~~ | ~~AUDITED May 16: 11,146 chunks across 9 GS subjects — all healthy. ir_governance lowest at 320 chunks (above threshold). CSAT has 0 chunks (intentional — separate system). No re-ingestion needed.~~ | ~~Resolved May 16~~ |
 | 3 | ~~Timed mode enforcement~~ | ~~P1~~ | ~~SHIPPED~~ | ~~PR #29~~ |
 | 4 | ~~Open-ended quiz mode~~ | ~~P1~~ | ~~SHIPPED~~ | ~~PR #29~~ |
 | 5 | Session summaries backfill | P2 | Script written (`scripts/backfill_session_summaries.py`, PR #7) but **never run**. Historical `session_summaries.weak_subtopics` arrays still `[]` — `get_persistently_weak_subtopics()` blind to past data. One command: `python3 scripts/backfill_session_summaries.py`. | PR #7 merged — execution pending |
