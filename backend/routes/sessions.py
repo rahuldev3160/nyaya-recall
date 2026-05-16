@@ -3,7 +3,7 @@ import os
 import json
 import sqlite3
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, HTTPException
 import sys
@@ -17,6 +17,31 @@ from score_engine import record_answer, close_session
 
 router = APIRouter()
 DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
+
+
+def _maybe_auto_close_expired(session_id: str, con: sqlite3.Connection) -> bool:
+    """If session is time_boxed and deadline passed, close it. Returns True if auto-closed."""
+    row = con.execute(
+        "SELECT mode, config, start_time, end_time FROM quiz_sessions WHERE id=?",
+        (session_id,),
+    ).fetchone()
+    if not row or row["end_time"] or row["mode"] != "time_boxed":
+        return False
+    try:
+        cfg = json.loads(row["config"] or "{}")
+        time_minutes = cfg.get("time_minutes") or cfg.get("time_limit_min")
+        if not time_minutes:
+            return False
+        start = datetime.fromisoformat(str(row["start_time"]).replace("Z", "+00:00"))
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=timezone.utc)
+        deadline = start + timedelta(minutes=int(time_minutes))
+        if datetime.now(timezone.utc) >= deadline:
+            close_session(session_id)
+            return True
+    except Exception:
+        pass
+    return False
 _EXPAND_PROMPT = (Path(__file__).parent.parent.parent / "prompts" / "expand_concept.txt").read_text()
 _EXPAND_NOTES_PROMPT = (
     Path(__file__).parent.parent.parent / "prompts" / "expand_notes_selection.txt"
@@ -59,6 +84,12 @@ def list_sessions(limit: int = 30):
 
 @router.post("/answer")
 def submit_answer(answer: dict):
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    expired = _maybe_auto_close_expired(answer["session_id"], con)
+    con.close()
+    if expired:
+        raise HTTPException(status_code=409, detail="Session expired — time limit reached")
     try:
         record_answer(answer["session_id"], answer)
         return {"status": "recorded"}
@@ -343,6 +374,7 @@ def end_session(session_id: str):
 def get_session(session_id: str):
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
+    _maybe_auto_close_expired(session_id, con)
     session = con.execute("SELECT * FROM quiz_sessions WHERE id=?", (session_id,)).fetchone()
     if not session:
         con.close()
