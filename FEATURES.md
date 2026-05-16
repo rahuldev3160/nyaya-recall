@@ -53,6 +53,8 @@
 | **ChromaDB coverage audit** | P1 | Ran `check_chroma_coverage.py` — 11,146 chunks, all 9 GS subjects healthy. CSAT excluded (separate system). No re-ingestion needed. | Resolved May 16 |
 | **Session summaries backfill** | P2 | Ran `scripts/backfill_session_summaries.py` — 17 historical sessions processed. All had neutral-zone accuracy (45–75%), correctly producing `weak=[]` and `strong=[]`. `get_persistently_weak_subtopics()` in batch_analyse.py is now unblocked for future sessions. | Shipped May 16 (PR #7) |
 | **Real-time feedback + prompt training (ISSUE-017)** | P1 | Per-question notes reset/autosave; `content_feedback` + `question_notes` tables; `ContentFeedback` 2×2 verdict UI on session + diagnostic + notes sections; `apply_feedback.py` prompt improvement pipeline (Haiku, manual); `batch_analyse.py` reminder at 20+ items. | Shipped May 17 (PRs #33, #34) |
+| **Multi-subtopic merged sessions** | P1 | Planner editor: select up to 4 subtopics per session (topic-grouped, PYQ-weight-proportional Q allocation). Notes gain "Cross-Subtopic Linkages" section when >1 subtopic. `quiz_session_subtopics` table stores full list. | Shipped May 17 (PR #35) |
+| **Exam simulation mode** | P1 | `/exam-sim` page: subject→topic→subtopic tree selector, configurable Q count (1–100) + duration. Timed quiz runner. Results screen with per-subject + per-topic accuracy breakdown. | Shipped May 17 (PR #35) |
 
 ---
 

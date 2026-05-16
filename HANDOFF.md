@@ -1,3 +1,24 @@
+### Multi-subtopic sessions + Exam simulation mode — 2026-05-17
+
+**What changed:**
+- `backend/routes/quiz.py` — `POST /quiz/generate` accepts `subtopic_ids[]` (2–4); proportional question allocation by PYQ weight; merged Sonnet call with labelled chunks; `synthesize_notes_multi_cached` for cross-subtopic notes
+- New additive table `quiz_session_subtopics` — stores full subtopic list per session; `quiz_sessions` schema unchanged
+- `prompts/session_notes.txt` — `{{subtopics_list}}` + `{{cross_subtopic_section}}` placeholders; 5th "Cross-Subtopic Linkages" section for merged sessions; backward-compat for single-subtopic calls
+- `web/src/app/planner/page.tsx` — `SubtopicPicker` + `SessionEditorModal` components; multi-select up to 4 subtopics; session card shows subtopic tags; dirty-state + Save button
+- `web/src/app/exam-sim/page.tsx` (new) — 3-view state machine: setup (subject→topic→subtopic tree, count + timer config) → running (timed quiz runner) → results (per-subject + per-topic breakdown)
+- `backend/routes/sessions.py` — `GET /{session_id}/exam-results` endpoint
+- `prompts/exam_simulation.txt` (new) — Sonnet prompt for multi-subject exam generation (max_tokens=16000)
+- `web/src/app/layout.tsx` — "Exam Sim" nav link added
+
+**Watch-outs:**
+- Exam sim sessions store `subject_id` as comma-joined string — intentionally excluded from prep_profile scoring/tracker
+- Merged notes use Sonnet (not Haiku) — ~$0.01–0.02 per merged notes call
+- `parseNotesSections()` cross-subtopic section degrades gracefully if notes format changes
+
+**Branch:** `feature/multi-subtopic-exam-sim` — merged as PR #35
+
+---
+
 ### ISSUE-017 — Real-time feedback + prompt training (all 3 phases) — 2026-05-17
 
 **What changed:**
@@ -39,7 +60,7 @@
 - `scripts/batch_analyse.py` already excluded CSAT via `_EXCLUDED = {"csat"}` in `_build_syllabus_map()` — no change needed there.
 - CSAT's own routes (`backend/routes/csat.py`) and pages (`web/src/app/csat/`) are completely untouched.
 
-**Branch:** `fix/csat-separation` — PR open.
+**Branch:** `fix/csat-separation` — merged as PR #31 ✅
 
 ---
 
@@ -171,7 +192,7 @@ Each subject now has a `topics[]` array with: `id`, `name`, `subtopics_total`, `
 
 ### 1. Session completed state now persists across page reloads (ISSUE-023, ISSUE-024)
 
-Two bugs fixed in `fix/issue-024-session-status-persistence` (PR open, awaiting merge):
+Two bugs fixed in `fix/issue-024-session-status-persistence` (PR merged ✅):
 
 **Bug 1 — Completed sessions reset on page refresh:**
 - Root cause: `completedSessions` was `Set<number>` (index-based) in React state only — wiped on every navigation.
@@ -214,9 +235,9 @@ Frontend rebuilt (`npm run build`) — both servers running as background proces
 
 ---
 
-## Open issues — current priority order
+## ✅ Previously open issues — all resolved
 
-### 1. Session UX fixes — PR #2 open (fix/session-ux-improvements), awaiting merge
+### ✅ 1. Session UX fixes — PR #2 MERGED
 
 Five issues fixed in one PR:
 
@@ -230,11 +251,11 @@ Five issues fixed in one PR:
 
 Also added `whitespace-pre-wrap` to question text on both pages (fixes statement formatting).
 
-**Next action:** Rahul to merge PR #2 from phone. No approval gates — all UI-only or additive changes.
+**Status:** ✅ Merged as PR #2 — long resolved.
 
 ---
 
-### 2. Feature idea inbox system — shipped to fix/explanation-quality branch
+### ✅ 2. Feature idea inbox system — shipped as PR #3 (MERGED)
 
 New files:
 - `FEATURE_IDEAS.md` — structured idea inbox (Raw → Reviewed → Staged → Won't Build)
@@ -249,14 +270,7 @@ New files:
 
 ---
 
-### 3. fix/explanation-quality branch — NOT yet merged to main
-
-This branch has important fixes that should be merged before or alongside PR #2:
-- Explanation quality overhaul (ISSUE-009, 010, 011, 013): options context in prompts, no preamble in revision deck, per-wrong-option explanations
-- Notes synthesis + audio scripts
-- Feature inbox files (FEATURE_IDEAS.md etc.)
-
-**Next action:** open a PR for fix/explanation-quality → merge it → then merge PR #2.
+### ✅ 3. fix/explanation-quality — MERGED as PR #3
 
 ---
 
@@ -506,7 +520,7 @@ Ran `scripts/check_chroma_coverage.py`. Results:
 
 ---
 
-### P3 — Session summaries not backfilled after subtopic repair [MEDIUM IMPACT]
+### ✅ P3 — Session summaries backfilled — RESOLVED May 16 (PR #7)
 
 `session_summaries.weak_subtopics` and `session_summaries.strong_subtopics` are JSON arrays
 computed at session close time. The historical polity/economy sessions computed these when
