@@ -1,0 +1,26 @@
+You are helping improve an AI prompt used to generate UPSC Prelims study content.
+
+CURRENT PROMPT:
+---
+{{current_prompt_text}}
+---
+
+USER FEEDBACK (aggregated from real study sessions):
+{{aggregated_feedback_json}}
+
+Based on the feedback, suggest specific edits to the prompt above.
+For each suggestion:
+1. Quote the exact line or phrase from the current prompt you are proposing to change
+2. Write the replacement text
+3. In one sentence, explain why this change addresses the feedback
+
+Only suggest changes supported by at least 2 feedback items.
+Targeted line-level edits only — do not rewrite the entire prompt.
+
+Format:
+SUGGESTION 1
+Current: "<quoted line>"
+Replace with: "<new line>"
+Why: <one sentence>
+
+If no changes are warranted: NO CHANGES SUGGESTED — feedback is too sparse or contradictory.

@@ -617,6 +617,23 @@ def run_analysis() -> dict:
     print(f"✅ Analysis complete. Overall readiness: {profile['overall_readiness']}%")
     print(f"   Phase: {profile['phase']}")
     print(f"   Summary: {profile['last_analysis']}")
+
+    # Feedback accumulation reminder — printed when 20+ rows have built up
+    try:
+        _fb_con = sqlite3.connect(DB_PATH)
+        _fb_count = _fb_con.execute(
+            "SELECT COUNT(*) FROM content_feedback"
+        ).fetchone()[0]
+        _fb_con.close()
+        if _fb_count >= 20:
+            print(
+                f"\n⚠️  {_fb_count} feedback items in content_feedback — "
+                "consider running: python scripts/apply_feedback.py"
+            )
+    except Exception:
+        # Table doesn't exist yet on older DBs — silently skip
+        pass
+
     return analysis
 
 
