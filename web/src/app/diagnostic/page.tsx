@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 
 const SUBJECTS = [
@@ -130,14 +130,64 @@ export default function DiagnosticPage() {
   const [bufferCapped, setBufferCapped] = useState(false);
   const [sessionConfig, setSessionConfig] = useState<any>(null);
 
+  // ── Per-question notes (ISSUE-017 Phase 1) ──────────────────────────────────
+  type QuestionNote = { note_text: string; still_weak: boolean };
+  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+  const [questionNotesMap, setQuestionNotesMap] = useState<Record<string, QuestionNote>>({});
+  const qnSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     setQuestionStartTime(Date.now());
     setPendingAnswer(null);
-  }, [currentQ]);
+    // Cancel any pending note save when question changes
+    if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
+  }, [currentQ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setDeepDiveSubtopic("");
   }, [selected]);
+
+  // Load per-question notes when a session starts (ISSUE-017)
+  useEffect(() => {
+    if (!session?.session_id) return;
+    setQuestionNotesMap({});
+    api
+      .getQuestionNotes(session.session_id)
+      .then((d: { notes: Array<{ question_hash: string; question_index: number; note_text: string; still_weak: boolean }> }) => {
+        if (Array.isArray(d.notes)) {
+          const map: Record<string, QuestionNote> = {};
+          for (const n of d.notes) {
+            map[n.question_hash] = { note_text: n.note_text || "", still_weak: !!n.still_weak };
+          }
+          setQuestionNotesMap(map);
+        }
+      })
+      .catch(() => {});
+  }, [session?.session_id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Flush unsaved note before closing/finishing (ISSUE-017)
+  const flushCurrentQuestionNote = useCallback(async () => {
+    if (!session?.session_id) return;
+    // Compute currentQuestions inline to avoid forward-reference to block-scoped const
+    const qs: any[] = mode === "open_ended" ? bufferQuestions : (session?.questions ?? []);
+    const q = qs[currentQ];
+    if (!q) return;
+    const qHash = q.question_hash ?? `${session.session_id}_${currentQ}`;
+    const qNote = questionNotesMap[qHash];
+    if (!qNote?.note_text && !qNote?.still_weak) return;
+    if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
+    try {
+      await api.putQuestionNote(session.session_id, qHash, {
+        question_index: currentQ,
+        subtopic_id: q.subtopic_id ?? selected,
+        subject_id: selected,
+        note_text: qNote.note_text,
+        still_weak: qNote.still_weak,
+      });
+    } catch {
+      /* ignore */
+    }
+  }, [session?.session_id, session?.questions, mode, bufferQuestions, currentQ, questionNotesMap, selected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Timer tick — only runs for time_boxed sessions
   useEffect(() => {
@@ -202,6 +252,8 @@ export default function DiagnosticPage() {
       setRevisionLoading(false);
       setTimedOut(false);
       setTimeRemainingSeconds(null);
+      setQuestionNotesMap({});
+      setNotesPanelOpen(false);
 
       if (mode === "time_boxed" && (payload as any).time_minutes) {
         setTimeRemainingSeconds((payload as any).time_minutes * 60);
@@ -296,6 +348,7 @@ export default function DiagnosticPage() {
   const finishSession = async () => {
     if (!session) return;
     if (timerRef.current) clearInterval(timerRef.current);
+    await flushCurrentQuestionNote();
     try {
       const result = await api.closeSession(session.session_id);
       setScore(result);
@@ -315,6 +368,7 @@ export default function DiagnosticPage() {
   const handleSaveAndClose = async () => {
     if (!session) return;
     if (timerRef.current) clearInterval(timerRef.current);
+    await flushCurrentQuestionNote();
     try {
       const result = await api.closeSession(session.session_id);
       setScore(result);
@@ -553,7 +607,7 @@ export default function DiagnosticPage() {
         )}
 
         <div className="flex gap-4">
-          <button onClick={() => { setSession(null); setFinished(false); setTimedOut(false); setBufferQuestions([]); }}
+          <button onClick={() => { setSession(null); setFinished(false); setTimedOut(false); setBufferQuestions([]); setQuestionNotesMap({}); setNotesPanelOpen(false); }}
             className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm">
             Start Another
           </button>
@@ -606,144 +660,238 @@ export default function DiagnosticPage() {
     }
   };
 
+  const currentQHash = q.question_hash ?? `${session?.session_id}_${currentQ}`;
+  const currentQNote = questionNotesMap[currentQHash] ?? { note_text: "", still_weak: false };
+
   return (
-    <div className="max-w-2xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">
-            Q {currentQ + 1}{mode !== "open_ended" ? ` / ${currentQuestions.length}` : ""}
-          </h2>
-          {mode === "open_ended" && (
-            <p className="text-xs text-gray-500">{answeredSoFar} answered</p>
-          )}
+    <div className="relative min-h-[60vh]">
+      <div className="max-w-2xl space-y-6 pb-24">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">
+              Q {currentQ + 1}{mode !== "open_ended" ? ` / ${currentQuestions.length}` : ""}
+            </h2>
+            {mode === "open_ended" && (
+              <p className="text-xs text-gray-500">{answeredSoFar} answered</p>
+            )}
+          </div>
+          <span className="text-sm text-gray-400">{SUBJECTS.find(s => s.id === selected)?.name}</span>
         </div>
-        <span className="text-sm text-gray-400">{SUBJECTS.find(s => s.id === selected)?.name}</span>
-      </div>
 
-      {/* Timed mode countdown */}
-      {mode === "time_boxed" && session && !finished && timeRemainingSeconds !== null && (
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono font-medium ${
-          timeRemainingSeconds <= 300
-            ? "bg-red-950/60 border border-red-800 text-red-300"
-            : "bg-gray-900 border border-gray-800 text-gray-300"
-        }`}>
-          <span>⏱</span>
-          <span>
-            {String(Math.floor(timeRemainingSeconds / 60)).padStart(2, "0")}:
-            {String(timeRemainingSeconds % 60).padStart(2, "0")} remaining
-          </span>
-        </div>
-      )}
-
-      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
-      </div>
-
-      <div className="space-y-3">
-        {options.map((opt) => {
-          const chosen = answers[currentQ] === opt.key;
-          const isCorrect = q.correct_answer === opt.key;
-          const show = revealed[currentQ];
-          return (
-            <button
-              key={opt.key}
-              onClick={() => {
-                if (!answers[currentQ] && !skipped[currentQ])
-                  setPendingAnswer(pendingAnswer === opt.key ? null : opt.key);
-              }}
-              disabled={!!answers[currentQ] || !!skipped[currentQ]}
-              className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
-                show && isCorrect ? "border-green-500 bg-green-500/10 text-green-300" :
-                show && chosen && !isCorrect ? "border-red-500 bg-red-500/10 text-red-300" :
-                !show && pendingAnswer === opt.key ? "border-blue-500 bg-blue-500/10 text-blue-200" :
-                "border-gray-700 hover:border-gray-500 text-gray-200"
-              }`}
-            >
-              <span className="font-medium mr-3 text-gray-500">({opt.key})</span>{opt.text}
-            </button>
-          );
-        })}
-      </div>
-
-      {!answers[currentQ] && !skipped[currentQ] && !pendingAnswer && (
-        <button
-          onClick={skipQuestion}
-          className="text-sm text-gray-500 hover:text-gray-300 border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-colors"
-        >
-          Skip →
-        </button>
-      )}
-
-      {pendingAnswer && !answers[currentQ] && !skipped[currentQ] && (
-        <button
-          onClick={() => { submitAnswer(pendingAnswer); setPendingAnswer(null); }}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors"
-        >
-          Submit Answer
-        </button>
-      )}
-
-      {skipped[currentQ] && (
-        <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
-          <p className="text-gray-500 text-sm">Skipped — correct answer was <span className="text-green-400 font-medium">({q.correct_answer})</span></p>
-        </div>
-      )}
-
-      {revealed[currentQ] && !skipped[currentQ] && q.explanation && (
-        <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-3">
-          <p className="text-amber-300 text-sm font-medium mb-1">Explanation</p>
-          <p className="text-gray-300 text-sm">{q.explanation}</p>
-
-          {!expanded[currentQ] && (
-            <button
-              onClick={() => diveDeeperInto(currentQ)}
-              disabled={expandLoading[currentQ]}
-              className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50 flex items-center gap-1 transition-colors"
-            >
-              {expandLoading[currentQ] ? "Loading deep dive..." : "Dive deeper →"}
-            </button>
-          )}
-
-          {expanded[currentQ] && (
-            <div className="border-t border-gray-700 pt-3 mt-2">
-              <p className="text-blue-300 text-xs font-medium mb-2">Deep Dive</p>
-              <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
-                {expanded[currentQ]}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="flex gap-4 flex-wrap">
-        {currentQ > 0 && (
-          <button onClick={() => setCurrentQ(currentQ - 1)}
-            className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
-            ← Previous
-          </button>
+        {/* Timed mode countdown */}
+        {mode === "time_boxed" && session && !finished && timeRemainingSeconds !== null && (
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono font-medium ${
+            timeRemainingSeconds <= 300
+              ? "bg-red-950/60 border border-red-800 text-red-300"
+              : "bg-gray-900 border border-gray-800 text-gray-300"
+          }`}>
+            <span>⏱</span>
+            <span>
+              {String(Math.floor(timeRemainingSeconds / 60)).padStart(2, "0")}:
+              {String(timeRemainingSeconds % 60).padStart(2, "0")} remaining
+            </span>
+          </div>
         )}
-        {revealed[currentQ] && !isLast && (
-          <button onClick={handleNext}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg">
-            {fetchingMore ? "Loading..." : "Next Question →"}
-          </button>
-        )}
-        {revealed[currentQ] && isLast && mode !== "open_ended" && (
-          <button onClick={finishSession}
-            className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg">
-            Finish &amp; Save Session
-          </button>
-        )}
-        {/* Save & Close — open_ended only, shown after any revealed answer */}
-        {revealed[currentQ] && mode === "open_ended" && (
+
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+          <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
+        </div>
+
+        <div className="space-y-3">
+          {options.map((opt) => {
+            const chosen = answers[currentQ] === opt.key;
+            const isCorrect = q.correct_answer === opt.key;
+            const show = revealed[currentQ];
+            return (
+              <button
+                key={opt.key}
+                onClick={() => {
+                  if (!answers[currentQ] && !skipped[currentQ])
+                    setPendingAnswer(pendingAnswer === opt.key ? null : opt.key);
+                }}
+                disabled={!!answers[currentQ] || !!skipped[currentQ]}
+                className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                  show && isCorrect ? "border-green-500 bg-green-500/10 text-green-300" :
+                  show && chosen && !isCorrect ? "border-red-500 bg-red-500/10 text-red-300" :
+                  !show && pendingAnswer === opt.key ? "border-blue-500 bg-blue-500/10 text-blue-200" :
+                  "border-gray-700 hover:border-gray-500 text-gray-200"
+                }`}
+              >
+                <span className="font-medium mr-3 text-gray-500">({opt.key})</span>{opt.text}
+              </button>
+            );
+          })}
+        </div>
+
+        {!answers[currentQ] && !skipped[currentQ] && !pendingAnswer && (
           <button
-            onClick={handleSaveAndClose}
-            className="border border-gray-600 hover:border-red-500 text-gray-400 hover:text-red-300 px-4 py-2 rounded-lg text-sm transition-colors"
+            onClick={skipQuestion}
+            className="text-sm text-gray-500 hover:text-gray-300 border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-colors"
           >
-            Save &amp; Close
+            Skip →
           </button>
         )}
+
+        {pendingAnswer && !answers[currentQ] && !skipped[currentQ] && (
+          <button
+            onClick={() => { submitAnswer(pendingAnswer); setPendingAnswer(null); }}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors"
+          >
+            Submit Answer
+          </button>
+        )}
+
+        {skipped[currentQ] && (
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
+            <p className="text-gray-500 text-sm">Skipped — correct answer was <span className="text-green-400 font-medium">({q.correct_answer})</span></p>
+          </div>
+        )}
+
+        {revealed[currentQ] && !skipped[currentQ] && q.explanation && (
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 space-y-3">
+            <p className="text-amber-300 text-sm font-medium mb-1">Explanation</p>
+            <p className="text-gray-300 text-sm">{q.explanation}</p>
+
+            {!expanded[currentQ] && (
+              <button
+                onClick={() => diveDeeperInto(currentQ)}
+                disabled={expandLoading[currentQ]}
+                className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50 flex items-center gap-1 transition-colors"
+              >
+                {expandLoading[currentQ] ? "Loading deep dive..." : "Dive deeper →"}
+              </button>
+            )}
+
+            {expanded[currentQ] && (
+              <div className="border-t border-gray-700 pt-3 mt-2">
+                <p className="text-blue-300 text-xs font-medium mb-2">Deep Dive</p>
+                <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
+                  {expanded[currentQ]}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-4 flex-wrap">
+          {currentQ > 0 && (
+            <button onClick={() => setCurrentQ(currentQ - 1)}
+              className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
+              ← Previous
+            </button>
+          )}
+          {revealed[currentQ] && !isLast && (
+            <button onClick={handleNext}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg">
+              {fetchingMore ? "Loading..." : "Next Question →"}
+            </button>
+          )}
+          {revealed[currentQ] && isLast && mode !== "open_ended" && (
+            <button onClick={finishSession}
+              className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg">
+              Finish &amp; Save Session
+            </button>
+          )}
+          {/* Save & Close — open_ended only, shown after any revealed answer */}
+          {revealed[currentQ] && mode === "open_ended" && (
+            <button
+              onClick={handleSaveAndClose}
+              className="border border-gray-600 hover:border-red-500 text-gray-400 hover:text-red-300 px-4 py-2 rounded-lg text-sm transition-colors"
+            >
+              Save &amp; Close
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Floating notes button (ISSUE-017 Phase 1) */}
+      <button
+        type="button"
+        onClick={() => setNotesPanelOpen((o) => !o)}
+        className="fixed bottom-6 right-5 z-40 rounded-full border border-amber-700/80 bg-amber-950/95 px-4 py-2.5 text-sm font-medium text-amber-100 shadow-lg hover:bg-amber-900"
+      >
+        {notesPanelOpen ? "Close notes" : "My notes"}
+      </button>
+
+      {/* Notes slide-in panel (ISSUE-017 Phase 1) */}
+      {notesPanelOpen && (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/55"
+            aria-label="Close notes panel"
+            onClick={() => setNotesPanelOpen(false)}
+          />
+          <aside className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-md flex-col border-l border-gray-800 bg-gray-950 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
+              <h2 className="text-sm font-semibold text-white">Notes for Q{currentQ + 1}</h2>
+              <button type="button" className="text-gray-400 hover:text-white text-sm" onClick={() => setNotesPanelOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <p className="px-4 pt-2 text-xs text-gray-500">
+              Auto-saves. Reloads when you return to this question.
+            </p>
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-amber-400">
+                  Note — {q.subtopic_id?.replace(/_/g, " ") ?? selected?.replace(/_/g, " ") ?? ""}
+                </span>
+                <textarea
+                  value={currentQNote.note_text}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setQuestionNotesMap((prev) => ({
+                      ...prev,
+                      [currentQHash]: { note_text: val, still_weak: prev[currentQHash]?.still_weak ?? false },
+                    }));
+                    if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
+                    qnSaveTimer.current = setTimeout(() => {
+                      if (!session?.session_id) return;
+                      api.putQuestionNote(session.session_id, currentQHash, {
+                        question_index: currentQ,
+                        subtopic_id: q.subtopic_id ?? selected,
+                        subject_id: selected,
+                        note_text: val,
+                        still_weak: questionNotesMap[currentQHash]?.still_weak ?? false,
+                      }).catch(() => {});
+                    }, 700);
+                  }}
+                  rows={6}
+                  className="w-full rounded-lg border border-amber-800/60 bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600"
+                  placeholder="Note for this question — autosaves. Reloads when you come back."
+                />
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={currentQNote.still_weak}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setQuestionNotesMap((prev) => ({
+                      ...prev,
+                      [currentQHash]: { note_text: prev[currentQHash]?.note_text ?? "", still_weak: checked },
+                    }));
+                    if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
+                    qnSaveTimer.current = setTimeout(() => {
+                      if (!session?.session_id) return;
+                      api.putQuestionNote(session.session_id, currentQHash, {
+                        question_index: currentQ,
+                        subtopic_id: q.subtopic_id ?? selected,
+                        subject_id: selected,
+                        note_text: questionNotesMap[currentQHash]?.note_text ?? "",
+                        still_weak: checked,
+                      }).catch(() => {});
+                    }, 700);
+                  }}
+                  className="rounded border-gray-600 bg-gray-900"
+                />
+                <span className="text-sm text-gray-300">Still weak — flag for next plan</span>
+              </label>
+            </div>
+          </aside>
+        </>
+      )}
     </div>
   );
 }

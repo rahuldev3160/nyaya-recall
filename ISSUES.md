@@ -312,9 +312,9 @@ Verify revision deck appears in both `diagnostic/page.tsx` and `session/page.tsx
 ### ISSUE-017 — Note-taking as model feedback and training data
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** Open
+**Status:** In Progress — Phase 1 implementing (2026-05-17)
 **Priority:** P1
-**Linked feature:** *(to be linked)*
+**Linked feature:** [`plans/feedback_training.md`](plans/feedback_training.md)
 
 **What happened:**
 User realised the note-taking box could double as a feedback mechanism for improving prompts.
@@ -326,9 +326,9 @@ The note-taking button can serve as a tool to train our model — user can give 
 `session_user_notes` table stores free-text. `plan_generator.fetch_user_notes_signals()` reads `still_weak` flag. No structured feedback taxonomy or prompt refinement loop exists yet.
 
 **What's needed to fix:**
-Spec required before implementing. Write `plans/feedback_training.md`.
+Phase 1: `content_feedback` + `question_notes` tables, 3 new endpoints, note-box per-question reset/autosave. Phase 2: ContentFeedback verdict UI. Phase 3: `apply_feedback.py` prompt pipeline.
 
-**Resolution:** *(pending)*
+**Resolution:** *(pending — full resolution after PR merge)*
 
 ---
 

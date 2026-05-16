@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library
+from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback
 
 DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 
@@ -37,9 +37,59 @@ def _ensure_session_user_notes_table() -> None:
     con.close()
 
 
+def _ensure_question_notes_and_feedback_tables() -> None:
+    """Create ISSUE-017 Phase 1 tables if they do not exist. Safe to re-run."""
+    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(DB_PATH)
+    con.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS question_notes (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id         TEXT    NOT NULL DEFAULT 'user_1',
+            session_id      TEXT    NOT NULL,
+            question_hash   TEXT    NOT NULL,
+            question_index  INTEGER NOT NULL,
+            subtopic_id     TEXT    NOT NULL,
+            subject_id      TEXT    NOT NULL,
+            note_text       TEXT    DEFAULT '',
+            still_weak      INTEGER DEFAULT 0,
+            updated_at      TEXT    DEFAULT (datetime('now')),
+            UNIQUE(session_id, question_hash)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_qn_session  ON question_notes(session_id);
+        CREATE INDEX IF NOT EXISTS idx_qn_subtopic ON question_notes(subtopic_id, still_weak);
+        CREATE INDEX IF NOT EXISTS idx_qn_qhash    ON question_notes(question_hash);
+
+        CREATE TABLE IF NOT EXISTS content_feedback (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id         TEXT    NOT NULL DEFAULT 'user_1',
+            content_type    TEXT    NOT NULL,
+            session_id      TEXT    NOT NULL,
+            question_hash   TEXT,
+            subtopic_id     TEXT    NOT NULL,
+            subject_id      TEXT    NOT NULL,
+            notes_section   TEXT,
+            verdict         TEXT    NOT NULL,
+            note_text       TEXT    DEFAULT '',
+            prompt_file     TEXT,
+            created_at      TEXT    DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_cf_subtopic ON content_feedback(subtopic_id, content_type);
+        CREATE INDEX IF NOT EXISTS idx_cf_subject  ON content_feedback(subject_id, verdict);
+        CREATE INDEX IF NOT EXISTS idx_cf_qhash    ON content_feedback(question_hash);
+        CREATE INDEX IF NOT EXISTS idx_cf_prompt   ON content_feedback(prompt_file, verdict);
+        """
+    )
+    con.commit()
+    con.close()
+
+
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
     _ensure_session_user_notes_table()
+    _ensure_question_notes_and_feedback_tables()
     yield
 
 
@@ -61,6 +111,7 @@ app.include_router(attestation.router, prefix="/attestation", tags=["attestation
 app.include_router(csat.router, prefix="/csat", tags=["csat"])
 app.include_router(config.router, prefix="/config", tags=["config"])
 app.include_router(library.router, prefix="/library", tags=["library"])
+app.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
 
 
 @app.get("/health")

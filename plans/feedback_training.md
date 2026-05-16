@@ -2,7 +2,7 @@
 
 **Status:** Spec — awaiting Rahul approval before implementation  
 **Priority:** P1  
-**Linked issues:** ISSUE (unnamed — note-taking as training data), ISSUE (note-taking box resets per question), ISSUE (notes coverage weak on core concept)  
+**Linked issues:** ISSUE-017 (note-taking as model feedback/training data), ISSUE-019 (note-taking box resets per question), ISSUE-022 (notes coverage weak on core concept)  
 **Effort estimate:** ~18 hours across 3 phases  
 **Depends on:** `plans/question_feedback.md` (shares `question_feedback` table — do not duplicate)  
 **Unlocks:** Self-improving prompts, indexed personal notes per question, richer training signal
@@ -326,10 +326,10 @@ Per-question note autosave: **0 tokens** (pure DB writes).
 
 ---
 
-## 9. Open Questions (Rahul must decide before Phase 2 build starts)
+## 9. Decisions — confirmed 2026-05-17
 
-1. **Notes section feedback on mobile:** Four verdict buttons in a horizontal row will wrap on a 375px phone. Options: (a) icons only (✓ / + / − / ✗) with tooltips, or (b) two buttons per row. Which do you prefer?
-
-2. **Feedback on skipped questions:** Should the content feedback row appear even when a question is skipped (no answer, no explanation shown)? Recommended default: show feedback row but hide the optional note input.
-
-3. **`apply_feedback.py` run trigger:** Manual (as specced) or automatic as part of end-of-day sync? If automatic, output goes to `logs/prompt_suggestions_{date}.txt` not stdout.
+| Question | Decision | Rationale |
+|----------|----------|-----------|
+| Mobile verdict buttons | **2 buttons per row** (row 1: Looks good / Something's missing; row 2: Should be omitted / Factually incorrect) | Icons require tooltip long-press on mobile — unreliable mid-session. Clear labels at any hour. Happy path still one tap (top-left). |
+| Feedback on skipped questions | **Hide verdict row entirely** | No explanation was shown → no content to rate → zero useful signal. Clutter without value. |
+| `apply_feedback.py` trigger | **Manual** — `batch_analyse.py` prints a count reminder when pending items ≥ 20 (`"⚠️ N feedback items pending — consider running apply_feedback.py"`) | Prompt files are the heart of content quality; auto-overwrite risks regressions mid-prep. Reminder ensures accumulation doesn't go unnoticed without forcing automation. |

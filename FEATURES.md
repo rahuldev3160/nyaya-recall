@@ -57,7 +57,9 @@
 
 ## 🔵 Planned — spec written, ready to build
 
-_Nothing currently planned — all P1 specs shipped._
+| Feature | Priority | Problem it solves | Spec | Effort |
+|---------|----------|--------------------|------|--------|
+| **Real-time feedback + prompt training** | P1 | Notes box is a one-blob-per-session dead end. No structured signal to improve prompts or track per-question weaknesses. Covers: per-question note reset/autosave, content verdict UI (4-button: looks good / missing / omit / wrong), prompt improvement pipeline via `apply_feedback.py`. 3 phases. | [`plans/feedback_training.md`](plans/feedback_training.md) | ~18 hrs |
 
 ---
 

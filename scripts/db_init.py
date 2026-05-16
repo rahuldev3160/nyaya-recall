@@ -165,6 +165,46 @@ def init_db():
         UNIQUE(user_id, subject_id, subtopic_id, dimension_id)
     );
 
+    -- ISSUE-017 Phase 1: per-question note storage (replaces single-blob session_user_notes for new sessions)
+    CREATE TABLE IF NOT EXISTS question_notes (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id         TEXT    NOT NULL DEFAULT 'user_1',
+        session_id      TEXT    NOT NULL,
+        question_hash   TEXT    NOT NULL,
+        question_index  INTEGER NOT NULL,
+        subtopic_id     TEXT    NOT NULL,
+        subject_id      TEXT    NOT NULL,
+        note_text       TEXT    DEFAULT '',
+        still_weak      INTEGER DEFAULT 0,
+        updated_at      TEXT    DEFAULT (datetime('now')),
+        UNIQUE(session_id, question_hash)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_qn_session  ON question_notes(session_id);
+    CREATE INDEX IF NOT EXISTS idx_qn_subtopic ON question_notes(subtopic_id, still_weak);
+    CREATE INDEX IF NOT EXISTS idx_qn_qhash    ON question_notes(question_hash);
+
+    -- ISSUE-017 Phase 1: qualitative content feedback on questions / explanations / notes sections
+    CREATE TABLE IF NOT EXISTS content_feedback (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id         TEXT    NOT NULL DEFAULT 'user_1',
+        content_type    TEXT    NOT NULL,
+        session_id      TEXT    NOT NULL,
+        question_hash   TEXT,
+        subtopic_id     TEXT    NOT NULL,
+        subject_id      TEXT    NOT NULL,
+        notes_section   TEXT,
+        verdict         TEXT    NOT NULL,
+        note_text       TEXT    DEFAULT '',
+        prompt_file     TEXT,
+        created_at      TEXT    DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_cf_subtopic ON content_feedback(subtopic_id, content_type);
+    CREATE INDEX IF NOT EXISTS idx_cf_subject  ON content_feedback(subject_id, verdict);
+    CREATE INDEX IF NOT EXISTS idx_cf_qhash    ON content_feedback(question_hash);
+    CREATE INDEX IF NOT EXISTS idx_cf_prompt   ON content_feedback(prompt_file, verdict);
+
     CREATE INDEX IF NOT EXISTS idx_sa_session ON session_answers(session_id);
     CREATE INDEX IF NOT EXISTS idx_sa_subj_sub ON session_answers(subject_id, subtopic_id);
     CREATE INDEX IF NOT EXISTS idx_qs_end ON quiz_sessions(end_time);

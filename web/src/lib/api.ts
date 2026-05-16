@@ -99,4 +99,43 @@ export const api = {
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     }),
+
+  // ── ISSUE-017 Phase 1: per-question notes ──────────────────────────────────
+
+  /** Load all per-question notes for a session. Call on session start. */
+  getQuestionNotes: (sessionId: string) =>
+    get(`/sessions/${sessionId}/question-notes`),
+
+  /** Upsert a per-question note. Called on 700 ms debounce. */
+  putQuestionNote: (
+    sessionId: string,
+    questionHash: string,
+    body: {
+      question_index: number;
+      subtopic_id: string;
+      subject_id: string;
+      note_text: string;
+      still_weak: boolean;
+    }
+  ) =>
+    fetch(`${BASE}/sessions/${sessionId}/question-notes/${encodeURIComponent(questionHash)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }),
+
+  /** Record qualitative feedback on a question, explanation, or notes section. */
+  postContentFeedback: (body: {
+    session_id: string;
+    content_type: "question" | "explanation" | "notes_section";
+    question_hash?: string | null;
+    subtopic_id: string;
+    subject_id: string;
+    notes_section?: string | null;
+    verdict: "correct" | "missing" | "omit" | "wrong";
+    note_text?: string;
+  }) => post("/feedback/content", body),
 };
