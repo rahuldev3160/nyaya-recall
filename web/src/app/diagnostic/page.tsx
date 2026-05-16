@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 
 const SUBJECTS = [
@@ -14,7 +14,6 @@ const SUBJECTS = [
   { id: "ir_governance", name: "IR & Governance" },
 ];
 
-// Key subtopics per subject for Deep Dive mode (5-6 per subject)
 const DEEP_DIVE_SUBTOPICS: Record<string, { id: string; name: string }[]> = {
   polity: [
     { id: "preamble", name: "Preamble" },
@@ -90,9 +89,15 @@ const DEEP_DIVE_SUBTOPICS: Record<string, { id: string; name: string }[]> = {
   ],
 };
 
+const MODES = [
+  { value: "fixed_set" as const,  label: "Practice Set",  desc: "Fixed question count" },
+  { value: "time_boxed" as const, label: "Timed Quiz",    desc: "Race the clock" },
+  { value: "open_ended" as const, label: "Open Practice", desc: "Study until you stop" },
+] as const;
+
 export default function DiagnosticPage() {
   const [selected, setSelected] = useState<string>("");
-  const [mode, setMode] = useState<"fixed_set" | "time_boxed">("fixed_set");
+  const [mode, setMode] = useState<"fixed_set" | "time_boxed" | "open_ended">("fixed_set");
   const [sessionMode, setSessionMode] = useState<"standard" | "deep_dive">("standard");
   const [deepDiveSubtopic, setDeepDiveSubtopic] = useState<string>("");
   const [numQ, setNumQ] = useState(15);
@@ -113,15 +118,44 @@ export default function DiagnosticPage() {
   const [revisionNotes, setRevisionNotes] = useState<any[] | null>(null);
   const [revisionLoading, setRevisionLoading] = useState(false);
 
+  // Timed mode state
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+
+  // Open-ended buffer state
+  const [bufferQuestions, setBufferQuestions] = useState<any[]>([]);
+  const [displayedCount, setDisplayedCount] = useState(0);
+  const [fetchingMore, setFetchingMore] = useState(false);
+  const [bufferCapped, setBufferCapped] = useState(false);
+  const [sessionConfig, setSessionConfig] = useState<any>(null);
+
   useEffect(() => {
     setQuestionStartTime(Date.now());
     setPendingAnswer(null);
   }, [currentQ]);
 
-  // Reset deep dive subtopic when subject changes
   useEffect(() => {
     setDeepDiveSubtopic("");
   }, [selected]);
+
+  // Timer tick — only runs for time_boxed sessions
+  useEffect(() => {
+    if (!session || mode !== "time_boxed" || timeRemainingSeconds === null) return;
+    timerRef.current = setInterval(() => {
+      setTimeRemainingSeconds((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [session?.session_id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-close when timer hits 0
+  useEffect(() => {
+    if (timeRemainingSeconds !== 0 || !session || timedOut || finished) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    handleTimerExpiry();
+  }, [timeRemainingSeconds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const currentQuestions: any[] = mode === "open_ended" ? bufferQuestions : (session?.questions ?? []);
 
   const startSession = async () => {
     if (!selected) return;
@@ -137,6 +171,13 @@ export default function DiagnosticPage() {
               subtopic_id: deepDiveSubtopic,
               mode,
               num_questions: 10,
+              difficulty: "mixed",
+            }
+          : mode === "open_ended"
+          ? {
+              subject_id: selected,
+              session_type: "diagnostic",
+              mode: "open_ended",
               difficulty: "mixed",
             }
           : {
@@ -159,16 +200,57 @@ export default function DiagnosticPage() {
       setPendingAnswer(null);
       setRevisionNotes(null);
       setRevisionLoading(false);
-    } catch (e: any) {
+      setTimedOut(false);
+      setTimeRemainingSeconds(null);
+
+      if (mode === "time_boxed" && (payload as any).time_minutes) {
+        setTimeRemainingSeconds((payload as any).time_minutes * 60);
+      }
+      if (mode === "open_ended") {
+        setBufferQuestions(data.questions ?? []);
+        setDisplayedCount(0);
+        setFetchingMore(false);
+        setBufferCapped(false);
+        setSessionConfig(payload);
+      }
+    } catch {
       setError("Failed to generate questions. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleTimerExpiry = async () => {
+    if (!session) return;
+    const questions: any[] = session.questions ?? [];
+    await Promise.allSettled(
+      questions.map(async (q: any, idx: number) => {
+        if (answers[idx] !== undefined || skipped[idx]) return;
+        return api.submitAnswer({
+          session_id: session.session_id,
+          question_hash: q.question_hash ?? `${session.session_id}_${idx}`,
+          question_text: q.question_text,
+          options: { a: q.option_a ?? "", b: q.option_b ?? "", c: q.option_c ?? "", d: q.option_d ?? "" },
+          correct_answer: q.correct_answer,
+          user_answer: null,
+          is_correct: false,
+          time_taken_sec: 0,
+          skipped: true,
+          subject_id: selected,
+          subtopic_id: q.subtopic_id ?? selected,
+          dimension_id: q.dimension_id ?? null,
+        }).catch(() => {});
+      })
+    );
+    try { const result = await api.closeSession(session.session_id); setScore(result); } catch {}
+    setTimedOut(true);
+    setFinished(true);
+  };
+
   const submitAnswer = async (opt: string) => {
     if (!session || answers[currentQ]) return;
-    const q = session.questions[currentQ];
+    const q = currentQuestions[currentQ];
+    if (!q) return;
     const correct = q.correct_answer === opt;
     const timeSec = Math.round((Date.now() - questionStartTime) / 1000);
     setAnswers((a) => ({ ...a, [currentQ]: opt }));
@@ -190,7 +272,8 @@ export default function DiagnosticPage() {
 
   const skipQuestion = async () => {
     if (!session || answers[currentQ] !== undefined || skipped[currentQ]) return;
-    const q = session.questions[currentQ];
+    const q = currentQuestions[currentQ];
+    if (!q) return;
     const timeSec = Math.round((Date.now() - questionStartTime) / 1000);
     setSkipped((s) => ({ ...s, [currentQ]: true }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
@@ -212,10 +295,30 @@ export default function DiagnosticPage() {
 
   const finishSession = async () => {
     if (!session) return;
+    if (timerRef.current) clearInterval(timerRef.current);
     try {
       const result = await api.closeSession(session.session_id);
       setScore(result);
-    } catch (e) {}
+    } catch {}
+    setFinished(true);
+    setRevisionLoading(true);
+    try {
+      const data = await api.getRevisionNotes(session.session_id);
+      setRevisionNotes(data.notes ?? []);
+    } catch {
+      setRevisionNotes([]);
+    } finally {
+      setRevisionLoading(false);
+    }
+  };
+
+  const handleSaveAndClose = async () => {
+    if (!session) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    try {
+      const result = await api.closeSession(session.session_id);
+      setScore(result);
+    } catch {}
     setFinished(true);
     setRevisionLoading(true);
     try {
@@ -230,7 +333,8 @@ export default function DiagnosticPage() {
 
   const diveDeeperInto = async (idx: number) => {
     if (!session || expanded[idx] || expandLoading[idx]) return;
-    const q = session.questions[idx];
+    const q = currentQuestions[idx];
+    if (!q) return;
     setExpandLoading((l) => ({ ...l, [idx]: true }));
     try {
       const data = await api.expandConcept({
@@ -251,6 +355,7 @@ export default function DiagnosticPage() {
   const availableDeepDiveSubtopics = selected ? (DEEP_DIVE_SUBTOPICS[selected] ?? []) : [];
   const isDeepDiveReady = sessionMode !== "deep_dive" || (!!deepDiveSubtopic);
 
+  // ── Setup screen ─────────────────────────────────────────────────────────
   if (!session) {
     return (
       <div className="max-w-xl space-y-6">
@@ -273,18 +378,28 @@ export default function DiagnosticPage() {
           </select>
         </div>
 
-        <div className="flex gap-4">
-          {(["fixed_set", "time_boxed"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                mode === m ? "border-amber-500 bg-amber-500/10 text-amber-400" : "border-gray-700 text-gray-400"
-              }`}
-            >
-              {m === "fixed_set" ? "Fixed Questions" : "Time-boxed"}
-            </button>
-          ))}
+        {/* Mode selector — 3 options */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-2">Session Type</label>
+          <div className="flex gap-3">
+            {MODES.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => setMode(m.value)}
+                className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                  mode === m.value
+                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                    : "border-gray-700 text-gray-400"
+                }`}
+              >
+                {m.label}
+                <div className="text-xs font-normal mt-0.5 opacity-70">{m.desc}</div>
+              </button>
+            ))}
+          </div>
+          {mode === "open_ended" && (
+            <p className="text-xs text-gray-500 mt-2">Answer as many as you want. Save &amp; Close after any question.</p>
+          )}
         </div>
 
         {/* Deep Dive toggle */}
@@ -299,7 +414,7 @@ export default function DiagnosticPage() {
                   : "border-gray-700 text-gray-400"
               }`}
             >
-              Standard ({numQ}Q)
+              Standard {mode !== "open_ended" ? `(${numQ}Q)` : ""}
             </button>
             <button
               onClick={() => setSessionMode("deep_dive")}
@@ -338,18 +453,21 @@ export default function DiagnosticPage() {
           </div>
         )}
 
-        {sessionMode === "standard" && (
+        {/* Questions / Minutes inputs — hidden for open_ended */}
+        {sessionMode === "standard" && mode !== "open_ended" && (
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm text-gray-400 mb-2">Questions</label>
               <input type="number" min={5} max={30} value={numQ} onChange={(e) => setNumQ(+e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" />
             </div>
-            <div className="flex-1">
-              <label className="block text-sm text-gray-400 mb-2">Minutes</label>
-              <input type="number" min={5} max={90} value={minutes} onChange={(e) => setMinutes(+e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" />
-            </div>
+            {mode === "time_boxed" && (
+              <div className="flex-1">
+                <label className="block text-sm text-gray-400 mb-2">Minutes</label>
+                <input type="number" min={5} max={90} value={minutes} onChange={(e) => setMinutes(+e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" />
+              </div>
+            )}
           </div>
         )}
 
@@ -362,22 +480,38 @@ export default function DiagnosticPage() {
             ? "Generating questions... (15–30s)"
             : sessionMode === "deep_dive"
             ? "Start Deep Dive"
+            : mode === "open_ended"
+            ? "Start Open Practice"
             : "Start Diagnostic"}
         </button>
       </div>
     );
   }
 
+  // ── Results screen ────────────────────────────────────────────────────────
   if (finished) {
-    const total = session.questions.length;
+    const answeredCount = Object.keys(answers).length + Object.keys(skipped).length;
+    const total = mode === "open_ended" ? answeredCount : currentQuestions.length;
     const skippedCount = Object.keys(skipped).length;
     const correct = Object.entries(answers).filter(([idx, opt]) =>
-      session.questions[parseInt(idx)]?.correct_answer === opt
+      currentQuestions[parseInt(idx)]?.correct_answer === opt
     ).length;
-    const attempted = total - skippedCount;
+    const attempted = mode === "open_ended"
+      ? Object.keys(answers).length
+      : total - skippedCount;
+
     return (
       <div className="max-w-xl space-y-6">
-        <h1 className="text-2xl font-bold">Session Complete</h1>
+        <h1 className="text-2xl font-bold">
+          {timedOut ? "Time's Up!" : "Session Complete"}
+        </h1>
+
+        {timedOut && (
+          <div className="bg-red-950/60 border border-red-800 rounded-xl px-5 py-3 text-center text-red-300 font-medium">
+            Time&apos;s up — session auto-closed
+          </div>
+        )}
+
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center space-y-2">
           <div className="text-5xl font-bold text-amber-400">
             {attempted > 0 ? Math.round((correct / attempted) * 100) : 0}%
@@ -386,8 +520,11 @@ export default function DiagnosticPage() {
           {skippedCount > 0 && (
             <div className="text-gray-500 text-sm">{skippedCount} skipped</div>
           )}
+          {mode === "open_ended" && (
+            <div className="text-gray-600 text-xs mt-1">{answeredCount} questions answered</div>
+          )}
         </div>
-        <p className="text-gray-400 text-sm">Session saved. Run Sync & Plan on the dashboard to update your profile.</p>
+        <p className="text-gray-400 text-sm">Session saved. Run Sync &amp; Plan on the dashboard to update your profile.</p>
 
         {revisionLoading && (
           <div className="text-gray-500 text-sm text-center animate-pulse">Generating revision notes for wrong answers...</div>
@@ -416,7 +553,7 @@ export default function DiagnosticPage() {
         )}
 
         <div className="flex gap-4">
-          <button onClick={() => { setSession(null); setFinished(false); }}
+          <button onClick={() => { setSession(null); setFinished(false); setTimedOut(false); setBufferQuestions([]); }}
             className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm">
             Start Another
           </button>
@@ -428,21 +565,75 @@ export default function DiagnosticPage() {
     );
   }
 
-  const q = session.questions[currentQ];
+  // ── Active quiz ───────────────────────────────────────────────────────────
+  const q = currentQuestions[currentQ];
+  if (!q) return <div className="text-gray-500 text-sm p-4">Loading question...</div>;
+
   const options = [
     { key: "a", text: q.option_a ?? "" },
     { key: "b", text: q.option_b ?? "" },
     { key: "c", text: q.option_c ?? "" },
     { key: "d", text: q.option_d ?? "" },
   ];
-  const isLast = currentQ === session.questions.length - 1;
+
+  const isLast = mode === "open_ended"
+    ? (bufferCapped && currentQ === bufferQuestions.length - 1)
+    : currentQ === currentQuestions.length - 1;
+
+  const answeredSoFar = Object.keys(answers).length + Object.keys(skipped).length;
+
+  const handleNext = () => {
+    const nextQ = currentQ + 1;
+    setCurrentQ(nextQ);
+
+    if (mode === "open_ended") {
+      const newDisplayed = displayedCount + 1;
+      setDisplayedCount(newDisplayed);
+      const remaining = bufferQuestions.length - nextQ;
+      if (remaining < 2 && !fetchingMore && !bufferCapped && sessionConfig) {
+        setFetchingMore(true);
+        api.generateQuiz(sessionConfig)
+          .then((data: any) => {
+            setBufferQuestions((prev) => {
+              const combined = [...prev, ...(data.questions ?? [])];
+              if (combined.length >= 50) setBufferCapped(true);
+              return combined.slice(0, 50);
+            });
+          })
+          .catch(() => {})
+          .finally(() => setFetchingMore(false));
+      }
+    }
+  };
 
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Q {currentQ + 1} / {session.questions.length}</h2>
+        <div>
+          <h2 className="text-lg font-semibold">
+            Q {currentQ + 1}{mode !== "open_ended" ? ` / ${currentQuestions.length}` : ""}
+          </h2>
+          {mode === "open_ended" && (
+            <p className="text-xs text-gray-500">{answeredSoFar} answered</p>
+          )}
+        </div>
         <span className="text-sm text-gray-400">{SUBJECTS.find(s => s.id === selected)?.name}</span>
       </div>
+
+      {/* Timed mode countdown */}
+      {mode === "time_boxed" && session && !finished && timeRemainingSeconds !== null && (
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-mono font-medium ${
+          timeRemainingSeconds <= 300
+            ? "bg-red-950/60 border border-red-800 text-red-300"
+            : "bg-gray-900 border border-gray-800 text-gray-300"
+        }`}>
+          <span>⏱</span>
+          <span>
+            {String(Math.floor(timeRemainingSeconds / 60)).padStart(2, "0")}:
+            {String(timeRemainingSeconds % 60).padStart(2, "0")} remaining
+          </span>
+        </div>
+      )}
 
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
         <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
@@ -524,7 +715,7 @@ export default function DiagnosticPage() {
         </div>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 flex-wrap">
         {currentQ > 0 && (
           <button onClick={() => setCurrentQ(currentQ - 1)}
             className="border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors">
@@ -532,15 +723,24 @@ export default function DiagnosticPage() {
           </button>
         )}
         {revealed[currentQ] && !isLast && (
-          <button onClick={() => setCurrentQ(currentQ + 1)}
+          <button onClick={handleNext}
             className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg">
-            Next Question →
+            {fetchingMore ? "Loading..." : "Next Question →"}
           </button>
         )}
-        {revealed[currentQ] && isLast && (
+        {revealed[currentQ] && isLast && mode !== "open_ended" && (
           <button onClick={finishSession}
             className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg">
-            Finish & Save Session
+            Finish &amp; Save Session
+          </button>
+        )}
+        {/* Save & Close — open_ended only, shown after any revealed answer */}
+        {revealed[currentQ] && mode === "open_ended" && (
+          <button
+            onClick={handleSaveAndClose}
+            className="border border-gray-600 hover:border-red-500 text-gray-400 hover:text-red-300 px-4 py-2 rounded-lg text-sm transition-colors"
+          >
+            Save &amp; Close
           </button>
         )}
       </div>
