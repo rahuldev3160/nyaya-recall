@@ -32,20 +32,28 @@ export default function Dashboard() {
   const [config, setConfig] = useState<any>(null);
   const [syncing, setSyncing] = useState(false);
 
+  /** Strip CSAT sessions from any plan response — CSAT has its own separate flow at /csat */
+  const filterPlan = (data: any): any => {
+    if (data?.sessions) {
+      return { ...data, sessions: (data.sessions as any[]).filter((s) => s.subject_id !== "csat") };
+    }
+    return data;
+  };
+
   useEffect(() => {
     (async () => {
       try { setProfile(await api.getProfile()); } catch {}
-      try { setPlan(await api.getPlan()); } catch {}
+      try { setPlan(filterPlan(await api.getPlan())); } catch {}
       try { setConfig(await api.getConfig()); } catch {}
     })();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSync = async () => {
     setSyncing(true);
     try {
       await api.syncAnalysis();
       try { setProfile(await api.getProfile()); } catch {}
-      try { setPlan(await api.getPlan()); } catch {}
+      try { setPlan(filterPlan(await api.getPlan())); } catch {}
       try { setConfig(await api.getConfig()); } catch {}
     } finally {
       setSyncing(false);

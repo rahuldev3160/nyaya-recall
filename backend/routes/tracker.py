@@ -19,6 +19,7 @@ def get_profile():
 
 @router.get("/subjects")
 def get_all_subjects():
+    """Returns GS1 subject scores only. CSAT is excluded — it has its own separate tracker."""
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     rows = con.execute("""
@@ -27,7 +28,7 @@ def get_all_subjects():
                COUNT(*) as subtopics_assessed,
                SUM(CASE WHEN confidence_level='strong' THEN 1 ELSE 0 END) as strong_count,
                SUM(CASE WHEN confidence_level='weak' THEN 1 ELSE 0 END) as weak_count
-        FROM subtopic_scores WHERE user_id='user_1'
+        FROM subtopic_scores WHERE user_id='user_1' AND subject_id != 'csat'
         GROUP BY subject_id
     """).fetchall()
     con.close()
@@ -49,12 +50,12 @@ def get_subtopics(subject_id: str):
 
 @router.get("/gaps")
 def get_gaps():
-    """Returns subjects/subtopics still below 75% threshold with time estimates."""
+    """Returns GS1 subjects/subtopics still below 75% threshold. CSAT excluded — separate system."""
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     rows = con.execute("""
         SELECT subject_id, subtopic_id, topic_id, score, total_attempts
-        FROM subtopic_scores WHERE user_id='user_1' AND score < 75
+        FROM subtopic_scores WHERE user_id='user_1' AND score < 75 AND subject_id != 'csat'
         ORDER BY score ASC
     """).fetchall()
     con.close()

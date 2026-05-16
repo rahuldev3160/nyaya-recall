@@ -57,6 +57,19 @@ def _load_active_plan() -> dict:
     except Exception:
         return {"message": "Plan file is corrupted. Generate a new one."}
 
+# CSAT is a fully separate system — never mix it into GS1 plan views
+_CSAT_SUBJECT_ID = "csat"
+
+
+def _filter_csat_sessions(plan: dict) -> dict:
+    """Remove any CSAT sessions from a plan dict. CSAT has its own route at /csat."""
+    sessions = plan.get("sessions", [])
+    filtered = [s for s in sessions if s.get("subject_id", "").lower() != _CSAT_SUBJECT_ID]
+    if len(filtered) != len(sessions):
+        plan = dict(plan)
+        plan["sessions"] = filtered
+    return plan
+
 
 @router.get("/today")
 def get_plan():
@@ -282,7 +295,7 @@ def get_trajectory():
     today_sessions_count = 0
     if PLAN_PATH.exists():
         try:
-            plan = json.loads(PLAN_PATH.read_text())
+            plan = _filter_csat_sessions(json.loads(PLAN_PATH.read_text()))
             today_sessions_count = len(plan.get("sessions", []))
         except Exception:
             pass
