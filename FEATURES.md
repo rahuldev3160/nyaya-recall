@@ -48,15 +48,14 @@
 | **PYQ subtopic ID normalisation** | P1 | Subject-scoped token-overlap fuzzy matching in `priority_scorer.py` maps PYQ free-text descriptors → canonical syllabus IDs; 139 subtopics now have real varied weights (was 0). `retag_pyq_subtopics.py` written for full coverage (~$0.05 one-time) | Shipped May 12 |
 | **FEATURE-028: Topic-level hierarchical coverage** | P1 | topic_id canonical plumbing (score_engine + quiz.py); `_compute_topic_coverage()` in batch_analyse writes topics[] to prep_profile; plan_generator topic-balanced scheduling + Rule 9; Tracker accordion + Strategy topic counts | Shipped May 16 (PRs #17–#21) |
 | **FEATURE-027: Dimension-aware subtopic coverage (all phases)** | P1 | 205 subtopics × 4–8 testable dimensions in syllabus.json; quiz labels dimension_id per question; session_answers stores dimension_id; subtopic_dimension_scores table tracks per-dimension accuracy; batch_analyse uses dimension-weighted readiness with fallback to subtopic scores | Shipped May 16 (PRs #22–28) |
+| **Timed mode enforcement** | P1 | Live countdown in Timed Quiz mode; auto-close on expiry submitting all unreached questions as skipped; server-side expiry guard in sessions.py (409 on stale submit, auto-close on get_session) | Shipped May 16 (PR #29) |
+| **Open-ended quiz mode ("Open Practice")** | P1 | No upfront count — 10-question lazy-load buffer, +8 more when <2 remain, Save & Close after each revealed answer; UX rename: Practice Set / Timed Quiz / Open Practice | Shipped May 16 (PR #29) |
 
 ---
 
 ## 🔵 Planned — spec written, ready to build
 
-| Feature | Priority | Problem it solves | Spec | Effort |
-|---------|----------|--------------------|------|--------|
-| **Timed mode enforcement** | P1 | time_boxed sessions collect a limit but never enforce it — no countdown, no auto-close. | [`plans/timed_mode_enforcement.md`](plans/timed_mode_enforcement.md) | ~2.5 hrs |
-| **Open-ended quiz mode** | P1 | No "study until I stop" mode — users must commit to a count upfront, creating friction and abandoned sessions. | [`plans/open_ended_quiz_mode.md`](plans/open_ended_quiz_mode.md) | ~3.5 hrs |
+_Nothing currently planned — all P1 specs shipped._
 
 ---
 
