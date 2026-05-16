@@ -52,14 +52,13 @@
 | **Open-ended quiz mode ("Open Practice")** | P1 | No upfront count — 10-question lazy-load buffer, +8 more when <2 remain, Save & Close after each revealed answer; UX rename: Practice Set / Timed Quiz / Open Practice | Shipped May 16 (PR #29) |
 | **ChromaDB coverage audit** | P1 | Ran `check_chroma_coverage.py` — 11,146 chunks, all 9 GS subjects healthy. CSAT excluded (separate system). No re-ingestion needed. | Resolved May 16 |
 | **Session summaries backfill** | P2 | Ran `scripts/backfill_session_summaries.py` — 17 historical sessions processed. All had neutral-zone accuracy (45–75%), correctly producing `weak=[]` and `strong=[]`. `get_persistently_weak_subtopics()` in batch_analyse.py is now unblocked for future sessions. | Shipped May 16 (PR #7) |
+| **Real-time feedback + prompt training (ISSUE-017)** | P1 | Per-question notes reset/autosave; `content_feedback` + `question_notes` tables; `ContentFeedback` 2×2 verdict UI on session + diagnostic + notes sections; `apply_feedback.py` prompt improvement pipeline (Haiku, manual); `batch_analyse.py` reminder at 20+ items. | Shipped May 17 (PRs #33, #34) |
 
 ---
 
 ## 🔵 Planned — spec written, ready to build
 
-| Feature | Priority | Problem it solves | Spec | Effort |
-|---------|----------|--------------------|------|--------|
-| **Real-time feedback + prompt training** | P1 | Notes box is a one-blob-per-session dead end. No structured signal to improve prompts or track per-question weaknesses. Covers: per-question note reset/autosave, content verdict UI (4-button: looks good / missing / omit / wrong), prompt improvement pipeline via `apply_feedback.py`. 3 phases. | [`plans/feedback_training.md`](plans/feedback_training.md) | ~18 hrs |
+_Nothing currently planned — all P1 specs shipped._
 
 ---
 

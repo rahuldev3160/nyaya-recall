@@ -312,7 +312,7 @@ Verify revision deck appears in both `diagnostic/page.tsx` and `session/page.tsx
 ### ISSUE-017 — Note-taking as model feedback and training data
 **Noticed:** 2026-05-13
 **Reported by:** Rahul
-**Status:** In Progress — Phase 1 implementing (2026-05-17)
+**Status:** Resolved
 **Priority:** P1
 **Linked feature:** [`plans/feedback_training.md`](plans/feedback_training.md)
 
@@ -322,13 +322,11 @@ User realised the note-taking box could double as a feedback mechanism for impro
 **The problem:**
 The note-taking button can serve as a tool to train our model — user can give feedback on what was correct, what should have been included, what could have been omitted, and what is incorrect. This generates training data linked to each question/session. Notes need to be stored well-indexed and organised.
 
-**Current state of the code:**
-`session_user_notes` table stores free-text. `plan_generator.fetch_user_notes_signals()` reads `still_weak` flag. No structured feedback taxonomy or prompt refinement loop exists yet.
-
-**What's needed to fix:**
-Phase 1: `content_feedback` + `question_notes` tables, 3 new endpoints, note-box per-question reset/autosave. Phase 2: ContentFeedback verdict UI. Phase 3: `apply_feedback.py` prompt pipeline.
-
-**Resolution:** *(pending — full resolution after PR merge)*
+**Resolution:** Fully shipped 2026-05-17 across PRs #33 and #34.
+- `question_notes` + `content_feedback` tables; per-question note reset/autosave in session + diagnostic pages
+- `ContentFeedback` component: 2×2 verdict grid after every explanation and per notes section
+- `apply_feedback.py`: Haiku-powered prompt suggestion pipeline (manual trigger)
+- `batch_analyse.py`: reminder printed when ≥ 20 feedback items accumulate
 
 ---
 

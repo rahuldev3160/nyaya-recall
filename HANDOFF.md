@@ -1,3 +1,27 @@
+### ISSUE-017 — Real-time feedback + prompt training (all 3 phases) — 2026-05-17
+
+**What changed:**
+- `backend/routes/feedback.py` (new) — `POST /feedback/content` (pure DB write, no AI), `GET /feedback/content/summary`
+- `backend/routes/sessions.py` — `PUT/GET /sessions/{id}/question-notes/{hash}` for per-question note autosave
+- `scripts/db_init.py` — `question_notes` and `content_feedback` tables (additive, `CREATE IF NOT EXISTS`)
+- `scripts/plan_generator.py` — `fetch_user_notes_signals()` merges `question_notes WHERE still_weak=1` alongside existing `session_user_notes` (backward compat)
+- `web/src/components/ContentFeedback.tsx` (new) — 2×2 verdict button grid; hidden on skipped questions; silent failures
+- `web/src/app/session/page.tsx` — note box resets per question + autosave; `ContentFeedback` wired after explanation and per notes section
+- `web/src/app/diagnostic/page.tsx` — note box added (had none); `ContentFeedback` wired after explanation reveal
+- `scripts/apply_feedback.py` (new) — reads `content_feedback`, groups by subtopic/verdict, calls Haiku per prompt file, prints suggestions to stdout; `--since` and `--output` flags
+- `prompts/feedback_aggregation.txt` (new) — Haiku prompt template for prompt improvement
+- `scripts/batch_analyse.py` — prints `⚠️ N feedback items` reminder when count ≥ 20
+- `CLAUDE.md` — `apply_feedback.py` documented under Commands
+
+**Watch-outs:**
+- `parseNotesSections()` splits session notes on `## ` headings — if notes format ever changes, per-section feedback rows degrade gracefully (no crash, just no buttons)
+- `apply_feedback.py` does NOT auto-edit prompt files — Rahul reviews stdout and edits manually
+- `session_user_notes` table untouched — backward compat preserved for existing sessions
+
+**Branch:** `feature/feedback-training-phase1` — PR #33; `feature/feedback-training-phase2-3` — PR #34. Both merged.
+
+---
+
 # HANDOFF.md — Dev Session Update (May 16, 2026) — CSAT Separation Fix
 
 ### fix/csat-separation — Complete CSAT separation from GS1 prep tracking — 2026-05-16
