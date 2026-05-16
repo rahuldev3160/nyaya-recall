@@ -18,7 +18,24 @@ Each subject now has a `topics[]` array with: `id`, `name`, `subtopics_total`, `
 - `at_risk_subtopics` uses median weight of the topic's subtopics as threshold — tested-but-weak (score < 0.45) OR untested-above-median-weight are flagged.
 - Phase 3 (plan generator: topic-balanced scheduling) is next.
 
-**Branch:** `feature/topic-coverage` — PR pending.
+**Branch:** `feature/topic-coverage` — merged as PR #19.
+
+---
+
+### FEATURE-028 Phase 3 — Topic-balanced scheduling in plan_generator — 2026-05-16
+
+**What changed:**
+- `scripts/plan_generator.py` — `compute_subtopic_coverage()` now builds `untested_by_topic[]` per subject: each entry has `topic_id`, `topic_name`, `topic_pyq_weight` (sum of untested subtopic weights in that topic), and `untested_subtopics[]` sorted by pyq_weight desc. Topics sorted by topic_pyq_weight desc. Fully-tested topics are omitted.
+- `prompts/plan_generation.txt` — added description of `untested_by_topic` field; added Rule 9 (TOPIC BALANCE): schedule 1 subtopic from every topic with gaps before scheduling a 2nd from any topic. Prevents over-scheduling one topic's subtopics while another topic is starved.
+
+**Verified:** history_amac shows 8 topics with untested subtopics; ancient_dynasties (5.77) ranked above art_architecture (4.91) correctly.
+
+**Watch-outs:**
+- No DB changes. No breaking changes to existing `untested` / `tested` fields — `untested_by_topic` is purely additive.
+- The plan generator passes `untested_by_topic` to Claude as context — Claude still decides the final schedule. Rule 9 is a prompt constraint, not enforced deterministically (Phase 6 could add a validation layer).
+- Phase 4 (topic coverage UI on Tracker/Strategy pages) is next.
+
+**Branch:** `feature/topic-balanced-planning` — PR pending.
 
 ---
 

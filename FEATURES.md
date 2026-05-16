@@ -53,7 +53,7 @@
 
 | Feature | Priority | Problem it solves | Spec | Effort |
 |---------|----------|--------------------|------|--------|
-| **Topic-level hierarchical coverage (FEATURE-028)** | P1 | topic_id is NULL/non-canonical everywhere; plan generator gives Claude a flat list with no topic grouping; you can skip an entire topic while showing 100% subject coverage. Fixes data plumbing + adds topic-level visibility on tracker/strategy. Phase 0+1+2 shipped May 16. Phases 3-4 remain. | [`plans/topic-hierarchy-coverage.md`](plans/topic-hierarchy-coverage.md) | ~12 hrs, 2 sessions |
+| **Topic-level hierarchical coverage (FEATURE-028)** | P1 | topic_id is NULL/non-canonical everywhere; plan generator gives Claude a flat list with no topic grouping; you can skip an entire topic while showing 100% subject coverage. Fixes data plumbing + adds topic-level visibility on tracker/strategy. Phase 0+1+2+3 shipped May 16. Phase 4 (UI) remains. | [`plans/topic-hierarchy-coverage.md`](plans/topic-hierarchy-coverage.md) | ~12 hrs, 2 sessions |
 | **Dimension-aware subtopic coverage (FEATURE-027)** | P1 | A subtopic is marked "done" after touching any one of its 4-8 testable dimensions. Coverage formula ignores whether core concept, PYQ-heavy, or current-affairs-linked dimensions were actually tested. Needs FEATURE-028 first. | [`plans/dimension-coverage.md`](plans/dimension-coverage.md) | ~15 hrs, 3 sessions |
 
 ---
