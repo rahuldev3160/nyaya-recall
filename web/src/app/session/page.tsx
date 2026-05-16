@@ -46,6 +46,9 @@ const notesMarkdownComponents: Partial<Components> = {
 };
 
 type UserNotesState = { confusion: string; mnemonic: string; still_weak: boolean };
+type SyllabusSubject = { id: string; name: string; topics: SyllabusTopic[] };
+type SyllabusTopic   = { id: string; name: string; subtopics: SyllabusSubtopic[] };
+type SyllabusSubtopic = { id: string; name: string; dimensions: string[] };
 
 const ACTIVE_QUIZ_KEY = "upsc_active_quiz";
 
@@ -82,6 +85,16 @@ export default function SessionPage() {
   const [notesExplainLoading, setNotesExplainLoading] = useState(false);
   const [notesExplainText, setNotesExplainText] = useState<string | null>(null);
   const [notesExplainErr, setNotesExplainErr] = useState<string | null>(null);
+
+  // Plan-edit modal state
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [syllabusTree, setSyllabusTree] = useState<SyllabusSubject[]>([]);
+  const [editDraft, setEditDraft] = useState<{ subject_id: string; topic_id: string; subtopic_id: string; format: string; difficulty: string; num_questions: number; estimated_minutes: number }>({ subject_id: "", topic_id: "", subtopic_id: "", format: "quiz_only", difficulty: "mixed", num_questions: 10, estimated_minutes: 30 });
+  const [editSaving, setEditSaving] = useState(false);
+
+  useEffect(() => {
+    api.getSyllabusTree().then((t: SyllabusSubject[]) => setSyllabusTree(t)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     api.getPlan().then((data: any) => {
@@ -269,6 +282,39 @@ export default function SessionPage() {
     notesDirty.current = true;
     setUserNotes((n) => ({ ...n, ...patch }));
   };
+
+  const openEdit = (session: any, idx: number) => {
+    setEditDraft({
+      subject_id: session.subject_id ?? "",
+      topic_id: session.topic_id ?? "",
+      subtopic_id: session.subtopic_id ?? "",
+      format: session.format ?? "quiz_only",
+      difficulty: session.difficulty ?? "mixed",
+      num_questions: session.num_questions ?? 10,
+      estimated_minutes: session.estimated_minutes ?? 30,
+    });
+    setEditingIdx(idx);
+  };
+
+  const saveEdit = async () => {
+    if (editingIdx === null || !plan?.sessions) return;
+    setEditSaving(true);
+    try {
+      const updated = plan.sessions.map((s: any, i: number) =>
+        i === editingIdx ? { ...s, ...editDraft, user_edited: true } : s
+      );
+      await api.patchUserPlan(updated);
+      setPlan((p: any) => ({ ...p, sessions: updated, is_user_edited: true }));
+      setEditingIdx(null);
+    } catch {
+      /* ignore — session card remains unchanged */
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const editTopics = syllabusTree.find((s) => s.id === editDraft.subject_id)?.topics ?? [];
+  const editSubtopics = editTopics.find((t) => t.id === editDraft.topic_id)?.subtopics ?? [];
 
   const startSession = async (session: any, index: number) => {
     setLoading(true);
@@ -493,43 +539,121 @@ export default function SessionPage() {
           </div>
         ) : (
           <div className="space-y-3">
+            {plan.is_user_edited && (
+              <div className="flex items-center justify-between px-1 pb-1">
+                <span className="text-xs text-amber-400">✏️ You&apos;ve edited this plan</span>
+                <button onClick={async () => { await api.resetUserPlan(); const p = await api.getPlan(); setPlan(p); }} className="text-xs text-gray-500 hover:text-gray-300 underline">Reset to AI plan</button>
+              </div>
+            )}
             {plan.sessions.map((s: any, i: number) => {
               const done = completedSessions.has(s.subtopic_id);
               return (
-                <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${done ? "bg-green-950/30 border-green-900/50" : "bg-gray-900 border-gray-800"}`}>
-                  <div className="flex-1">
-                    <div className={`font-medium ${done ? "text-green-300" : "text-white"}`}>
-                      {done && <span className="mr-2">✓</span>}
-                      {s.subject_id?.replace(/_/g, " ")} → {s.subtopic_id?.replace(/_/g, " ")}
+                <div key={i} className={`p-4 rounded-xl border ${done ? "bg-green-950/30 border-green-900/50" : "bg-gray-900 border-gray-800"}`}>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-medium flex items-center gap-2 ${done ? "text-green-300" : "text-white"}`}>
+                        {done && <span>✓</span>}
+                        <span className="truncate">{s.subject_id?.replace(/_/g, " ")} → {s.subtopic_id?.replace(/_/g, " ")}</span>
+                        {s.user_edited && <span className="text-xs bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded shrink-0">Edited</span>}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {s.format?.replace(/_/g, " ")} · {s.estimated_minutes} min · {s.num_questions ?? 10}Q
+                        {s.difficulty && s.difficulty !== "mixed" && (
+                          <span className="ml-2 text-amber-400">· {s.difficulty === "easy" ? "Easy" : s.difficulty === "medium" ? "Medium" : s.difficulty === "hard" ? "Hard" : s.difficulty}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      {s.format?.replace(/_/g, " ")} · {s.estimated_minutes} min
-                      {s.difficulty && s.difficulty !== "mixed" && (
-                        <span className="ml-2 text-amber-400">· {
-                          s.difficulty === "easy" ? "Easy difficulty" :
-                          s.difficulty === "medium" ? "Medium difficulty" :
-                          s.difficulty === "hard" ? "Hard difficulty" :
-                          s.difficulty
-                        }</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {!done && (
+                        <button onClick={() => openEdit(s, i)} title="Edit session" className="text-gray-500 hover:text-amber-400 px-2 py-2 rounded-lg text-sm transition-colors">✏️</button>
+                      )}
+                      {done ? (
+                        <span className="text-green-400 text-sm font-medium px-4 py-2">Completed</span>
+                      ) : (
+                        <button onClick={() => startSession(s, i)} disabled={loading} className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm">
+                          {loading && activeSession === i ? "Generating..." : "Start"}
+                        </button>
                       )}
                     </div>
                   </div>
-                  {done ? (
-                    <span className="text-green-400 text-sm font-medium px-4 py-2">Completed</span>
-                  ) : (
-                    <button
-                      onClick={() => startSession(s, i)}
-                      disabled={loading}
-                      className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm"
-                    >
-                      {loading && activeSession === i ? "Generating..." : "Start"}
-                    </button>
-                  )}
                 </div>
               );
             })}
           </div>
         )}
+
+        {/* Edit session modal */}
+        {editingIdx !== null && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+              <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+                <h2 className="text-lg font-semibold">Edit Session {editingIdx + 1}</h2>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Subject</label>
+                    <select value={editDraft.subject_id} onChange={(e) => setEditDraft((d) => ({ ...d, subject_id: e.target.value, topic_id: "", subtopic_id: "" }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white">
+                      <option value="">— select subject —</option>
+                      {syllabusTree.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Topic</label>
+                    <select value={editDraft.topic_id} onChange={(e) => setEditDraft((d) => ({ ...d, topic_id: e.target.value, subtopic_id: "" }))} disabled={!editDraft.subject_id} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-40">
+                      <option value="">— select topic —</option>
+                      {editTopics.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">Subtopic</label>
+                    <select value={editDraft.subtopic_id} onChange={(e) => setEditDraft((d) => ({ ...d, subtopic_id: e.target.value }))} disabled={!editDraft.topic_id} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-40">
+                      <option value="">— select subtopic —</option>
+                      {editSubtopics.map((st) => <option key={st.id} value={st.id}>{st.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Format</label>
+                      <select value={editDraft.format} onChange={(e) => setEditDraft((d) => ({ ...d, format: e.target.value }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white">
+                        <option value="quiz_only">Quiz only</option>
+                        <option value="notes_then_quiz">Notes then quiz</option>
+                        <option value="open_practice">Open practice</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Difficulty</label>
+                      <select value={editDraft.difficulty} onChange={(e) => setEditDraft((d) => ({ ...d, difficulty: e.target.value }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white">
+                        <option value="mixed">Mixed</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Questions</label>
+                      <input type="number" min={5} max={30} value={editDraft.num_questions} onChange={(e) => setEditDraft((d) => ({ ...d, num_questions: parseInt(e.target.value) || 10 }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Duration (min)</label>
+                      <input type="number" min={10} max={180} value={editDraft.estimated_minutes} onChange={(e) => setEditDraft((d) => ({ ...d, estimated_minutes: parseInt(e.target.value) || 30 }))} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-1">
+                  <button onClick={() => setEditingIdx(null)} className="flex-1 border border-gray-700 text-gray-300 hover:text-white py-2 rounded-lg text-sm">Cancel</button>
+                  <button onClick={saveEdit} disabled={editSaving || !editDraft.subject_id || !editDraft.subtopic_id} className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white py-2 rounded-lg text-sm font-medium">
+                    {editSaving ? "Saving..." : "Save edit"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
     );
   }
