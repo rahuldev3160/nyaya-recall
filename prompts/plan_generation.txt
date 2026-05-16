@@ -12,8 +12,9 @@ Learner-reported signals from parallel session notes (latest first; may be empty
 When this array is non-empty, treat `still_weak: true` rows as explicit weak signals: prefer scheduling those `subtopic_id` values earlier today (respecting pyq_weight and other rules below). Use `confusion_excerpt` to understand what felt unclear; do not copy private text into the plan JSON verbatim — only reflect it in prioritisation and rationale wording.
 
 For each subject the coverage object contains:
-  "untested": list of subtopics never attempted, sorted by pyq_weight DESCENDING (highest ROI first)
-  "tested":   list of subtopics already attempted, with their current score
+  "untested":          flat list of untopics never attempted, sorted by pyq_weight DESCENDING (highest ROI first)
+  "tested":            list of subtopics already attempted, with their current score
+  "untested_by_topic": topic-grouped view — each entry has topic_id, topic_name, topic_pyq_weight (sum of its untested subtopic weights), and untested_subtopics sorted by pyq_weight. Topics are sorted by topic_pyq_weight DESCENDING. Use this to enforce topic balance (Rule 9).
 
 Days remaining (including today): {{days_remaining}}
 Available hours today: {{available_hours}}
@@ -66,5 +67,10 @@ Scheduling rules (apply in strict order):
 7. TIME FIT: Total session time must fit within {{available_hours}} hours (60 min/hr).
 
 8. LATE SPRINT (Day 8–10): shift to hard difficulty, mixed formats, and strategy review sessions. Deprioritise any untested low-weight subtopics — focus only on confirmed weak areas.
+
+9. TOPIC BALANCE: Use `untested_by_topic` to ensure no topic is starved while another is over-scheduled.
+   - Before scheduling a 2nd untested subtopic from any topic, check that every other topic in the same subject with untested subtopics has at least 1 subtopic scheduled today.
+   - If two subjects both have untested topics, prefer the topic with higher `topic_pyq_weight` first.
+   - Never schedule 3+ subtopics from a single topic in one day unless it is the only topic left in that subject.
 
 - Output ONLY the JSON object, no other text.
