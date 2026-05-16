@@ -262,7 +262,7 @@ This branch has important fixes that should be merged before or alongside PR #2:
 | Task | Cost | What it does |
 |------|------|--------------|
 | `python3 scripts/retag_pyq_subtopics.py` | ~$0.05 | Better PYQ→subtopic matching; improves readiness scoring |
-| `python3 scripts/check_chroma_coverage.py` | Free | Audit which subjects have thin/missing study material in ChromaDB |
+| ~~`python3 scripts/check_chroma_coverage.py`~~ | ~~Done May 16~~ | ~~All 9 GS subjects healthy — no action needed~~ |
 
 ---
 
@@ -472,18 +472,13 @@ python3 scripts/retag_pyq_subtopics.py              # costs ~$0.05 Haiku
 
 ---
 
-### P2 — ChromaDB content coverage unknown [HIGH IMPACT]
+### ✅ P2 — ChromaDB content coverage — RESOLVED May 16
 
-When ChromaDB returns no chunks for a subtopic, `quiz.py` falls back to:
-```
-"Standard UPSC Prelims content on X — generate from canonical syllabus knowledge."
-```
-This means questions come from Claude's training knowledge, not Rahul's study material.
-The RAG pipeline advantage is lost.
-
-**Diagnose:** query ChromaDB to see what's indexed and for which subjects. A simple script
-to list all distinct `subject_id` metadata values and chunk counts per subject would show
-the gaps. Then re-run `scripts/ingest.py` for missing subjects.
+Ran `scripts/check_chroma_coverage.py`. Results:
+- **11,146 total chunks** across 9 GS subjects — all healthy, all above threshold
+- Lowest: `ir_governance` at 320 chunks
+- `csat` has 0 chunks — intentional, CSAT is a pure Claude-generation system
+- **No re-ingestion needed.** All GS subjects have adequate study material indexed.
 
 ---
 
