@@ -351,6 +351,259 @@ def get_collection():
     return chroma.get_or_create_collection("upsc_content")
 
 
+# ── quiz_session_subtopics table helpers ──────────────────────────────────────
+
+def _ensure_session_subtopics_table(con: sqlite3.Connection) -> None:
+    """Create additive quiz_session_subtopics table — never ALTERs existing tables."""
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS quiz_session_subtopics (
+            session_id   TEXT NOT NULL,
+            subtopic_ids TEXT NOT NULL,
+            PRIMARY KEY (session_id)
+        )
+        """
+    )
+    con.commit()
+
+
+def _store_session_subtopics(session_id: str, subtopic_ids: list[str]) -> None:
+    """Persist the full subtopic_ids list for a session in the new additive table."""
+    con = sqlite3.connect(DB_PATH)
+    _ensure_session_subtopics_table(con)
+    con.execute(
+        "INSERT OR REPLACE INTO quiz_session_subtopics (session_id, subtopic_ids) VALUES (?, ?)",
+        (session_id, json.dumps(subtopic_ids)),
+    )
+    con.commit()
+    con.close()
+
+
+# ── PYQ weight helpers for explicit subtopic_ids lists ────────────────────────
+
+def _get_pyq_weights_for_subtopics(subtopic_ids: list[str]) -> dict[str, float]:
+    """Return {subtopic_id: pyq_weight} for the given list. Falls back to 1.0 if missing."""
+    try:
+        from priority_scorer import compute_all_priorities
+        all_weights = compute_all_priorities()
+        return {st: all_weights.get(st, 1.0) for st in subtopic_ids}
+    except Exception:
+        return {st: 1.0 for st in subtopic_ids}
+
+
+def _allocate_questions_for_subtopic_ids(
+    subtopic_ids: list[str], num_q: int
+) -> list[dict]:
+    """
+    Proportional question allocation for an explicit list of subtopic_ids.
+    Returns [{subtopic_id, num_questions, weight}].
+    Weights from PYQ priority; equal allocation if weights unavailable.
+    Ensures total == num_q exactly (rounding correction applied).
+    """
+    if not subtopic_ids:
+        return []
+    weights_map = _get_pyq_weights_for_subtopics(subtopic_ids)
+    raw_w = [max(weights_map.get(st, 1.0), 0.5) for st in subtopic_ids]
+    total_w = sum(raw_w)
+    allocs = [max(1, int(round(num_q * w / total_w))) for w in raw_w]
+
+    # Fix rounding so total == num_q
+    diff = num_q - sum(allocs)
+    n = len(subtopic_ids)
+    i = 0
+    while diff != 0:
+        step = 1 if diff > 0 else -1
+        if step < 0 and allocs[i % n] <= 1:
+            i += 1
+            continue
+        allocs[i % n] += step
+        diff -= step
+        i += 1
+
+    return [
+        {
+            "subtopic_id": st,
+            "num_questions": allocs[idx],
+            "weight": round(raw_w[idx], 2),
+        }
+        for idx, st in enumerate(subtopic_ids)
+    ]
+
+
+# ── Multi-subtopic chunk fetching ─────────────────────────────────────────────
+
+def fetch_chunks_merged(
+    subject_id: str, subtopic_ids: list[str], k_per_subtopic: int = 3
+) -> tuple[str, str]:
+    """
+    Fetch ChromaDB chunks for each subtopic in subtopic_ids.
+    Returns (subtopic_allocation_str, content_chunks_str) ready for prompt injection.
+    Chunks are labelled by subtopic so Sonnet can assign correct subtopic_id per question.
+    """
+    allocation = _allocate_questions_for_subtopic_ids(subtopic_ids, 10)  # placeholder n
+    alloc_map = {a["subtopic_id"]: a for a in allocation}
+
+    alloc_lines: list[str] = []
+    chunk_sections: list[str] = []
+
+    for st_id in subtopic_ids:
+        st_chunks = fetch_chunks(subject_id, st_id, k=k_per_subtopic)
+        if not st_chunks:
+            st_chunks = [
+                f"Standard UPSC Prelims content on {subject_id}: "
+                f"{st_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+            ]
+        weight = alloc_map[st_id]["weight"] if st_id in alloc_map else 1.0
+        alloc_lines.append(f"  {st_id}  (PYQ weight {weight})")
+        header = f"[{st_id}]"
+        chunk_sections.append(header + "\n" + "\n---\n".join(st_chunks))
+
+    subtopic_allocation_str = (
+        "Subtopics covered in this merged session:\n" + "\n".join(alloc_lines)
+    )
+    content_chunks_str = "\n\n".join(chunk_sections)
+    return subtopic_allocation_str, content_chunks_str
+
+
+def _build_merged_subtopic_allocation_str(
+    allocation: list[dict],
+) -> str:
+    """Build the subtopic_allocation block for an explicit multi-subtopic session."""
+    lines: list[str] = [
+        "Subtopic coverage — generate EXACTLY these counts "
+        "(each question's subtopic_id must equal the subtopic_id listed here):"
+    ]
+    for item in allocation:
+        st_id = item["subtopic_id"]
+        n = item["num_questions"]
+        w = item["weight"]
+        lines.append(f"  {st_id}: {n} question{'s' if n > 1 else ''}  (PYQ weight {w})")
+    return "\n".join(lines)
+
+
+def _build_merged_content_chunks_str(
+    subject_id: str, allocation: list[dict], k_per_subtopic: int = 3
+) -> str:
+    """Fetch and merge ChromaDB chunks for all subtopics in allocation list."""
+    sections: list[str] = []
+    for item in allocation:
+        st_id = item["subtopic_id"]
+        n = item["num_questions"]
+        st_chunks = fetch_chunks(subject_id, st_id, k=k_per_subtopic)
+        if not st_chunks:
+            st_chunks = [
+                f"Standard UPSC Prelims content on {subject_id}: "
+                f"{st_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+            ]
+        header = f"[{st_id}  —  {n} question{'s' if n > 1 else ''}]"
+        sections.append(header + "\n" + "\n---\n".join(st_chunks))
+    return "\n\n".join(sections)
+
+
+# ── Cross-subtopic notes helpers ──────────────────────────────────────────────
+
+def _build_cross_subtopic_prompt_section(subtopic_ids: list[str]) -> str:
+    """Return the Cross-Subtopic Linkages section instruction for the notes prompt."""
+    if len(subtopic_ids) <= 1:
+        return ""
+    names = ", ".join(st.replace("_", " ") for st in subtopic_ids)
+    return (
+        "## Cross-Subtopic Linkages\n"
+        f"You are generating notes for a MERGED session covering: {names}.\n"
+        "Identify 2–3 concrete conceptual bridges between these subtopics. "
+        "For each bridge: (1) name the linkage, (2) explain why both subtopics connect, "
+        "and (3) give a 1-sentence example of how UPSC tests this connection."
+    )
+
+
+def _notes_cache_key_multi(subtopic_ids: list[str], chunk_texts: list[str]) -> str:
+    content = "|".join(subtopic_ids) + "|" + "|".join(chunk_texts)
+    return "notes_multi:" + hashlib.sha256(content.encode()).hexdigest()[:20]
+
+
+def synthesize_notes_multi_cached(
+    subject_id: str,
+    subtopic_ids: list[str],
+) -> str:
+    """
+    Generate merged revision notes for a list of subtopics (max 4).
+    Fetches chunks for each subtopic, builds merged content, injects Cross-Subtopic Linkages.
+    Cached by subtopic_ids list + chunk content hash.
+    """
+    if not subtopic_ids:
+        return ""
+
+    # Single subtopic — delegate to existing cached function
+    if len(subtopic_ids) == 1:
+        rows = fetch_chunks_with_meta(subject_id, subtopic_ids[0], k=_NOTES_QUERY_K)
+        return synthesize_notes_cached(rows, subtopic_ids[0], subject_id)
+
+    # Gather chunks for all subtopics (fewer per subtopic to keep prompt size bounded)
+    k_each = max(4, _NOTES_QUERY_K // len(subtopic_ids))
+    all_rows: list[dict[str, Any]] = []
+    chunk_sections: list[str] = []
+    for st_id in subtopic_ids:
+        rows = fetch_chunks_with_meta(subject_id, st_id, k=k_each)
+        all_rows.extend(rows)
+        texts = [r["text"] for r in rows]
+        if texts:
+            chunk_sections.append(f"[{st_id}]\n" + "\n---\n".join(texts))
+        else:
+            stub = (
+                f"Standard UPSC Prelims content on {subject_id}: "
+                f"{st_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+            )
+            chunk_sections.append(f"[{st_id}]\n" + stub)
+
+    all_chunk_texts = [r["text"] for r in all_rows]
+    cache_key = _notes_cache_key_multi(subtopic_ids, all_chunk_texts)
+
+    cache: dict = {}
+    if _NOTES_CACHE_PATH.exists():
+        try:
+            cache = json.loads(_NOTES_CACHE_PATH.read_text())
+        except Exception:
+            pass
+
+    if cache_key in cache:
+        return cache[cache_key]
+
+    # Build and call the notes prompt with multi-subtopic variables
+    prompt_template = (PROMPT_DIR / "session_notes.txt").read_text()
+    subtopics_list = ", ".join(st.replace("_", " ") for st in subtopic_ids)
+    cross_section = _build_cross_subtopic_prompt_section(subtopic_ids)
+    merged_chunks = "\n\n".join(chunk_sections)
+
+    prompt = (
+        prompt_template
+        .replace("{{subject_name}}", subject_id)
+        .replace("{{subtopics_list}}", subtopics_list)
+        .replace("{{subtopic_name}}", subtopics_list)  # backward compat placeholder
+        .replace("{{content_chunks}}", merged_chunks)
+        .replace("{{cross_subtopic_section}}", cross_section)
+    )
+
+    resp = client.messages.create(
+        model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
+        max_tokens=1400,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    synth_md = resp.content[0].text.strip()
+
+    source_links = _build_source_links_md(all_rows)
+    if source_links:
+        synth_md = synth_md + "\n\n---\n\n" + source_links
+
+    cache[cache_key] = synth_md
+    try:
+        _NOTES_CACHE_PATH.parent.mkdir(exist_ok=True)
+        _NOTES_CACHE_PATH.write_text(json.dumps(cache, indent=2))
+    except Exception:
+        pass
+
+    return synth_md
+
+
 def fetch_chunks(subject_id: str, subtopic_id: str, k: int = 5) -> list[str]:
     col = get_collection()
     results = col.query(
@@ -448,11 +701,14 @@ def synthesize_notes_cached(
         )
     else:
         prompt_template = (PROMPT_DIR / "session_notes.txt").read_text()
+        subtopic_display = subtopic_id.replace("_", " ")
         prompt = (
             prompt_template
             .replace("{{subject_name}}", subject_id)
-            .replace("{{subtopic_name}}", subtopic_id.replace("_", " "))
+            .replace("{{subtopics_list}}", subtopic_display)
+            .replace("{{subtopic_name}}", subtopic_display)
             .replace("{{content_chunks}}", "\n\n---\n\n".join(chunk_texts))
+            .replace("{{cross_subtopic_section}}", "")  # single subtopic — no cross section
         )
         resp = client.messages.create(
             model=os.getenv("AI_MODEL_FAST", "claude-haiku-4-5-20251001"),
@@ -524,10 +780,29 @@ def _build_multi_subtopic_prompt_parts(
 def generate_quiz(config: dict):
     subject_id = config.get("subject_id", "")
     subtopic_id = config.get("subtopic_id", "")
+
+    # ── Multi-subtopic resolution ─────────────────────────────────────────────
+    # If subtopic_ids (list) is provided and has ≥2 entries, use merged mode.
+    # Otherwise fall back to single subtopic_id (existing behaviour unchanged).
+    raw_subtopic_ids: list[str] | None = config.get("subtopic_ids")
+    if raw_subtopic_ids and len(raw_subtopic_ids) >= 2:
+        # Clamp to max 4 subtopics per design decision
+        subtopic_ids: list[str] = [s for s in raw_subtopic_ids[:4] if s]
+        # Primary subtopic = highest PYQ weight; if weights unavailable, first in list
+        weights_map = _get_pyq_weights_for_subtopics(subtopic_ids)
+        primary_subtopic_id = max(subtopic_ids, key=lambda s: weights_map.get(s, 1.0))
+        # Override subtopic_id to primary for backward-compat downstream
+        subtopic_id = primary_subtopic_id
+        is_merged = True
+    else:
+        subtopic_ids = [subtopic_id] if subtopic_id else []
+        primary_subtopic_id = subtopic_id
+        is_merged = False
+
     # Resolve canonical topic_id from syllabus; prefer over whatever the caller sent
     topic_id = (
-        get_canonical_topic_id(subject_id, subtopic_id)
-        if subtopic_id
+        get_canonical_topic_id(subject_id, primary_subtopic_id)
+        if primary_subtopic_id
         else config.get("topic_id", "")
     ) or config.get("topic_id", "")
     num_q = config.get("num_questions", 10)
@@ -535,10 +810,10 @@ def generate_quiz(config: dict):
 
     if "difficulty" in config:
         difficulty = config["difficulty"]
-    elif subtopic_id:
+    elif primary_subtopic_id:
         try:
             from difficulty_engine import get_difficulty
-            difficulty = get_difficulty(subtopic_id)
+            difficulty = get_difficulty(primary_subtopic_id)
         except Exception:
             difficulty = "easy"
     else:
@@ -547,41 +822,59 @@ def generate_quiz(config: dict):
     prebuilt_notes: str | None = None
 
     # ── Gather quiz intelligence (dedup, wrong concepts, user notes) ─────────
-    intel = _get_quiz_intelligence(subject_id, subtopic_id or None)
+    intel = _get_quiz_intelligence(subject_id, primary_subtopic_id or None)
 
     # ── Prompt file selection ─────────────────────────────────────────────────
     if session_type == "deep_dive":
         prompt_file = "deep_dive_quiz.txt"
-        # deep_dive always uses single-subtopic mode, no multi-subtopic allocation
-        if not subtopic_id:
+        # deep_dive always uses single-subtopic mode — merged sessions cannot be deep dives
+        if not primary_subtopic_id:
             raise HTTPException(status_code=400, detail="deep_dive session_type requires subtopic_id")
 
-    if subtopic_id:
+    # ── MERGED multi-subtopic path (subtopic_ids list with ≥2 entries) ────────
+    if is_merged:
+        allocation = _allocate_questions_for_subtopic_ids(subtopic_ids, num_q)
+        subtopic_allocation = _build_merged_subtopic_allocation_str(allocation)
+        content_chunks_str = _build_merged_content_chunks_str(subject_id, allocation, k_per_subtopic=3)
+        ca_chunks = fetch_ca_chunks(subject_id.replace("_", " "), k=2)
+        ca_str = "\n\n---\n\n".join(ca_chunks)
+        spillover_block = ""
+
+        # Notes: use Sonnet for merged sessions; include cross-subtopic linkages
+        if config.get("show_notes"):
+            prebuilt_notes = synthesize_notes_multi_cached(subject_id, subtopic_ids)
+
+        if session_type not in ("adaptive", "deep_dive"):
+            prompt_file = "diagnostic_quiz.txt"
+        elif session_type == "adaptive":
+            prompt_file = "adaptive_quiz_only.txt" if config.get("show_notes") else "adaptive_session.txt"
+
+    elif primary_subtopic_id:
         # ── Single-subtopic mode (session from plan or user-chosen subtopic) ────
-        ca_chunks = fetch_ca_chunks(subtopic_id.replace("_", " "))
+        ca_chunks = fetch_ca_chunks(primary_subtopic_id.replace("_", " "))
         use_vector_notes = (
             session_type == "adaptive"
             and config.get("show_notes")
         )
         if use_vector_notes:
             # Synthesise structured notes via Haiku (cached by subtopic+content hash).
-            note_rows = fetch_chunks_with_meta(subject_id, subtopic_id, k=_NOTES_QUERY_K)
+            note_rows = fetch_chunks_with_meta(subject_id, primary_subtopic_id, k=_NOTES_QUERY_K)
             if not note_rows:
                 chunks = [
                     f"Standard UPSC Prelims content on {subject_id}: "
-                    f"{subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+                    f"{primary_subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
                 ]
             else:
                 chunks = [r["text"] for r in note_rows]
-            prebuilt_notes = synthesize_notes_cached(note_rows, subtopic_id, subject_id)
+            prebuilt_notes = synthesize_notes_cached(note_rows, primary_subtopic_id, subject_id)
             if session_type != "deep_dive":
                 prompt_file = "adaptive_quiz_only.txt"
         else:
-            chunks = fetch_chunks(subject_id, subtopic_id)
+            chunks = fetch_chunks(subject_id, primary_subtopic_id)
             if not chunks:
                 chunks = [
                     f"Standard UPSC Prelims content on {subject_id}: "
-                    f"{subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+                    f"{primary_subtopic_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
                 ]
             if session_type not in ("adaptive", "deep_dive"):
                 prompt_file = "diagnostic_quiz.txt"
@@ -590,9 +883,9 @@ def generate_quiz(config: dict):
             # deep_dive keeps prompt_file set above
 
         subtopic_allocation = (
-            f"Subtopic: {subtopic_id}\n"
+            f"Subtopic: {primary_subtopic_id}\n"
             f"Generate all {num_q} questions on this subtopic. "
-            f"Set subtopic_id = \"{subtopic_id}\" in every question."
+            f"Set subtopic_id = \"{primary_subtopic_id}\" in every question."
         )
         content_chunks_str = "\n\n---\n\n".join(chunks)
         ca_str = "\n\n---\n\n".join(ca_chunks)
@@ -600,12 +893,12 @@ def generate_quiz(config: dict):
         # Spillover logic for adaptive sessions only
         spillover_block = ""
         if session_type == "adaptive":
-            spillover_block = _get_spillover_subtopics(subject_id, subtopic_id, n=2)
+            spillover_block = _get_spillover_subtopics(subject_id, primary_subtopic_id, n=2)
 
     else:
         if session_type != "deep_dive":
             prompt_file = "adaptive_session.txt" if session_type == "adaptive" else "diagnostic_quiz.txt"
-        # ── Multi-subtopic diagnostic mode ───────────────────────────────────────
+        # ── Subject-level multi-subtopic diagnostic mode (no subtopic_id given) ─
         allocation = _allocate_questions_across_subtopics(subject_id, num_q)
         if allocation:
             subtopic_allocation, content_chunks_str = _build_multi_subtopic_prompt_parts(
@@ -632,7 +925,8 @@ def generate_quiz(config: dict):
     recent_questions_block = _build_recent_questions_block(subject_id)
 
     # ── Dimension-aware context (Phase 2 of FEATURE-027) ─────────────────────
-    available_dimensions = _get_subtopic_dimensions(subject_id, subtopic_id)
+    # For merged sessions use primary subtopic for dimension context
+    available_dimensions = _get_subtopic_dimensions(subject_id, primary_subtopic_id)
 
     prompt_template = (PROMPT_DIR / prompt_file).read_text()
     prompt = (
@@ -646,8 +940,8 @@ def generate_quiz(config: dict):
         .replace("{{recent_questions_block}}", recent_questions_block)
         # legacy placeholders kept for adaptive_session.txt compatibility
         .replace("{{topic_name}}",             topic_id)
-        .replace("{{subtopic_name}}",          subtopic_id)
-        .replace("{{subtopic_id}}",            subtopic_id)
+        .replace("{{subtopic_name}}",          primary_subtopic_id)
+        .replace("{{subtopic_id}}",            primary_subtopic_id)
         .replace("{{format}}",                 config.get("format", "quiz_only"))
         .replace("{{current_score}}",          str(config.get("current_score", 0)))
         .replace("{{#if show_notes}}",         "" if config.get("show_notes") else "<!--")
@@ -693,7 +987,8 @@ def generate_quiz(config: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse quiz JSON: {e}")
 
-    # Create session record — store canonical topic_id in both column and config
+    # Create session record — subtopic_id = primary (highest weight or first in list)
+    # Full subtopic list stored in additive quiz_session_subtopics table
     session_id = str(uuid.uuid4())
     stored_config = {**config, "topic_id": topic_id or config.get("topic_id", "")}
     con = sqlite3.connect(DB_PATH)
@@ -705,11 +1000,240 @@ def generate_quiz(config: dict):
     con.commit()
     con.close()
 
+    # Persist multi-subtopic list in the additive quiz_session_subtopics table
+    if subtopic_ids:
+        _store_session_subtopics(session_id, subtopic_ids)
+
     return {
         "session_id": session_id,
         "questions": questions,
         "notes_summary": notes,
         "topic_id": topic_id or None,
+        # Expose subtopic_ids to frontend so session card can show all subtopic names
+        "subtopic_ids": subtopic_ids if is_merged else None,
+    }
+
+
+def _build_exam_sim_allocation(
+    subtopic_ids: list[str],
+    num_q: int,
+    syllabus: dict,
+) -> list[dict]:
+    """
+    Allocate questions proportionally by PYQ weight across selected subtopics.
+    Returns list of {subtopic_id, subject_id, topic_id, num_questions, weight}.
+    Falls back to equal distribution if priority_scorer unavailable.
+    """
+    try:
+        from priority_scorer import compute_all_priorities
+        pyq_weights = compute_all_priorities()
+    except Exception:
+        pyq_weights = {}
+
+    # Build subtopic → (subject_id, topic_id) lookup from syllabus
+    st_meta: dict[str, tuple[str, str]] = {}
+    for subj in syllabus.get("subjects", []):
+        for topic in subj.get("topics", []):
+            for st in topic.get("subtopics", []):
+                if st["id"] in subtopic_ids:
+                    st_meta[st["id"]] = (subj["id"], topic["id"])
+
+    if not subtopic_ids:
+        return []
+
+    raw_w = [max(pyq_weights.get(st, 1.0), 0.5) for st in subtopic_ids]
+    total_w = sum(raw_w)
+    allocs = [max(1, int(round(num_q * w / total_w))) for w in raw_w]
+
+    # Fix rounding so total == num_q exactly
+    diff = num_q - sum(allocs)
+    n = len(allocs)
+    i = 0
+    while diff != 0:
+        step = 1 if diff > 0 else -1
+        if step < 0 and allocs[i % n] <= 1:
+            i += 1
+            continue
+        allocs[i % n] += step
+        diff -= step
+        i += 1
+
+    result = []
+    for idx, st_id in enumerate(subtopic_ids):
+        subject_id, topic_id = st_meta.get(st_id, ("", ""))
+        result.append({
+            "subtopic_id": st_id,
+            "subject_id": subject_id,
+            "topic_id": topic_id,
+            "num_questions": allocs[idx],
+            "weight": round(raw_w[idx], 2),
+        })
+    return result
+
+
+def _build_exam_sim_prompt_parts(
+    allocation: list[dict],
+) -> tuple[str, str]:
+    """
+    Returns (subtopic_allocation_str, content_chunks_str) for exam sim mode.
+    Fetches 2 ChromaDB chunks per subtopic; falls back to syllabus stub if none found.
+    """
+    alloc_lines: list[str] = []
+    chunk_sections: list[str] = []
+
+    for item in allocation:
+        st_id = item["subtopic_id"]
+        subject_id = item["subject_id"]
+        n = item["num_questions"]
+        w = item["weight"]
+        alloc_lines.append(
+            f"  subtopic_id={st_id!r}  subject_id={subject_id!r}  "
+            f"{n} question{'s' if n > 1 else ''}  (PYQ weight {w})"
+        )
+
+        st_chunks = fetch_chunks(subject_id, st_id, k=2) if subject_id else []
+        if not st_chunks:
+            st_chunks = [
+                f"Standard UPSC Prelims content on {subject_id or 'general'}: "
+                f"{st_id.replace('_', ' ')}. Generate from canonical syllabus knowledge."
+            ]
+        header = (
+            f"[{st_id}  —  subject: {subject_id}  —  {n} question{'s' if n > 1 else ''}]"
+        )
+        chunk_sections.append(header + "\n" + "\n---\n".join(st_chunks))
+
+    subtopic_allocation_str = (
+        "Allocate questions EXACTLY as follows "
+        "(each question MUST carry the subtopic_id and subject_id shown here):\n"
+        + "\n".join(alloc_lines)
+    )
+    content_chunks_str = "\n\n".join(chunk_sections)
+    return subtopic_allocation_str, content_chunks_str
+
+
+@router.post("/start")
+def start_exam_simulation(config: dict):
+    """
+    Start an exam simulation session.
+    Accepts: session_type="exam_simulation", subtopic_ids=[...], n_questions=N,
+             timed_duration_minutes=M.
+    Generates all N questions upfront in a single Sonnet call.
+    """
+    session_type = config.get("session_type", "exam_simulation")
+    if session_type != "exam_simulation":
+        raise HTTPException(
+            status_code=400, detail="Use /quiz/generate for non-exam-sim sessions"
+        )
+
+    subtopic_ids: list[str] = config.get("subtopic_ids", [])
+    if not subtopic_ids:
+        raise HTTPException(status_code=400, detail="subtopic_ids required for exam_simulation")
+
+    num_q: int = int(config.get("n_questions", 50))
+    if not (1 <= num_q <= 100):
+        raise HTTPException(status_code=400, detail="n_questions must be between 1 and 100")
+
+    timed_minutes: int | None = config.get("timed_duration_minutes")
+
+    # Load syllabus for subject/topic lookups
+    syllabus = _load_syllabus()
+
+    # Allocate questions across selected subtopics by PYQ weight
+    allocation = _build_exam_sim_allocation(subtopic_ids, num_q, syllabus)
+    if not allocation:
+        raise HTTPException(status_code=400, detail="No valid subtopics found in syllabus")
+
+    # Gather quiz intelligence across all unique subjects selected
+    unique_subjects = list({item["subject_id"] for item in allocation if item["subject_id"]})
+    all_excluded_hashes: list[str] = []
+    for subj in unique_subjects:
+        intel = _get_quiz_intelligence(subj, None)
+        all_excluded_hashes.extend(intel.get("excluded_hashes", []))
+    excluded_hashes_str = ", ".join(all_excluded_hashes[:60]) or "none"
+
+    # Build prompt parts
+    subtopic_allocation_str, content_chunks_str = _build_exam_sim_prompt_parts(allocation)
+
+    # Build recent questions block (aggregate across all subjects)
+    recent_blocks: list[str] = []
+    for subj in unique_subjects:
+        blk = _build_recent_questions_block(subj)
+        if blk:
+            recent_blocks.append(blk)
+    recent_questions_block = "\n\n".join(recent_blocks)
+
+    prompt_template = (PROMPT_DIR / "exam_simulation.txt").read_text()
+    prompt = (
+        prompt_template
+        .replace("{{num_questions}}", str(num_q))
+        .replace("{{subtopic_allocation}}", subtopic_allocation_str)
+        .replace("{{content_chunks}}", content_chunks_str)
+        .replace("{{recent_questions_block}}", recent_questions_block)
+        .replace("{{excluded_question_hashes}}", excluded_hashes_str)
+    )
+
+    response = client.messages.create(
+        model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
+        max_tokens=16000,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = response.content[0].text.strip()
+
+    try:
+        first_brace = raw.find("{")
+        first_bracket = raw.find("[")
+        if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
+            start, end = first_brace, raw.rfind("}") + 1
+        else:
+            start, end = first_bracket, raw.rfind("]") + 1
+        parsed = json.loads(raw[start:end])
+        questions = parsed if isinstance(parsed, list) else parsed.get("questions", [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse exam sim JSON: {e}")
+
+    # Create session record
+    session_id = str(uuid.uuid4())
+    mode = "time_boxed" if timed_minutes else "fixed_set"
+    stored_config: dict = {
+        **config,
+        "subtopic_ids": subtopic_ids,
+        "n_questions": num_q,
+        "timed_duration_minutes": timed_minutes,
+    }
+    if timed_minutes:
+        stored_config["time_minutes"] = timed_minutes
+
+    # subject_id stored as comma-joined list so existing columns are populated
+    combined_subject = ",".join(
+        sorted({a["subject_id"] for a in allocation if a["subject_id"]})
+    )
+
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        """
+        INSERT INTO quiz_sessions
+            (id, session_type, subject_id, topic_id, mode, config, start_time, total_questions)
+        VALUES (?,?,?,?,?,?,?,?)
+        """,
+        (
+            session_id,
+            "exam_simulation",
+            combined_subject,
+            "",
+            mode,
+            json.dumps(stored_config),
+            datetime.now(timezone.utc).isoformat(),
+            len(questions),
+        ),
+    )
+    con.commit()
+    con.close()
+
+    return {
+        "session_id": session_id,
+        "questions": questions,
+        "notes_summary": None,
+        "timed_duration_minutes": timed_minutes,
     }
 
 

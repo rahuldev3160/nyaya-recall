@@ -15,9 +15,27 @@ export interface QuizSession {
 
 export interface PlanSession {
   subtopic_id: string;
+  /** Optional: all subtopic IDs for merged sessions (max 4). When present and len > 1, session covers multiple subtopics. */
+  subtopic_ids?: string[];
   subject_id: string;
   format: string;
   num_questions: number;
+}
+
+/** Config shape for the /quiz/generate endpoint (multi-subtopic aware). */
+export interface QuizGenerateConfig {
+  subject_id: string;
+  subtopic_id?: string;
+  /** Pass 2–4 subtopic IDs to run a merged multi-subtopic session. */
+  subtopic_ids?: string[];
+  session_type?: string;
+  num_questions?: number;
+  difficulty?: string;
+  format?: string;
+  show_notes?: boolean;
+  mode?: string;
+  current_score?: number;
+  topic_id?: string;
 }
 
 export interface StudyPlan {
@@ -138,4 +156,18 @@ export const api = {
     verdict: "correct" | "missing" | "omit" | "wrong";
     note_text?: string;
   }) => post("/feedback/content", body),
+
+  // ── Exam Simulation ────────────────────────────────────────────────────────
+
+  /** Start an exam simulation session. Generates all questions upfront. */
+  startExamSimulation: (body: {
+    session_type: "exam_simulation";
+    subtopic_ids: string[];
+    n_questions: number;
+    timed_duration_minutes: number;
+  }) => post("/quiz/start", body),
+
+  /** Fetch subject/topic breakdown for a completed exam simulation. */
+  getExamResults: (sessionId: string) =>
+    get(`/sessions/${sessionId}/exam-results`),
 };

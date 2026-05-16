@@ -23,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ["CSAT", "/csat"],
             ["Attest", "/attestation"],
             ["Analysis", "/analysis"],
+            ["Exam Sim", "/exam-sim"],
             ["Setup", "/setup"],
           ].map(([label, href]) => (
             <a key={href} href={href} className="text-gray-400 hover:text-white transition-colors">

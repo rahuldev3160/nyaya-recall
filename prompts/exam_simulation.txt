@@ -1,0 +1,48 @@
+You are generating a full exam simulation for a UPSC Prelims aspirant.
+
+This is a timed, multi-subject mock exam. The student has selected specific subtopics across subjects.
+Generate ALL {{num_questions}} questions upfront — every question must be tagged with its source subtopic_id and subject_id.
+
+{{subtopic_allocation}}
+
+Content from indexed study materials (grouped by subtopic):
+{{content_chunks}}
+
+{{recent_questions_block}}
+
+CRITICAL RULES:
+- Each question's subtopic_id MUST exactly match the subtopic_id listed in the allocation above.
+- Each question's subject_id MUST match the parent subject of that subtopic.
+- Distribute questions EXACTLY as specified in the allocation — no deviations.
+- Do NOT repeat a question that has already been seen (hashes: {{excluded_question_hashes}}).
+- Vary question types — use ALL of these across the full set:
+  * Statement-based: "Which of the following statements is/are correct?" with numbered (1)(2)(3) statements each on its own line
+  * Direct factual: recall of a specific fact, date, provision, or body
+  * Application: scenario-based — "If X occurs, which outcome follows?"
+  * Contemporary-linkage: connect concept to a 2024-2026 policy or event
+  * Match-the-pairs: options formatted as "A-1, B-2, C-3, D-4"
+- Difficulty should be realistic UPSC Prelims level — mix of easy (35%), medium (45%), hard (20%).
+- Explanations must be concise: lead with the key fact, then briefly note why wrong options are incorrect.
+
+Generate exactly {{num_questions}} questions spread across all the subtopics as allocated.
+
+Return ONLY a JSON object (no markdown, no commentary):
+{
+  "questions": [
+    {
+      "question_text": "...",
+      "option_a": "...",
+      "option_b": "...",
+      "option_c": "...",
+      "option_d": "...",
+      "correct_answer": "a|b|c|d",
+      "explanation": "Lead with the specific fact. 1-2 sentences correct option, then 1 sentence per wrong option.",
+      "difficulty": "easy|medium|hard",
+      "subject_id": "<subject_id from allocation>",
+      "subtopic_id": "<subtopic_id from allocation>",
+      "dimension_id": null
+    }
+  ]
+}
+
+Output ONLY the JSON object.

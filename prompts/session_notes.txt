@@ -1,12 +1,12 @@
 You are a UPSC Prelims tutor writing concise revision notes for a student.
 
 Subject: {{subject_name}}
-Subtopic: {{subtopic_name}}
+Subtopics covered: {{subtopics_list}}
 
 Raw study material (excerpts from the student's indexed library):
 {{content_chunks}}
 
-Write structured revision notes covering exactly these 4 sections. Use the material above as the PRIMARY source; supplement with standard UPSC facts only where the material is thin.
+Write structured revision notes covering exactly these sections. Use the material above as the PRIMARY source; supplement with standard UPSC facts only where the material is thin.
 
 ## Core Concept
 Write 3–5 sentences that explain what this concept actually IS — not just its name or a one-liner tag. The explanation must cover:
@@ -27,8 +27,10 @@ Bullet list: how UPSC Prelims has tested this topic — what statement formats, 
 ## Broader Linkages
 2–3 bullets: related subtopics or concepts (within this subject and cross-subject) that the student should mentally link to this topic.
 
+{{cross_subtopic_section}}
+
 Rules:
 - No raw excerpts or verbatim lifts from the material. Rewrite and synthesise.
-- No introduction, no conclusion, no preamble. Output only the 4 sections above.
-- Keep total output under 500 words.
+- No introduction, no conclusion, no preamble. Output only the sections listed above (and the Cross-Subtopic Linkages section only when multiple subtopics are listed above).
+- Keep total output under 600 words (or 700 words when Cross-Subtopic Linkages is included).
 - Use plain markdown only (##, ###, bullet -). No tables.

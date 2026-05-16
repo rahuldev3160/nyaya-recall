@@ -499,6 +499,139 @@ def get_question_notes(session_id: str):
     return {"notes": notes}
 
 
+@router.get("/{session_id}/exam-results")
+def get_exam_results(session_id: str):
+    """
+    Return per-subject and per-topic breakdown for an exam_simulation session.
+    Reads session_answers joined with the syllabus to resolve topic names.
+    """
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+
+    session_row = con.execute(
+        "SELECT session_type, config FROM quiz_sessions WHERE id=?", (session_id,)
+    ).fetchone()
+    if not session_row:
+        con.close()
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    answers = con.execute(
+        """
+        SELECT subject_id, subtopic_id, is_correct, skipped
+        FROM session_answers
+        WHERE session_id=?
+        ORDER BY id
+        """,
+        (session_id,),
+    ).fetchall()
+    con.close()
+
+    # Load syllabus to resolve names and group subtopics → topics → subjects
+    syllabus_path = Path(__file__).parent.parent.parent / "data" / "syllabus.json"
+    try:
+        syllabus_raw = json.loads(syllabus_path.read_text())
+    except Exception:
+        syllabus_raw = {}
+
+    # Build lookup: subtopic_id → {subject_id, subject_name, topic_id, topic_name, subtopic_name}
+    st_lookup: dict[str, dict] = {}
+    for subj in syllabus_raw.get("subjects", []):
+        for topic in subj.get("topics", []):
+            for st in topic.get("subtopics", []):
+                st_lookup[st["id"]] = {
+                    "subject_id": subj["id"],
+                    "subject_name": subj.get("name", subj["id"]),
+                    "topic_id": topic["id"],
+                    "topic_name": topic.get("name", topic["id"]),
+                    "subtopic_name": st.get("name", st["id"]),
+                }
+
+    # Aggregate answers into subject → topic → subtopic buckets
+    # Structure: { subject_id: { "name": ..., "topics": { topic_id: { "name": ..., "q": 0, "c": 0 } }, "q": 0, "c": 0 } }
+    subj_buckets: dict[str, dict] = {}
+    total_q = 0
+    total_correct = 0
+    total_attempted = 0
+
+    for row in answers:
+        subject_id = (row["subject_id"] or "").split(",")[0].strip()
+        subtopic_id = row["subtopic_id"] or ""
+        is_correct = bool(row["is_correct"])
+        skipped = bool(row["skipped"])
+
+        total_q += 1
+        if not skipped:
+            total_attempted += 1
+        if is_correct and not skipped:
+            total_correct += 1
+
+        # Resolve names from syllabus; fall back to raw IDs
+        meta = st_lookup.get(subtopic_id)
+        if meta:
+            resolved_subject_id = meta["subject_id"]
+            subject_name = meta["subject_name"]
+            topic_id = meta["topic_id"]
+            topic_name = meta["topic_name"]
+        else:
+            resolved_subject_id = subject_id or "unknown"
+            subject_name = (subject_id or "unknown").replace("_", " ").title()
+            topic_id = "unknown"
+            topic_name = "Unknown Topic"
+
+        if resolved_subject_id not in subj_buckets:
+            subj_buckets[resolved_subject_id] = {
+                "subject_id": resolved_subject_id,
+                "subject_name": subject_name,
+                "q": 0,
+                "c": 0,
+                "topics": {},
+            }
+        sb = subj_buckets[resolved_subject_id]
+        sb["q"] += 1
+        if is_correct and not skipped:
+            sb["c"] += 1
+
+        if topic_id not in sb["topics"]:
+            sb["topics"][topic_id] = {"topic_id": topic_id, "topic_name": topic_name, "q": 0, "c": 0}
+        tb = sb["topics"][topic_id]
+        tb["q"] += 1
+        if is_correct and not skipped:
+            tb["c"] += 1
+
+    # Build output
+    by_subject = []
+    for sb in sorted(subj_buckets.values(), key=lambda x: x["subject_name"]):
+        topics_out = []
+        for tb in sorted(sb["topics"].values(), key=lambda x: x["topic_name"]):
+            acc = round(tb["c"] / tb["q"] * 100, 1) if tb["q"] else 0.0
+            topics_out.append({
+                "topic_id": tb["topic_id"],
+                "topic_name": tb["topic_name"],
+                "questions": tb["q"],
+                "correct": tb["c"],
+                "accuracy_pct": acc,
+            })
+        s_acc = round(sb["c"] / sb["q"] * 100, 1) if sb["q"] else 0.0
+        by_subject.append({
+            "subject_id": sb["subject_id"],
+            "subject_name": sb["subject_name"],
+            "questions": sb["q"],
+            "correct": sb["c"],
+            "accuracy_pct": s_acc,
+            "topics": topics_out,
+        })
+
+    overall_acc = round(total_correct / total_q * 100, 1) if total_q else 0.0
+
+    return {
+        "total_correct": total_correct,
+        "total_attempted": total_attempted,
+        "total_questions": total_q,
+        "accuracy_pct": overall_acc,
+        "by_subject": by_subject,
+    }
+
+
 @router.post("/import")
 def import_session(data: dict):
     """Import a session exported from phone (offline HTML export)."""
