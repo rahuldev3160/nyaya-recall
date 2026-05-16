@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
+import ContentFeedback from "@/components/ContentFeedback";
 
 const SUBJECTS = [
   { id: "polity", name: "Polity & Governance" },
@@ -770,6 +771,16 @@ export default function DiagnosticPage() {
                 </div>
               </div>
             )}
+
+            {/* ISSUE-017 Phase 2: content feedback — hidden for skipped questions */}
+            <ContentFeedback
+              key={`diag-feedback-${session?.session_id}-${currentQ}`}
+              sessionId={session?.session_id ?? ""}
+              contentType="explanation"
+              questionHash={q.question_hash ?? `${session?.session_id}_${currentQ}`}
+              subtopicId={q.subtopic_id ?? selected}
+              subjectId={selected}
+            />
           </div>
         )}
 

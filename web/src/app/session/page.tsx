@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import { api } from "@/lib/api";
+import ContentFeedback from "@/components/ContentFeedback";
 
 const notesMarkdownComponents: Partial<Components> = {
   h2: ({ children, ...props }) => (
@@ -44,6 +45,51 @@ const notesMarkdownComponents: Partial<Components> = {
     <blockquote className="border-l-2 border-blue-600 pl-3 text-gray-400 text-sm italic my-2" {...props}>{children}</blockquote>
   ),
 };
+
+// ── Notes section parser (ISSUE-017 Phase 2) ──────────────────────────────────
+const NOTES_SECTION_SLUGS: Record<string, string> = {
+  "Core Concept": "core_concept",
+  "PYQ Angles": "pyq_angles",
+  "Current Affairs Linkages": "current_affairs",
+  "Broader Linkages": "broader_linkages",
+};
+
+/**
+ * Split a notes_summary markdown string into { heading, slug, body }[] so each
+ * section can be rendered individually with a ContentFeedback row appended.
+ * Falls back to a single "unsectioned" block if no known headings are found.
+ */
+function parseNotesSections(markdown: string): { heading: string; slug: string; body: string }[] {
+  const parts: { heading: string; slug: string; body: string }[] = [];
+  const lines = markdown.split("\n");
+  let currentHeading = "";
+  let currentSlug = "";
+  let bodyLines: string[] = [];
+
+  for (const line of lines) {
+    const match = line.match(/^## (.+)$/);
+    if (match) {
+      if (currentHeading) {
+        parts.push({ heading: currentHeading, slug: currentSlug, body: bodyLines.join("\n").trim() });
+      }
+      currentHeading = match[1].trim();
+      currentSlug = NOTES_SECTION_SLUGS[currentHeading] ?? currentHeading.toLowerCase().replace(/\s+/g, "_");
+      bodyLines = [];
+    } else {
+      bodyLines.push(line);
+    }
+  }
+  if (currentHeading) {
+    parts.push({ heading: currentHeading, slug: currentSlug, body: bodyLines.join("\n").trim() });
+  }
+
+  // If no headings found, return the whole markdown as one block without feedback
+  if (parts.length === 0) {
+    return [{ heading: "", slug: "", body: markdown }];
+  }
+
+  return parts;
+}
 
 type UserNotesState = { confusion: string; mnemonic: string; still_weak: boolean };
 // Per-question note map keyed by question_hash → {note_text, still_weak}
@@ -723,10 +769,31 @@ export default function SessionPage() {
         {quiz.notes_summary && !answers[0] && (
           <div className="bg-blue-950 border border-blue-800 rounded-xl p-5">
             <h3 className="text-blue-300 font-semibold mb-3">Key Concepts — Read Before Quiz</h3>
-            <div className="max-h-[50vh] overflow-y-auto pr-1 text-sm">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={notesMarkdownComponents}>
-                {quiz.notes_summary}
-              </ReactMarkdown>
+            {/* ISSUE-017 Phase 2: render each notes section individually so ContentFeedback
+                can be placed after each heading block */}
+            <div className="max-h-[50vh] overflow-y-auto pr-1 text-sm space-y-4">
+              {parseNotesSections(quiz.notes_summary).map((section, idx) => (
+                <div key={idx}>
+                  {section.heading && (
+                    <h2 className="text-lg font-semibold text-blue-200 mt-4 first:mt-0 mb-2">
+                      {section.heading}
+                    </h2>
+                  )}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={notesMarkdownComponents}>
+                    {section.body}
+                  </ReactMarkdown>
+                  {/* Feedback row — only for the 4 known sections */}
+                  {section.slug && NOTES_SECTION_SLUGS[section.heading] && (
+                    <ContentFeedback
+                      sessionId={quiz.session_id}
+                      contentType="notes_section"
+                      subtopicId={sessionMeta?.subtopic_id ?? ""}
+                      subjectId={sessionMeta?.subject_id ?? ""}
+                      notesSection={section.slug}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
             <div className="mt-4 pt-3 border-t border-blue-800/60 space-y-2">
               <p className="text-xs text-blue-200/80">
@@ -822,6 +889,16 @@ export default function SessionPage() {
                 </div>
               </div>
             )}
+
+            {/* ISSUE-017 Phase 2: content feedback */}
+            <ContentFeedback
+              key={`sess-feedback-${quiz?.session_id}-${currentQ}`}
+              sessionId={quiz?.session_id ?? ""}
+              contentType="explanation"
+              questionHash={q.question_hash ?? `${quiz?.session_id}_${currentQ}`}
+              subtopicId={q.subtopic_id ?? plan?.sessions?.[activeSession!]?.subtopic_id ?? ""}
+              subjectId={plan?.sessions?.[activeSession!]?.subject_id ?? ""}
+            />
           </div>
         )}
 

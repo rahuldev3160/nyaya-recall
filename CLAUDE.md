@@ -40,6 +40,12 @@ cd scripts && python batch_analyse.py
 # Generate tomorrow's plan
 cd scripts && python plan_generator.py
 
+# Prompt improvement suggestions (run manually every 2-3 days, or when batch_analyse warns you)
+# Prints to stdout; add --output to save to logs/prompt_suggestions_YYYY-MM-DD.txt
+cd scripts && python apply_feedback.py
+cd scripts && python apply_feedback.py --since 2026-05-01   # filter by date
+cd scripts && python apply_feedback.py --output             # write to logs/
+
 # Type check
 cd web && npx tsc --noEmit
 

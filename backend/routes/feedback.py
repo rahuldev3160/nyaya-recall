@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
@@ -148,3 +148,87 @@ def post_content_feedback(body: dict):
     con.close()
 
     return {"status": "saved", "id": row_id}
+
+
+# ── GET /feedback/content/summary ─────────────────────────────────────────────
+
+@router.get("/content/summary")
+def get_content_feedback_summary(since: str = Query(default="", description="ISO date string e.g. 2026-05-01")):
+    """
+    Aggregate content_feedback rows grouped by prompt_file and verdict.
+    Used by apply_feedback.py (Phase 3) to surface actionable prompt issues.
+
+    Query params:
+      since — optional ISO date string (YYYY-MM-DD). If omitted, returns all-time data.
+
+    Response shape:
+      {
+        "by_prompt_file": {
+          "session_notes.txt": {
+            "missing": [{"subtopic_id": ..., "notes_section": ..., "note_text": ..., "count": N}],
+            "wrong":   [...],
+            "omit":    [...],
+            "correct": [...]
+          },
+          ...
+        },
+        "total_feedback_items": N
+      }
+    """
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    _ensure_feedback_table(con)
+
+    # Build date filter clause
+    date_clause = ""
+    params: list = []
+    if since and since.strip():
+        date_clause = " AND created_at >= ?"
+        params.append(since.strip())
+
+    # Fetch all rows matching the filter
+    rows = con.execute(
+        f"""
+        SELECT
+            prompt_file,
+            verdict,
+            subtopic_id,
+            notes_section,
+            note_text,
+            COUNT(*) AS cnt
+        FROM content_feedback
+        WHERE 1=1{date_clause}
+        GROUP BY prompt_file, verdict, subtopic_id, notes_section
+        ORDER BY cnt DESC
+        """,
+        params,
+    ).fetchall()
+
+    # Total count (ungrouped)
+    total_row = con.execute(
+        f"SELECT COUNT(*) AS n FROM content_feedback WHERE 1=1{date_clause}",
+        params,
+    ).fetchone()
+    total = total_row["n"] if total_row else 0
+    con.close()
+
+    # Reshape into nested dict
+    by_prompt: dict = {}
+    for row in rows:
+        pf = row["prompt_file"] or "unknown"
+        v = row["verdict"]
+        if pf not in by_prompt:
+            by_prompt[pf] = {vk: [] for vk in VALID_VERDICTS}
+        if v not in by_prompt[pf]:
+            by_prompt[pf][v] = []
+        by_prompt[pf][v].append({
+            "subtopic_id": row["subtopic_id"],
+            "notes_section": row["notes_section"],
+            "note_text": row["note_text"] or "",
+            "count": row["cnt"],
+        })
+
+    return {
+        "by_prompt_file": by_prompt,
+        "total_feedback_items": total,
+    }
