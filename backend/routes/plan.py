@@ -11,28 +11,158 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 from plan_generator import generate_plan
 
 router = APIRouter()
-PLAN_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
+PLAN_PATH      = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
+USER_PLAN_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan_user.json"
+SYLLABUS_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
+DB_PATH        = os.getenv("DB_PATH", "data/upsc.db")
+
+_GS1_SUBJECTS = {"polity", "economy", "history_amac", "modern_history", "geography",
+                  "environment", "science_tech", "current_affairs", "ir_governance"}
+
+
+def _ensure_edit_log_table():
+    con = sqlite3.connect(DB_PATH)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS plan_edit_log (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_date    TEXT NOT NULL,
+            session_index   INTEGER NOT NULL,
+            original_session TEXT NOT NULL,
+            edited_session  TEXT NOT NULL,
+            edit_timestamp  TEXT NOT NULL,
+            changed_fields  TEXT
+        )
+    """)
+    con.commit()
+    con.close()
+
+
+def _load_active_plan() -> dict:
+    """Return user-edited plan for today if it exists, else the AI-generated plan."""
+    today = datetime.date.today().isoformat()
+    if USER_PLAN_PATH.exists():
+        try:
+            user_plan = json.loads(USER_PLAN_PATH.read_text())
+            if user_plan.get("session_date") == today:
+                return {**user_plan, "is_user_edited": True}
+        except Exception:
+            pass
+    if not PLAN_PATH.exists():
+        return {"message": "No plan yet. Click 'Plan Today' to generate."}
+    try:
+        plan = json.loads(PLAN_PATH.read_text())
+        # Strip CSAT sessions from GS1 plan view
+        plan["sessions"] = [s for s in plan.get("sessions", []) if s.get("subject_id") != "csat"]
+        return {**plan, "is_user_edited": False}
+    except Exception:
+        return {"message": "Plan file is corrupted. Generate a new one."}
 
 
 @router.get("/today")
 def get_plan():
-    if not PLAN_PATH.exists():
-        return {"message": "No plan yet. Click 'Plan Today' to generate."}
+    return _load_active_plan()
+
+
+@router.get("/syllabus-tree")
+def get_syllabus_tree():
+    """Return subject → topic → subtopic hierarchy for plan-edit dropdowns."""
+    if not SYLLABUS_PATH.exists():
+        return []
     try:
-        return json.loads(PLAN_PATH.read_text())
+        raw = json.loads(SYLLABUS_PATH.read_text())
+        subjects = raw if isinstance(raw, list) else raw.get("subjects", [])
+        result = []
+        for s in subjects:
+            if s.get("id") not in _GS1_SUBJECTS:
+                continue
+            result.append({
+                "id": s["id"],
+                "name": s.get("name", s["id"]),
+                "topics": [
+                    {
+                        "id": t["id"],
+                        "name": t.get("name", t["id"]),
+                        "subtopics": [
+                            {
+                                "id": st["id"],
+                                "name": st.get("name", st["id"]),
+                                "dimensions": [d if isinstance(d, str) else d.get("id", d) for d in st.get("dimensions", [])],
+                            }
+                            for st in t.get("subtopics", [])
+                        ],
+                    }
+                    for t in s.get("topics", [])
+                ],
+            })
+        return result
     except Exception:
-        return {"message": "Plan file is corrupted. Generate a new one."}
+        return []
+
+
+@router.patch("/user-sessions")
+def patch_user_sessions(body: dict):
+    """Save user-edited plan. Log delta against model's original for every changed session."""
+    edited_sessions = body.get("sessions")
+    if not edited_sessions:
+        return {"error": "No sessions provided"}
+
+    _ensure_edit_log_table()
+    today = datetime.date.today().isoformat()
+
+    # Load model's original for delta comparison
+    original_sessions: list = []
+    if PLAN_PATH.exists():
+        try:
+            original_sessions = json.loads(PLAN_PATH.read_text()).get("sessions", [])
+        except Exception:
+            pass
+
+    DELTA_FIELDS = ("subject_id", "topic_id", "subtopic_id", "format", "difficulty",
+                    "num_questions", "estimated_minutes")
+    try:
+        con = sqlite3.connect(DB_PATH)
+        now = datetime.datetime.utcnow().isoformat()
+        for i, edited in enumerate(edited_sessions):
+            original = original_sessions[i] if i < len(original_sessions) else {}
+            changed = [k for k in DELTA_FIELDS if edited.get(k) != original.get(k)]
+            if changed:
+                con.execute(
+                    """INSERT INTO plan_edit_log
+                       (session_date, session_index, original_session, edited_session, edit_timestamp, changed_fields)
+                       VALUES (?, ?, ?, ?, ?, ?)""",
+                    (today, i, json.dumps(original), json.dumps(edited), now, json.dumps(changed)),
+                )
+        con.commit()
+        con.close()
+    except Exception:
+        pass
+
+    user_plan = {
+        "sessions": edited_sessions,
+        "session_date": today,
+        "user_edited": True,
+        "edited_at": datetime.datetime.utcnow().isoformat(),
+    }
+    USER_PLAN_PATH.write_text(json.dumps(user_plan, indent=2))
+    return {"ok": True, "sessions_saved": len(edited_sessions)}
+
+
+@router.delete("/user-overrides")
+def delete_user_overrides():
+    """Discard user edits — revert to AI-generated plan."""
+    if USER_PLAN_PATH.exists():
+        USER_PLAN_PATH.unlink()
+    return {"ok": True, "reset": True}
 
 
 @router.get("/today-status")
 def get_plan_status():
     """Return which plan session subtopics have been completed in quiz sessions today."""
-    if not PLAN_PATH.exists():
-        return {"completed_subtopics": []}
     try:
-        plan = json.loads(PLAN_PATH.read_text())
+        plan = _load_active_plan()
     except Exception:
+        return {"completed_subtopics": []}
+    if "message" in plan:
         return {"completed_subtopics": []}
 
     plan_subtopics = [s.get("subtopic_id") for s in plan.get("sessions", []) if s.get("subtopic_id")]

@@ -268,6 +268,11 @@ def generate_plan(available_hours: float | None = None) -> dict:
 
     PLAN_PATH.parent.mkdir(parents=True, exist_ok=True)
     PLAN_PATH.write_text(json.dumps(plan, indent=2))
+    # Clear any user-edited plan so the fresh AI plan takes over
+    user_plan_path = PLAN_PATH.parent / "study_plan_user.json"
+    if user_plan_path.exists():
+        user_plan_path.unlink()
+        print("🗑️  Cleared user-edited plan — fresh AI plan is now active.")
     print(f"✅ Plan generated for Day {day_number}/{total_days}. Sessions: {len(plan.get('sessions', []))}")
     return plan
 
