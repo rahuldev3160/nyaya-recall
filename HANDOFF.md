@@ -1,3 +1,27 @@
+# HANDOFF.md — Dev Session Update (May 16, 2026) — Phase 2
+
+### FEATURE-028 Phase 2 — Topic-level coverage in batch_analyse.py — 2026-05-16
+
+**What changed:**
+- `scripts/batch_analyse.py` — added `import statistics`; updated `_build_syllabus_map()` to return `topics[]` per subject alongside the existing flat `all_subtopics` list; added `_compute_topic_coverage()` helper that computes PYQ-weighted readiness, coverage_pct, risk_level, uncovered_subtopics_count, and at_risk_subtopics per topic; `compute_weighted_readiness()` now includes `"topics"` in each subject dict; merge step in `run_analysis()` saves `topics[]` to prep_profile.json (deterministic, not LLM); high-risk topics printed during Sync.
+
+**prep_profile.json schema addition:**
+Each subject now has a `topics[]` array with: `id`, `name`, `subtopics_total`, `subtopics_tested`, `coverage_pct`, `readiness`, `risk_level`, `uncovered_subtopics_count`, `at_risk_subtopics`.
+
+**Verified:**
+- polity: 9 topics, 41 subtopics — all computing correctly
+- constitutional_framework: 5/5 tested, 63.6% readiness, `at_risk_subtopics: [preamble, union_territories]`
+- Formula is PYQ-weighted at topic level (same as subject level), not count-based
+
+**Watch-outs:**
+- `topics[]` is only written to prep_profile.json on the next "Sync & Plan" run (requires unsynced sessions). Existing prep_profile.json won't have topics until next sync.
+- `at_risk_subtopics` uses median weight of the topic's subtopics as threshold — tested-but-weak (score < 0.45) OR untested-above-median-weight are flagged.
+- Phase 3 (plan generator: topic-balanced scheduling) is next.
+
+**Branch:** `feature/topic-coverage` — PR pending.
+
+---
+
 # HANDOFF.md — Dev Session Update (May 16, 2026)
 
 ### FEATURE-028 Phase 0+1 — PYQ retag + canonical topic_id plumbing — 2026-05-16

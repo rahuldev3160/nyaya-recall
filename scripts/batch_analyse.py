@@ -14,6 +14,7 @@ import os
 import sys
 import json
 import sqlite3
+import statistics
 from pathlib import Path
 from datetime import datetime, timezone, date
 import anthropic
@@ -63,7 +64,7 @@ def save_profile(profile: dict):
 # ---------------------------------------------------------------------------
 
 def _build_syllabus_map() -> dict[str, dict]:
-    """Returns {subject_id: {all_subtopics: [id,...], avg_questions_per_year: int}}"""
+    """Returns {subject_id: {all_subtopics: [id,...], avg_questions_per_year: int, topics: [...]}}"""
     try:
         syllabus = json.loads(SYLLABUS_PATH.read_text())
     except Exception:
@@ -77,12 +78,21 @@ def _build_syllabus_map() -> dict[str, dict]:
         if sid in _EXCLUDED:
             continue
         subtopics: list[str] = []
+        topics_list: list[dict] = []
         for topic in subject.get("topics", []):
+            topic_subtopic_ids: list[str] = []
             for st in topic.get("subtopics", []):
                 subtopics.append(st["id"])
+                topic_subtopic_ids.append(st["id"])
+            topics_list.append({
+                "id": topic["id"],
+                "name": topic.get("name", topic["id"]),
+                "subtopics": topic_subtopic_ids,
+            })
         result[sid] = {
             "all_subtopics": subtopics,
             "avg_questions_per_year": subject.get("avg_questions_per_year", 10),
+            "topics": topics_list,
         }
     return result
 
@@ -100,6 +110,89 @@ def _get_tested_subtopics() -> dict[str, dict[str, float]]:
         sid = SUBJECT_ALIASES.get(row["subject_id"], row["subject_id"])
         tested.setdefault(sid, {})[row["subtopic_id"]] = row["score"]
     return tested
+
+
+def _compute_topic_coverage(
+    subject_id: str,
+    topics: list[dict],
+    tested_in_subject: dict[str, float],
+    pyq_weights: dict[str, float],
+) -> list[dict]:
+    """
+    Compute topic-level coverage for a single subject.
+
+    For each topic:
+      - subtopics_total: number of subtopics in the topic
+      - subtopics_tested: how many have been tested
+      - readiness: PYQ-weighted score (untested = 0)
+      - coverage_pct: percentage of subtopics tested
+      - risk_level: high/medium/low based on coverage_pct
+      - uncovered_subtopics_count: not yet tested
+      - at_risk_subtopics: tested but weak (<0.45) OR untested but high PYQ weight
+
+    Returns a list of topic dicts, skipping topics with 0 subtopics.
+    """
+    result: list[dict] = []
+    for topic in topics:
+        topic_subtopics: list[str] = topic["subtopics"]
+        subtopics_total = len(topic_subtopics)
+        if subtopics_total == 0:
+            continue
+
+        # Compute per-subtopic weights for this topic
+        topic_weights: dict[str, float] = {
+            st_id: max(pyq_weights.get(st_id, DEFAULT_WEIGHT), MIN_WEIGHT)
+            for st_id in topic_subtopics
+        }
+
+        total_weight   = sum(topic_weights.values())
+        weighted_score = 0.0
+        subtopics_tested = 0
+
+        for st_id in topic_subtopics:
+            if st_id in tested_in_subject:
+                weighted_score += tested_in_subject[st_id] * topic_weights[st_id]
+                subtopics_tested += 1
+            # untested → score 0, contributes 0
+
+        readiness    = (weighted_score / total_weight) if total_weight > 0 else 0.0
+        coverage_pct = (subtopics_tested / subtopics_total) * 100
+
+        if coverage_pct < 50:
+            risk_level = "high"
+        elif coverage_pct < 80:
+            risk_level = "medium"
+        else:
+            risk_level = "low"
+
+        uncovered_subtopics_count = subtopics_total - subtopics_tested
+
+        # Median weight across all subtopics in this topic
+        all_weights_in_topic = list(topic_weights.values())
+        median_w = statistics.median(all_weights_in_topic) if all_weights_in_topic else MIN_WEIGHT
+
+        at_risk_subtopics: list[str] = []
+        for st_id in topic_subtopics:
+            if st_id in tested_in_subject:
+                if tested_in_subject[st_id] < 0.45:
+                    at_risk_subtopics.append(st_id)
+            else:
+                # Untested — flag if above-median PYQ weight (high priority gap)
+                if topic_weights[st_id] > median_w:
+                    at_risk_subtopics.append(st_id)
+
+        result.append({
+            "id":                       topic["id"],
+            "name":                     topic["name"],
+            "subtopics_total":          subtopics_total,
+            "subtopics_tested":         subtopics_tested,
+            "coverage_pct":             round(coverage_pct, 1),
+            "readiness":                round(readiness, 1),
+            "risk_level":               risk_level,
+            "uncovered_subtopics_count": uncovered_subtopics_count,
+            "at_risk_subtopics":        at_risk_subtopics,
+        })
+    return result
 
 
 def compute_weighted_readiness() -> dict:
@@ -168,6 +261,12 @@ def compute_weighted_readiness() -> dict:
                 st: round(tested[sid][st], 1)
                 for st in tested.get(sid, {})
             },
+            "topics": _compute_topic_coverage(
+                sid,
+                info["topics"],
+                tested_in_subject,
+                pyq_weights,
+            ),
         }
 
     total_q = sum(
@@ -305,6 +404,9 @@ def run_analysis() -> dict:
         print(f"  {sid}: {s['weighted_readiness']}% "
               f"(coverage {s['coverage_pct']}% — "
               f"{s['tested_subtopics']}/{s['total_subtopics']} subtopics tested)")
+        for t in s.get("topics", []):
+            if t["risk_level"] == "high":
+                print(f"    ⚠ topic {t['id']}: {t['coverage_pct']}% covered, risk=high")
 
     # Step 2: LLM call for insight text only
     persistent_weak = get_persistently_weak_subtopics(session_ids)
@@ -350,6 +452,7 @@ def run_analysis() -> dict:
             "strong_subtopics":    claude_sub.get("strong_subtopics",    existing.get("strong_subtopics",    [])),
             "weak_question_types": claude_sub.get("weak_question_types", existing.get("weak_question_types", [])),
             "insight":             claude_sub.get("insight",             existing.get("insight",             "")),
+            "topics":              cov.get("topics", []),       # deterministic, not LLM
         }
 
     profile["overall_readiness"] = coverage_report.get("overall_readiness", profile["overall_readiness"])
