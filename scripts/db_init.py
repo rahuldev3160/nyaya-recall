@@ -150,11 +150,26 @@ def init_db():
 
     INSERT OR IGNORE INTO sar_scores (user_id) VALUES ('user_1');
 
+    -- FEATURE-027 Phase 4: per-dimension accuracy tracking
+    CREATE TABLE IF NOT EXISTS subtopic_dimension_scores (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id         TEXT DEFAULT 'user_1',
+        subject_id      TEXT NOT NULL,
+        subtopic_id     TEXT NOT NULL,
+        dimension_id    TEXT NOT NULL,
+        attempts        INTEGER DEFAULT 0,
+        correct_count   INTEGER DEFAULT 0,
+        score           REAL DEFAULT 0.0,
+        last_tested     TIMESTAMP,
+        UNIQUE(user_id, subject_id, subtopic_id, dimension_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sa_session ON session_answers(session_id);
     CREATE INDEX IF NOT EXISTS idx_sa_subj_sub ON session_answers(subject_id, subtopic_id);
     CREATE INDEX IF NOT EXISTS idx_qs_end ON quiz_sessions(end_time);
     CREATE INDEX IF NOT EXISTS idx_qs_start ON quiz_sessions(start_time);
     CREATE INDEX IF NOT EXISTS idx_subtopic_scores_lookup ON subtopic_scores(user_id, subject_id);
+    CREATE INDEX IF NOT EXISTS idx_dim_scores_lookup ON subtopic_dimension_scores(user_id, subject_id, subtopic_id);
     """)
     con.commit()
     con.close()
