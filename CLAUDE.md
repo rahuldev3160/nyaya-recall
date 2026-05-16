@@ -224,12 +224,19 @@ These require an explicit message or PR comment from Rahul before any work conti
 
 ### After completing a task
 
-1. Move the item in FEATURES.md: Queued → Planned (if spec) or → ✅ Shipped (if implemented)
-   - Add ship date in the Notes column: `Shipped May 12`
-2. If fixing an ISSUE: move to Resolved section, fill in the Resolution field with date + what changed
-3. Update HANDOFF.md: add a brief entry under "What changed" with files modified
-4. Open the PR — write the description using the format above
-5. Do not start the next task until the current PR is merged or explicitly unblocked by Rahul
+Run `/close-task` (`.claude/commands/close-task.md`) — it handles the full close-out sequence.
+The explicit steps it covers (do not skip any):
+
+1. **FEATURES.md** — strike through the completed Queued item; add to ✅ Shipped with date
+2. **ISSUES.md** — move fixed issue to Resolved; fill Resolution field (date + file + PR)
+3. **HANDOFF.md** — add a new entry at the TOP with what changed and watch-outs; mark any previously-open problem ✅ if resolved this session
+4. **Memory** — write a `memory/project_<slug>.md` entry for any factual finding or resolved open item so future sessions don't re-open it
+5. **Cross-check** — for every item still open in HANDOFF.md, verify it hasn't already been struck through in FEATURES.md or marked Resolved in ISSUES.md (this is the leak detector)
+6. **PR** — open using the format above; doc-only changes can go straight to main
+
+**HANDOFF.md is the most important file to keep current.** Every future session reads it to find open problems. If a resolved item is still listed as open there, it will be picked up as work again — wasting a full session. Always mark HANDOFF.md items ✅ when done, even if the fix was trivial.
+
+Do not start the next task until the current PR is merged or explicitly unblocked by Rahul.
 
 ### Communicating with Rahul
 
