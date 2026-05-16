@@ -119,12 +119,34 @@ def compute_subtopic_coverage() -> dict:
             [{"id": st, "score": round(sc, 1), "pyq_weight": round(weights.get(st, 1.0), 2)} for st, sc in tested_in_subj.items()],
             key=lambda x: -x["pyq_weight"],
         )
+
+        # Topic-grouped view of untested subtopics — used for topic-balance scheduling rule
+        untested_by_topic: list[dict] = []
+        for topic in subj.get("topics", []):
+            topic_untested = [
+                {"id": st["id"], "pyq_weight": round(weights.get(st["id"], 1.0), 2)}
+                for st in topic.get("subtopics", [])
+                if st["id"] not in tested_in_subj
+            ]
+            if not topic_untested:
+                continue  # skip fully-tested topics
+            topic_untested.sort(key=lambda x: -x["pyq_weight"])
+            topic_weight = round(sum(x["pyq_weight"] for x in topic_untested), 2)
+            untested_by_topic.append({
+                "topic_id":           topic["id"],
+                "topic_name":         topic.get("name", topic["id"]),
+                "topic_pyq_weight":   topic_weight,
+                "untested_subtopics": topic_untested,
+            })
+        untested_by_topic.sort(key=lambda t: -t["topic_pyq_weight"])
+
         result[sid] = {
             "total_subtopics":   len(all_subs),
             "untested_count":    len(untested),
             "tested_count":      len(tested_list),
-            "untested":          untested,   # scheduling priority order — use these first
+            "untested":          untested,         # flat priority order — overall scheduling
             "tested":            tested_list,
+            "untested_by_topic": untested_by_topic, # topic-grouped — use for balance rule
         }
 
     return result
