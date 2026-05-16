@@ -1,0 +1,42 @@
+You are a UPSC Prelims expert. For the subtopics listed below, identify 4–8 testable dimensions that UPSC examiners actually ask about in the Prelims exam.
+
+A "dimension" is a distinct angle or facet of a subtopic that could independently form the basis of an MCQ. Think: specific provisions, historical context, institutional structures, current affairs linkages, comparative angles, procedural rules, constitutional/statutory basis, etc.
+
+For each subtopic, return a JSON object with the subtopic_id and a "dimensions" array. Each dimension must have:
+- "id": snake_case identifier (subtopic_id prefix + short descriptor, e.g. "rbi_establishment_structure")
+- "name": concise name of the testable angle (max 12 words)
+- "is_core_concept": true if this is a foundational/definitional angle that UPSC always tests; false if it is peripheral or optional
+- "has_current_affairs": true if this dimension is frequently linked to recent (2024-2026) policy, events, or developments; false otherwise
+
+Rules:
+- Generate exactly 4–8 dimensions per subtopic (aim for 5–6 for most; 7–8 for very broad subtopics)
+- Dimensions must be DISTINCT — no overlap, no near-duplicates
+- Ground dimensions in real UPSC exam patterns (2009–2025): focus on what has actually appeared or is likely to appear
+- Do NOT generate trivial dimensions like "overview" or "introduction" — every dimension must be independently testable
+- Keep dimension names specific and actionable (e.g. "Monetary policy transmission mechanism" not "RBI policy")
+
+Input subtopics (as JSON array):
+{{subtopics_batch}}
+
+Return a JSON array where each element corresponds to one input subtopic:
+[
+  {
+    "subtopic_id": "rbi_functions",
+    "dimensions": [
+      {
+        "id": "rbi_establishment_structure",
+        "name": "Establishment, structure and governance of RBI",
+        "is_core_concept": true,
+        "has_current_affairs": false
+      },
+      {
+        "id": "rbi_monetary_policy_tools",
+        "name": "Monetary policy tools — repo, CRR, SLR, MSF",
+        "is_core_concept": true,
+        "has_current_affairs": true
+      }
+    ]
+  }
+]
+
+Output ONLY the JSON array, no other text.
