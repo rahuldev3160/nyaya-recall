@@ -112,6 +112,74 @@ def _get_tested_subtopics() -> dict[str, dict[str, float]]:
     return tested
 
 
+def _get_dimension_scores(con: sqlite3.Connection, subject_id: str) -> dict[str, list[dict]]:
+    """
+    Returns {subtopic_id: [{dimension_id, score, attempts}, ...]} for a given subject.
+    Falls back to empty dict if the table doesn't exist yet (pre-Phase 4 merge).
+    """
+    try:
+        rows = con.execute(
+            "SELECT subtopic_id, dimension_id, score, attempts "
+            "FROM subtopic_dimension_scores "
+            "WHERE user_id='user_1' AND subject_id=?",
+            (subject_id,),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        # Table doesn't exist yet — graceful fallback
+        return {}
+    result: dict[str, list[dict]] = {}
+    for row in rows:
+        result.setdefault(row["subtopic_id"], []).append({
+            "dimension_id": row["dimension_id"],
+            "score":        row["score"],
+            "attempts":     row["attempts"],
+        })
+    return result
+
+
+def _compute_subtopic_dim_coverage(
+    subtopic_id: str,
+    dim_scores_for_subtopic: list[dict],
+    syllabus_dims: list[dict],
+) -> tuple[float | None, float | None]:
+    """
+    Computes (coverage_pct, readiness) for a subtopic using per-dimension scores.
+
+    Returns (None, None) if there are no dimension scores or no syllabus dims for
+    this subtopic — callers must fall back to the flat subtopic_scores value.
+
+    coverage_pct reflects which dimensions are still untouched (anti-false-positive):
+    a subtopic with 1/3 dimensions tested at 80% will NOT read as 100% coverage.
+    """
+    if not dim_scores_for_subtopic or not syllabus_dims:
+        return None, None
+
+    total_weight = sum(d["final_weight"] for d in syllabus_dims)
+    if total_weight == 0:
+        return None, None
+
+    score_by_dim = {r["dimension_id"]: r["score"] for r in dim_scores_for_subtopic}
+    covered_weight = 0.0
+    readiness_sum  = 0.0
+
+    for dim in syllabus_dims:
+        score = score_by_dim.get(dim["id"])
+        if score is None:
+            continue  # untested dimension — 0 contribution
+        if score >= 0.75:
+            depth = 1.0
+        elif score >= 0.45:
+            depth = score
+        else:
+            depth = score * 0.5
+        covered_weight += dim["final_weight"] * depth
+        readiness_sum  += dim["final_weight"] * score
+
+    coverage_pct = round(covered_weight / total_weight * 100, 1)
+    readiness    = round(readiness_sum  / total_weight, 1)
+    return coverage_pct, readiness
+
+
 def _compute_topic_coverage(
     subject_id: str,
     topics: list[dict],
@@ -195,14 +263,20 @@ def _compute_topic_coverage(
     return result
 
 
-def compute_weighted_readiness() -> dict:
+def compute_weighted_readiness(
+    dim_scores_by_subject: dict[str, dict[str, list[dict]]] | None = None,
+    syllabus_dims_map: dict[str, list[dict]] | None = None,
+) -> dict:
     """
     Pre-computes authoritative readiness scores before the LLM call.
 
     For every subject in the syllabus:
       - Each subtopic has a PYQ priority weight (recency-decayed question frequency).
-      - Tested subtopics contribute: score × weight.
-      - Untested subtopics contribute: 0 (assumed gap — untested = weak).
+      - If subtopic_dimension_scores rows exist for a subtopic, per-dimension accuracy
+        is used to compute readiness (FEATURE-027 Phase 5).
+      - If no dimension rows exist yet, falls back to the flat subtopic_scores value
+        (prevents all scores dropping to 0 on the first Sync after this merge).
+      - Untested subtopics (no flat score AND no dimension rows) contribute 0.
       - Subject readiness = total weighted score / sum of all weights.
       - Coverage = tested_count / total_subtopic_count.
 
@@ -215,6 +289,12 @@ def compute_weighted_readiness() -> dict:
     pyq_weights = compute_all_priorities()
     tested = _get_tested_subtopics()
 
+    # Defaults so callers that don't pass these args still get a valid (empty) dict
+    if dim_scores_by_subject is None:
+        dim_scores_by_subject = {}
+    if syllabus_dims_map is None:
+        syllabus_dims_map = {}
+
     subject_readiness: dict[str, dict] = {}
 
     for sid, info in syllabus_map.items():
@@ -226,15 +306,30 @@ def compute_weighted_readiness() -> dict:
         weighted_score = 0.0
         tested_count   = 0
         all_subtopics_set = set(all_subtopics)
-        tested_in_subject = tested.get(sid, {})
+        tested_in_subject  = tested.get(sid, {})
+        dim_scores_for_sid = dim_scores_by_subject.get(sid, {})
 
         for st_id in all_subtopics:
             w = max(pyq_weights.get(st_id, DEFAULT_WEIGHT), MIN_WEIGHT)
             total_weight += w
-            if st_id in tested_in_subject:
+
+            # --- dimension-aware readiness (FEATURE-027 Phase 5) ---
+            dim_rows   = dim_scores_for_sid.get(st_id, [])
+            syllabus_d = syllabus_dims_map.get(st_id, [])
+            coverage_pct, dim_readiness = _compute_subtopic_dim_coverage(
+                st_id, dim_rows, syllabus_d
+            )
+
+            if dim_readiness is not None:
+                # Use dimension-computed readiness
+                weighted_score += dim_readiness * w
+                tested_count   += 1
+                print(f"    {st_id}: dim_coverage={coverage_pct}%  readiness={dim_readiness}")
+            elif st_id in tested_in_subject:
+                # Fallback: use flat subtopic score
                 weighted_score += tested_in_subject[st_id] * w
-                tested_count += 1
-            # untested → score 0, contributes 0 to weighted_score
+                tested_count   += 1
+            # else: untested → score 0, contributes 0 to weighted_score
 
         # Credit quiz subtopics whose IDs don't match any syllabus subtopic
         # (plan generator uses its own naming e.g. "indus_valley_civilization"
@@ -245,8 +340,15 @@ def compute_weighted_readiness() -> dict:
             for st_id in extra_tested:
                 w = max(pyq_weights.get(st_id, avg_w), MIN_WEIGHT)
                 total_weight   += w
-                weighted_score += tested_in_subject[st_id] * w
-                tested_count   += 1
+                # For extra subtopics, dimension data is unlikely; use flat score
+                dim_rows   = dim_scores_for_sid.get(st_id, [])
+                syllabus_d = syllabus_dims_map.get(st_id, [])
+                _, dim_readiness = _compute_subtopic_dim_coverage(st_id, dim_rows, syllabus_d)
+                if dim_readiness is not None:
+                    weighted_score += dim_readiness * w
+                else:
+                    weighted_score += tested_in_subject[st_id] * w
+                tested_count += 1
 
         readiness = (weighted_score / total_weight) if total_weight > 0 else 0.0
         coverage  = tested_count / len(all_subtopics)
@@ -397,8 +499,44 @@ def run_analysis() -> dict:
     print(f"Analysing {len(session_ids)} session(s) via summaries...")
     profile = load_profile()
 
+    # Build syllabus_dims_map once: {subtopic_id -> list of dimension dicts}
+    # Used by the dimension-aware readiness formula (FEATURE-027 Phase 5)
+    _syllabus_dims_map: dict[str, list[dict]] = {}
+    try:
+        _syllabus_raw = json.loads(SYLLABUS_PATH.read_text())
+        for _subj in _syllabus_raw.get("subjects", []):
+            for _topic in _subj.get("topics", []):
+                for _st in _topic.get("subtopics", []):
+                    if _st.get("dimensions"):
+                        _syllabus_dims_map[_st["id"]] = _st["dimensions"]
+    except Exception as _e:
+        print(f"  Warning: could not load syllabus dims: {_e}")
+
+    # Fetch per-dimension scores for every subject from the DB
+    _dim_scores_by_subject: dict[str, dict[str, list[dict]]] = {}
+    try:
+        _dim_con = sqlite3.connect(DB_PATH)
+        _dim_con.row_factory = sqlite3.Row
+        _syllabus_map_for_sids = _build_syllabus_map()
+        for _sid in _syllabus_map_for_sids:
+            _dim_scores_by_subject[_sid] = _get_dimension_scores(_dim_con, _sid)
+        _dim_con.close()
+        _total_dim_rows = sum(
+            len(rows)
+            for st_map in _dim_scores_by_subject.values()
+            for rows in st_map.values()
+        )
+        print(f"  Dimension scores loaded: {_total_dim_rows} row(s) across "
+              f"{len(_dim_scores_by_subject)} subject(s)")
+    except Exception as _e:
+        print(f"  Warning: could not load dimension scores: {_e}")
+        _dim_scores_by_subject = {}
+
     # Step 1: deterministic weighted readiness (authoritative numbers)
-    coverage_report = compute_weighted_readiness()
+    coverage_report = compute_weighted_readiness(
+        dim_scores_by_subject=_dim_scores_by_subject,
+        syllabus_dims_map=_syllabus_dims_map,
+    )
     print(f"  Weighted overall readiness: {coverage_report.get('overall_readiness', '?')}%")
     for sid, s in coverage_report.get("subjects", {}).items():
         print(f"  {sid}: {s['weighted_readiness']}% "
