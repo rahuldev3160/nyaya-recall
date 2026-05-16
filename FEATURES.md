@@ -46,6 +46,10 @@
 | **Parallel session notes + plan signals** | P1 | “My notes” drawer on Session page (starts closed); confusion / mnemonic / still_weak; debounced `PUT /sessions/{id}/user-notes`; `session_user_notes` table; planner prompt includes `{{user_notes_signals}}` | Shipped May 12 |
 | **Per-question time capture** | P1 | `time_taken_sec` in `session_answers` now populated from a React timer; resets on each question; feeds difficulty engine and metacognition analysis | Shipped May 12 |
 | **PYQ subtopic ID normalisation** | P1 | Subject-scoped token-overlap fuzzy matching in `priority_scorer.py` maps PYQ free-text descriptors → canonical syllabus IDs; 139 subtopics now have real varied weights (was 0). `retag_pyq_subtopics.py` written for full coverage (~$0.05 one-time) | Shipped May 12 |
+| **FEATURE-028: Topic-level hierarchical coverage** | P1 | topic_id canonical plumbing (score_engine + quiz.py); `_compute_topic_coverage()` in batch_analyse writes topics[] to prep_profile; plan_generator topic-balanced scheduling + Rule 9; Tracker accordion + Strategy topic counts | Shipped May 16 (PRs #17–#21) |
+| **FEATURE-027 Phase 1: Subtopic dimension taxonomy** | P1 | 205 subtopics each have 4–8 testable UPSC dimensions with PYQ weight, current-affairs flag, core-concept flag, final_weight. Generated via Haiku (~$0.65, one-time). `generate_syllabus_dimensions.py` + `generate_dimensions.txt` | PR #22 open May 16 |
+| **FEATURE-027 Phase 2: Dimension labeling in quiz** | P1 | All 4 quiz prompts include `dimension_id` in output schema; `_get_subtopic_dimensions()` in quiz.py injects `{{available_dimensions}}` so Claude picks from canonical list | PR #23 open May 16 |
+| **FEATURE-027 Phase 4: subtopic_dimension_scores table** | P1 | New `CREATE TABLE IF NOT EXISTS subtopic_dimension_scores` — tracks per-dimension accuracy per subtopic. Foundation for Phase 5 dimension-weighted coverage formula | PR #24 open May 16 |
 
 ---
 
@@ -53,8 +57,9 @@
 
 | Feature | Priority | Problem it solves | Spec | Effort |
 |---------|----------|--------------------|------|--------|
-| **Topic-level hierarchical coverage (FEATURE-028)** | P1 | topic_id is NULL/non-canonical everywhere; plan generator gives Claude a flat list with no topic grouping; you can skip an entire topic while showing 100% subject coverage. Fixes data plumbing + adds topic-level visibility on tracker/strategy. All phases shipped May 16. | [`plans/topic-hierarchy-coverage.md`](plans/topic-hierarchy-coverage.md) | ~12 hrs, 2 sessions |
-| **Dimension-aware subtopic coverage (FEATURE-027)** | P1 | A subtopic is marked "done" after touching any one of its 4-8 testable dimensions. Coverage formula ignores whether core concept, PYQ-heavy, or current-affairs-linked dimensions were actually tested. Needs FEATURE-028 first. | [`plans/dimension-coverage.md`](plans/dimension-coverage.md) | ~15 hrs, 3 sessions |
+| **Dimension-aware subtopic coverage — Phases 3+5 (FEATURE-027)** | P1 | Phases 1/2/4 shipped May 16 (PRs #22–24). Phase 3 (ALTER TABLE session_answers) and Phase 5 (batch_analyse formula) need Rahul approval before implementing. | [`plans/dimension-coverage.md`](plans/dimension-coverage.md) | ~6 hrs remaining |
+| **Timed mode enforcement** | P1 | time_boxed sessions collect a limit but never enforce it — no countdown, no auto-close. | [`plans/timed_mode_enforcement.md`](plans/timed_mode_enforcement.md) | ~2.5 hrs |
+| **Open-ended quiz mode** | P1 | No "study until I stop" mode — users must commit to a count upfront, creating friction and abandoned sessions. | [`plans/open_ended_quiz_mode.md`](plans/open_ended_quiz_mode.md) | ~3.5 hrs |
 
 ---
 
