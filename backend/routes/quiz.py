@@ -41,6 +41,37 @@ def _load_syllabus() -> dict:
     return _syllabus_cache
 
 
+def _get_subtopic_dimensions(subject_id: str, subtopic_id: str) -> str:
+    """Return a formatted string of available dimension ids + names for a subtopic.
+
+    Reads from the 'dimensions' key in syllabus.json (populated by Phase 1 script).
+    Returns a plain-text list suitable for prompt injection as {{available_dimensions}}.
+    Falls back to a generic placeholder if dimensions haven't been generated yet.
+
+    # TODO (Phase 3): once session_answers.dimension_id column exists, also pass
+    # dimensions_covered_this_session so Claude avoids re-testing them.
+    """
+    if not subtopic_id:
+        return "No dimensions available — subtopic not specified."
+    sid = _SUBJECT_ALIAS.get(subject_id, subject_id)
+    syllabus = _load_syllabus()
+    for subj in syllabus.get("subjects", []):
+        if subj["id"] != sid:
+            continue
+        for topic in subj.get("topics", []):
+            for st in topic.get("subtopics", []):
+                if st["id"] == subtopic_id:
+                    dims = st.get("dimensions", [])
+                    if not dims:
+                        return (
+                            f"Dimensions not yet generated for {subtopic_id}. "
+                            "Use your best judgment to identify the main testable angles."
+                        )
+                    lines = [f"- {d['id']}: {d['name']}" for d in dims]
+                    return "\n".join(lines)
+    return "Subtopic not found in syllabus — use your best judgment for dimension_id."
+
+
 def get_canonical_topic_id(subject_id: str, subtopic_id: str) -> str | None:
     """Look up topic_id from syllabus.json for a given subject+subtopic pair."""
     sid = _SUBJECT_ALIAS.get(subject_id, subject_id)
@@ -600,6 +631,9 @@ def generate_quiz(config: dict):
 
     recent_questions_block = _build_recent_questions_block(subject_id)
 
+    # ── Dimension-aware context (Phase 2 of FEATURE-027) ─────────────────────
+    available_dimensions = _get_subtopic_dimensions(subject_id, subtopic_id)
+
     prompt_template = (PROMPT_DIR / prompt_file).read_text()
     prompt = (
         prompt_template
@@ -628,6 +662,8 @@ def generate_quiz(config: dict):
                  "; ".join(t[:80] for t in intel["question_texts_seen"][:20]) or "none")
         .replace("{{user_notes_context}}",     intel["user_notes_context"])
         .replace("{{spillover_subtopics}}",    spillover_block)
+        # ── Dimension labeling (FEATURE-027 Phase 2) ─────────────────────────
+        .replace("{{available_dimensions}}",   available_dimensions)
     )
 
     response = client.messages.create(

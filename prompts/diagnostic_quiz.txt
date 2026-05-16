@@ -51,8 +51,12 @@ Return a JSON array. Each object:
     "correct_answer": "a|b|c|d",
     "explanation": "Lead with the specific fact or concept that makes the correct option right (1–2 sentences). Then add one short sentence per wrong option explaining what is incorrect or misleading about it. Do NOT open with 'The answer is...' or repeat the option letter as an opener — lead straight with the fact.",
     "subtopic_id": "<exact subtopic_id from allocation>",
+    "dimension_id": "<pick from available_dimensions list below — always populate this field>",
     "difficulty": "easy|medium|hard"
   }
 ]
+
+Available dimensions for this subtopic (use dimension_id from this list):
+{{available_dimensions}}
 
 Output ONLY the JSON array, no other text.

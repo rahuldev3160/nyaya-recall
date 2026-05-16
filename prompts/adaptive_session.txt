@@ -36,6 +36,9 @@ Then generate {{num_questions}} quiz questions.
 Generate {{num_questions}} quiz questions.
 {{/if}}
 
+Available dimensions for this subtopic (use dimension_id from this list):
+{{available_dimensions}}
+
 Return JSON:
 {
   "notes_summary": "...(if applicable, else null)",
@@ -49,7 +52,8 @@ Return JSON:
       "correct_answer": "a|b|c|d",
       "explanation": "Lead with the specific fact or concept that makes the correct option right (1–2 sentences). Then add one short sentence per wrong option explaining what is incorrect or misleading about it. Do NOT open with 'The answer is...' — lead straight with the fact.",
       "difficulty": "easy|medium|hard",
-      "subtopic_id": "{{subtopic_id}}"
+      "subtopic_id": "{{subtopic_id}}",
+      "dimension_id": "<pick from available_dimensions list above — always populate this field>"
     }
   ]
 }
