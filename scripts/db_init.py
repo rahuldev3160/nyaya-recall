@@ -63,6 +63,7 @@ def init_db():
         subject_id       TEXT,
         topic_id         TEXT,
         subtopic_id      TEXT,
+        dimension_id     TEXT,
         concept_expanded INTEGER DEFAULT 0,
         created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );

@@ -3,6 +3,7 @@ export interface QuizQuestion {
   options: string[];
   correct_answer: string;
   subtopic_id: string;
+  dimension_id: string | null;
   explanation: string;
 }
 

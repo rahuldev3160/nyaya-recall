@@ -73,8 +73,8 @@ def record_answer(session_id: str, answer: dict) -> None:
     con.execute("""
         INSERT INTO session_answers
         (session_id, question_hash, question_text, options, correct_answer,
-         user_answer, is_correct, time_taken_sec, skipped, subject_id, topic_id, subtopic_id)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+         user_answer, is_correct, time_taken_sec, skipped, subject_id, topic_id, subtopic_id, dimension_id)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
     """, (
         session_id,
         answer.get("question_hash"),
@@ -88,6 +88,7 @@ def record_answer(session_id: str, answer: dict) -> None:
         answer.get("subject_id"),
         answer.get("topic_id"),
         answer.get("subtopic_id"),
+        answer.get("dimension_id"),
     ))
     con.commit()
     con.close()
