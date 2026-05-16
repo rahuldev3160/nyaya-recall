@@ -77,6 +77,7 @@ These are ordered by impact. Pick from the top.
 |---|---------------|----------|-------------|--------|
 | 1 | ~~PYQ subtopic ID normalisation~~ | ~~P1~~ | ~~SHIPPED~~ | ~~`HANDOFF.md → P1`~~ |
 | 2 | ChromaDB content audit + re-ingestion | P1 | Unknown how much study material is actually indexed. Most quiz questions fall back to generic stubs. Audit per-subject coverage and re-ingest gaps. | `HANDOFF.md → P2` |
+| 2b | **User-editable daily plan** | P2 | After plan generation, let Rahul edit sessions inline: change format, duration, question count, difficulty; remove/reorder sessions; add a new session manually. Edits saved to `study_plan_user.json`; plan regeneration resets it. | [`plans/user_editable_plan.md`](plans/user_editable_plan.md) — IDEA-003 |
 | 3 | Timed mode enforcement | P1 | Add live countdown display to `time_boxed` mode. Auto-close session when timer hits 0 — saves questions answered so far, skips remainder. Currently time limit is collected but never enforced. ~2–3 hrs. | Session planning May 12 |
 | 4 | Open-ended quiz mode | P1 | New quiz mode: no fixed question count or time limit. "Save & Close" button after each answered/skipped question closes the session as complete with questions done so far (save-as-complete, not resume-later). ~3–4 hrs. | Session planning May 12 |
 | 5 | Session summaries backfill | P2 | Historical polity/economy `session_summaries.weak_subtopics` arrays are empty (computed before subtopic fix). `get_persistently_weak_subtopics()` can't see past session weakness patterns. | `HANDOFF.md → P3` |

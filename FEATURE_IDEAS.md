@@ -51,19 +51,39 @@ Claude picks it up at the next session start.
 
 *(Claude reviews these at session start and fills in the analysis block)*
 
-*(none)*
-
 ---
 
 ## Reviewed — Claude analysis written
 
 *(Ideas where analysis is complete. Viable ones get staged to FEATURES.md; others flagged.)*
 
+### IDEA-003 — User-editable daily plan (post-generation editing)
+**Logged:** 2026-05-16
+**Source:** terminal
+**Status:** Staged
+**Priority guess:** P2
+
+**What's the idea:**
+After the planner generates today's plan, the user can edit it before sessions are created: add/remove subtopics, delete irrelevant sessions, modify session duration, change session structure (e.g. questions-only vs notes-then-questions). User edits are recorded with a logical index. The edited plan (not the raw model output) is what drives the actual session generation via LLM call.
+
+**Why it matters:**
+The model-generated plan may not match what the user actually wants to study that day — maybe they already know some subtopics, or want to front-load harder material. Letting the user co-author the plan increases buy-in and accuracy, while still leveraging the AI recommendation as a starting point.
+
+---
+
+**[Claude] Recommendation:** Spec first
+**[Claude] Feasibility:** Yes — FastAPI + Next.js + file-based persistence. No new DB tables, no prompt changes, no score engine changes. Core mechanic: a sidecar `study_plan_user.json` file sits alongside the AI-generated plan; `GET /plan/today` prefers it; plan regeneration deletes it. Two new additive endpoints. Inline edit UI in the existing planner page.
+**[Claude] Impact on prep:** Medium-high. The AI plan is good but not always what Rahul wants that day. Letting him trim, reorder, or change formats without a full regeneration saves Sonnet cost, reduces friction, and increases the chance he actually follows the plan. With 5 days to the exam, having a plan that matches his actual available hours and energy is meaningful.
+**[Claude] Effort estimate:** ~7 hrs (1.75 hrs backend + 5 hrs frontend + 0.25 hrs api.ts)
+**[Claude] Verdict:** Viable, low-risk, additive-only. Spec written at `plans/user_editable_plan.md`. No approval gates triggered. One open design question for Rahul on subtopic picker scope before building.
+
 ---
 
 ## Staged — moved to FEATURES.md queue
 
 *(These ideas have been evaluated, accepted, and added to FEATURES.md 📋 Queued. Spec may exist in plans/.)*
+
+- **IDEA-003** — User-editable daily plan → `plans/user_editable_plan.md` → FEATURES.md Queued (P2)
 
 ---
 
@@ -99,4 +119,4 @@ Claude picks it up at the next session start.
 
 ---
 
-## Next IDEA number: 003
+## Next IDEA number: 004
