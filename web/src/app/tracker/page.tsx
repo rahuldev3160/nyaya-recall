@@ -2,6 +2,18 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
+interface TopicCoverage {
+  id: string;
+  name: string;
+  subtopics_total: number;
+  subtopics_tested: number;
+  coverage_pct: number;
+  readiness: number;
+  risk_level: "high" | "medium" | "low";
+  uncovered_subtopics_count: number;
+  at_risk_subtopics: string[];
+}
+
 interface SubjectTime {
   subject_id: string;
   total_min: number;
@@ -16,17 +28,26 @@ interface TimeStats {
   daily_breakdown: { date: string; total_min: number }[];
 }
 
+const riskBadge: Record<string, string> = {
+  high:   "text-red-400 bg-red-950 border border-red-800",
+  medium: "text-yellow-400 bg-yellow-950 border border-yellow-800",
+  low:    "text-green-400 bg-green-950 border border-green-800",
+};
+
 export default function TrackerPage() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [gaps, setGaps] = useState<any[]>([]);
   const [sar, setSar] = useState<any>(null);
   const [timeStats, setTimeStats] = useState<TimeStats | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
 
   useEffect(() => {
     api.getSubjects().then(setSubjects).catch(() => {});
     api.getGaps().then(setGaps).catch(() => {});
     api.getSar().then(setSar).catch(() => {});
     api.getTimeStats().then(setTimeStats).catch(() => {});
+    api.getProfile().then(setProfile).catch(() => {});
   }, []);
 
   const sarValue = typeof sar?.sar === "number" ? sar.sar : null;
@@ -160,25 +181,79 @@ export default function TrackerPage() {
           <p className="text-gray-500">No data yet — complete some quiz sessions first.</p>
         ) : (
           <div className="space-y-4">
-            {subjects.map((s) => (
-              <div key={s.subject_id}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-300">{s.subject_id.replace(/_/g, " ")}</span>
-                  <span className="text-gray-400">
-                    {Math.round(s.avg_score ?? 0)}% · {s.subtopics_assessed ?? 0} subtopics
-                  </span>
+            {subjects.map((s) => {
+              const topics: TopicCoverage[] = profile?.subjects?.[s.subject_id]?.topics ?? [];
+              const isExpanded = expandedSubject === s.subject_id;
+              return (
+                <div key={s.subject_id}>
+                  <button
+                    className="w-full text-left"
+                    onClick={() => setExpandedSubject(isExpanded ? null : s.subject_id)}
+                  >
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-300 flex items-center gap-1">
+                        {s.subject_id.replace(/_/g, " ")}
+                        {topics.length > 0 && (
+                          <span className="text-gray-600 text-xs">{isExpanded ? "▲" : "▼"}</span>
+                        )}
+                      </span>
+                      <span className="text-gray-400">
+                        {Math.round(s.avg_score ?? 0)}% · {s.subtopics_assessed ?? 0} subtopics
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          (s.avg_score ?? 0) >= 75 ? "bg-green-500" :
+                          (s.avg_score ?? 0) >= 50 ? "bg-amber-500" : "bg-red-500"
+                        }`}
+                        style={{ width: `${s.avg_score ?? 0}%` }}
+                      />
+                    </div>
+                  </button>
+
+                  {isExpanded && topics.length > 0 && (
+                    <div className="mt-3 ml-2 space-y-2 border-l border-gray-800 pl-3">
+                      {topics.map((t) => (
+                        <div key={t.id}>
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-gray-400">{t.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600">
+                                {t.subtopics_tested}/{t.subtopics_total}
+                              </span>
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${riskBadge[t.risk_level]}`}>
+                                {t.risk_level.toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                t.coverage_pct >= 80 ? "bg-green-600" :
+                                t.coverage_pct >= 50 ? "bg-amber-600" : "bg-red-700"
+                              }`}
+                              style={{ width: `${t.coverage_pct}%` }}
+                            />
+                          </div>
+                          {t.at_risk_subtopics.length > 0 && (
+                            <p className="text-[10px] text-red-800 mt-0.5 truncate">
+                              At risk: {t.at_risk_subtopics.slice(0, 3).join(", ").replace(/_/g, " ")}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {isExpanded && topics.length === 0 && (
+                    <p className="text-xs text-gray-600 mt-2 ml-2">
+                      Run Sync to generate topic breakdown.
+                    </p>
+                  )}
                 </div>
-                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${
-                      (s.avg_score ?? 0) >= 75 ? "bg-green-500" :
-                      (s.avg_score ?? 0) >= 50 ? "bg-amber-500" : "bg-red-500"
-                    }`}
-                    style={{ width: `${s.avg_score ?? 0}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

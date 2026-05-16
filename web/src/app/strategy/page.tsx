@@ -14,6 +14,9 @@ interface SubjectTrajectory {
   daily_target: number;
   risk_level: "high" | "medium" | "low";
   top_priority_untested: string[];
+  topics_total: number;
+  uncovered_topics_count: number;
+  at_risk_topics_count: number;
 }
 
 interface TrajectoryData {
@@ -155,6 +158,23 @@ export default function StrategyPage() {
                     </span>
                     <span>{s.readiness_pct}% ready</span>
                   </div>
+                  {s.topics_total > 0 && (
+                    <div className="text-xs text-gray-600">
+                      {s.uncovered_topics_count > 0 ? (
+                        <span className="text-orange-700">
+                          {s.uncovered_topics_count}/{s.topics_total} topics not started
+                          {s.at_risk_topics_count > 0 && ` · ${s.at_risk_topics_count} at risk`}
+                        </span>
+                      ) : (
+                        <span className="text-green-800">
+                          All {s.topics_total} topics started
+                          {s.at_risk_topics_count > 0 && (
+                            <span className="text-orange-700"> · {s.at_risk_topics_count} at risk</span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {s.subtopics_remaining > 0 && (
                     <p className="text-xs text-gray-600">
                       {s.subtopics_remaining} remaining · need {s.daily_target}/day

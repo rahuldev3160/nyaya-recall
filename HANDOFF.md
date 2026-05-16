@@ -35,7 +35,23 @@ Each subject now has a `topics[]` array with: `id`, `name`, `subtopics_total`, `
 - The plan generator passes `untested_by_topic` to Claude as context — Claude still decides the final schedule. Rule 9 is a prompt constraint, not enforced deterministically (Phase 6 could add a validation layer).
 - Phase 4 (topic coverage UI on Tracker/Strategy pages) is next.
 
-**Branch:** `feature/topic-balanced-planning` — PR pending.
+**Branch:** `feature/topic-balanced-planning` — merged as PR #20.
+
+---
+
+### FEATURE-028 Phase 4 — Topic coverage UI (Tracker + Strategy) — 2026-05-16
+
+**What changed:**
+- `backend/routes/plan.py` — `get_trajectory()` now includes `topics_total`, `uncovered_topics_count`, `at_risk_topics_count` per subject (sourced from `prep_profile.json` topics[]).
+- `web/src/app/strategy/page.tsx` — Each subject card now shows a topic subtitle line: "3/9 topics not started · 2 at risk" (orange) or "All 9 topics started · 2 at risk". Zero backend fetches added — uses existing trajectory response.
+- `web/src/app/tracker/page.tsx` — Subject Scores section now has clickable accordion per subject. Click to expand → per-topic rows with: topic name, tested/total count, mini coverage bar (green/amber/red), risk badge (HIGH/MEDIUM/LOW), at-risk subtopic list. Fetches `api.getProfile()` for topic data (populated after Sync).
+
+**Watch-outs:**
+- Topic accordion in Tracker shows "Run Sync to generate topic breakdown" if topics[] is empty (profile hasn't been synced yet since Phase 2 was merged).
+- Topics data in profile is only as fresh as the last Sync — not live-updated on quiz completion.
+- TypeScript: 0 errors. Lint: clean.
+
+**Branch:** `feature/topic-coverage-ui` — PR pending.
 
 ---
 

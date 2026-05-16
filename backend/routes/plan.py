@@ -129,6 +129,10 @@ def get_trajectory():
         if risk_level == "high" or (remaining > 0 and coverage_pct < 50):
             at_risk_subjects.append(name)
 
+        topics = s.get("topics", [])
+        uncovered_topics = sum(1 for t in topics if t.get("coverage_pct", 0) == 0)
+        at_risk_topics   = sum(1 for t in topics if t.get("risk_level") == "high")
+
         subject_list.append({
             "id": subj_id,
             "name": name,
@@ -140,6 +144,9 @@ def get_trajectory():
             "daily_target": daily_target,
             "risk_level": risk_level,
             "top_priority_untested": weak[:5],
+            "topics_total": len(topics),
+            "uncovered_topics_count": uncovered_topics,
+            "at_risk_topics_count": at_risk_topics,
         })
 
     today_sessions_count = 0
