@@ -46,6 +46,8 @@ const notesMarkdownComponents: Partial<Components> = {
 };
 
 type UserNotesState = { confusion: string; mnemonic: string; still_weak: boolean };
+// Per-question note map keyed by question_hash → {note_text, still_weak}
+type QuestionNote = { note_text: string; still_weak: boolean };
 type SyllabusSubject = { id: string; name: string; topics: SyllabusTopic[] };
 type SyllabusTopic   = { id: string; name: string; subtopics: SyllabusSubtopic[] };
 type SyllabusSubtopic = { id: string; name: string; dimensions: string[] };
@@ -75,11 +77,14 @@ export default function SessionPage() {
     mnemonic: "",
     still_weak: false,
   });
-  // Per-question note text keyed by question index
+  // Per-question note text keyed by question index (legacy — kept for backward compat)
   const [perQuestionNotes, setPerQuestionNotes] = useState<Record<number, string>>({});
+  // Per-question notes keyed by question_hash (ISSUE-017: new question_notes table)
+  const [questionNotesMap, setQuestionNotesMap] = useState<Record<string, QuestionNote>>({});
   const notesDirty = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const perQuestionSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const qnSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restoredRef = useRef(false);
 
   const [notesExplainLoading, setNotesExplainLoading] = useState(false);
@@ -224,6 +229,9 @@ export default function SessionPage() {
     setNotesExplainText(null);
     setNotesExplainErr(null);
     setPerQuestionNotes({});
+    setQuestionNotesMap({});
+
+    // Load session-level notes (backward compat)
     api
       .getUserNotes(quiz.session_id)
       .then((d) => {
@@ -232,13 +240,26 @@ export default function SessionPage() {
           mnemonic: d.mnemonic || "",
           still_weak: !!d.still_weak,
         });
-        // Load per-question notes returned by the backend (keyed by string index)
         if (d.per_question_notes && typeof d.per_question_notes === "object") {
           const loaded: Record<number, string> = {};
           for (const [k, v] of Object.entries(d.per_question_notes)) {
             loaded[parseInt(k)] = (v as string) || "";
           }
           setPerQuestionNotes(loaded);
+        }
+      })
+      .catch(() => {});
+
+    // Load per-question notes from new question_notes table (ISSUE-017)
+    api
+      .getQuestionNotes(quiz.session_id)
+      .then((d: { notes: Array<{ question_hash: string; question_index: number; note_text: string; still_weak: boolean }> }) => {
+        if (Array.isArray(d.notes)) {
+          const map: Record<string, QuestionNote> = {};
+          for (const n of d.notes) {
+            map[n.question_hash] = { note_text: n.note_text || "", still_weak: !!n.still_weak };
+          }
+          setQuestionNotesMap(map);
         }
       })
       .catch(() => {});
@@ -275,6 +296,7 @@ export default function SessionPage() {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       if (perQuestionSaveTimer.current) clearTimeout(perQuestionSaveTimer.current);
+      if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
     };
   }, []);
 
@@ -324,6 +346,7 @@ export default function SessionPage() {
     setRevisionNotes(null);
     setRevisionLoading(false);
     setPerQuestionNotes({});
+    setQuestionNotesMap({});
     try {
       const data = await api.generateQuiz({
         subject_id: session.subject_id,
@@ -369,9 +392,35 @@ export default function SessionPage() {
     }).catch(() => {});
   };
 
+  const flushCurrentQuestionNote = async () => {
+    if (!quiz?.session_id || activeSession === null) return;
+    const s = plan?.sessions?.[activeSession];
+    if (!s?.subtopic_id) return;
+    const q = quiz.questions[currentQ];
+    if (!q) return;
+    const qHash = q.question_hash ?? `${quiz.session_id}_${currentQ}`;
+    const qNote = questionNotesMap[qHash];
+    if (!qNote && !perQuestionNotes[currentQ]) return;
+    const noteText = qNote?.note_text ?? perQuestionNotes[currentQ] ?? "";
+    const stillWeak = qNote?.still_weak ?? false;
+    if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
+    try {
+      await api.putQuestionNote(quiz.session_id, qHash, {
+        question_index: currentQ,
+        subtopic_id: s.subtopic_id,
+        subject_id: s.subject_id ?? "",
+        note_text: noteText,
+        still_weak: stillWeak,
+      });
+    } catch {
+      /* ignore */
+    }
+  };
+
   const finishSession = async () => {
     if (!quiz) return;
     try { localStorage.removeItem(ACTIVE_QUIZ_KEY); } catch {}
+    await flushCurrentQuestionNote();
     await flushUserNotes();
     try {
       await api.closeSession(quiz.session_id);
@@ -505,6 +554,7 @@ export default function SessionPage() {
               setActiveSession(null);
               setRevisionNotes(null);
               setPerQuestionNotes({});
+              setQuestionNotesMap({});
             }}
             className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg text-sm"
           >
@@ -826,34 +876,75 @@ export default function SessionPage() {
             </p>
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
               <label className="block space-y-1">
-                <span className="text-xs font-medium text-amber-400">Note for Q{currentQ + 1}</span>
+                <span className="text-xs font-medium text-amber-400">Note for Q{currentQ + 1} — {sessionMeta?.subtopic_id?.replace(/_/g, " ") ?? ""}</span>
                 <textarea
-                  value={perQuestionNotes[currentQ] ?? ""}
+                  value={(() => {
+                    const qHash = quiz?.questions?.[currentQ]?.question_hash ?? `${quiz?.session_id}_${currentQ}`;
+                    return questionNotesMap[qHash]?.note_text ?? perQuestionNotes[currentQ] ?? "";
+                  })()}
                   onChange={(e) => {
                     const val = e.target.value;
+                    const qHash = quiz?.questions?.[currentQ]?.question_hash ?? `${quiz?.session_id}_${currentQ}`;
+                    setQuestionNotesMap((prev) => ({
+                      ...prev,
+                      [qHash]: { note_text: val, still_weak: prev[qHash]?.still_weak ?? false },
+                    }));
+                    // Keep legacy perQuestionNotes in sync for backward compat
                     setPerQuestionNotes((prev) => ({ ...prev, [currentQ]: val }));
-                    notesDirty.current = true;
-                    // Debounced autosave for per-question note
-                    if (perQuestionSaveTimer.current) clearTimeout(perQuestionSaveTimer.current);
-                    perQuestionSaveTimer.current = setTimeout(() => {
+                    // Debounced autosave via new question_notes endpoint (ISSUE-017)
+                    if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
+                    qnSaveTimer.current = setTimeout(() => {
                       if (!quiz?.session_id || activeSession === null) return;
                       const s = plan?.sessions?.[activeSession];
                       if (!s?.subtopic_id) return;
-                      api.putUserNotes(quiz.session_id, {
+                      const stillWeak = questionNotesMap[qHash]?.still_weak ?? false;
+                      api.putQuestionNote(quiz.session_id, qHash, {
+                        question_index: currentQ,
                         subtopic_id: s.subtopic_id,
                         subject_id: s.subject_id ?? "",
-                        confusion: userNotes.confusion,
-                        mnemonic: userNotes.mnemonic,
-                        still_weak: userNotes.still_weak,
-                        question_context_index: currentQ,
                         note_text: val,
-                      }).then(() => { notesDirty.current = false; }).catch(() => {});
+                        still_weak: stillWeak,
+                      }).catch(() => {});
                     }, 700);
                   }}
                   rows={4}
                   className="w-full rounded-lg border border-amber-800/60 bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600"
-                  placeholder="Note for this question — clears when you move to the next one, reloads when you come back…"
+                  placeholder="Note for this question — autosaves. Reloads when you come back to this question."
                 />
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer mt-1">
+                <input
+                  type="checkbox"
+                  checked={(() => {
+                    const qHash = quiz?.questions?.[currentQ]?.question_hash ?? `${quiz?.session_id}_${currentQ}`;
+                    return questionNotesMap[qHash]?.still_weak ?? false;
+                  })()}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const qHash = quiz?.questions?.[currentQ]?.question_hash ?? `${quiz?.session_id}_${currentQ}`;
+                    setQuestionNotesMap((prev) => ({
+                      ...prev,
+                      [qHash]: { note_text: prev[qHash]?.note_text ?? "", still_weak: checked },
+                    }));
+                    // Debounced save for still_weak flag
+                    if (qnSaveTimer.current) clearTimeout(qnSaveTimer.current);
+                    qnSaveTimer.current = setTimeout(() => {
+                      if (!quiz?.session_id || activeSession === null) return;
+                      const s = plan?.sessions?.[activeSession];
+                      if (!s?.subtopic_id) return;
+                      const noteText = questionNotesMap[qHash]?.note_text ?? perQuestionNotes[currentQ] ?? "";
+                      api.putQuestionNote(quiz.session_id, qHash, {
+                        question_index: currentQ,
+                        subtopic_id: s.subtopic_id,
+                        subject_id: s.subject_id ?? "",
+                        note_text: noteText,
+                        still_weak: checked,
+                      }).catch(() => {});
+                    }, 700);
+                  }}
+                  className="rounded border-gray-600 bg-gray-900"
+                />
+                <span className="text-xs text-amber-300">Still weak on this question — flag for next plan</span>
               </label>
               <label className="block space-y-1">
                 <span className="text-xs font-medium text-gray-400">What feels unclear? (session-level)</span>

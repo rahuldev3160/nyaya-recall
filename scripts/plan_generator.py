@@ -154,10 +154,17 @@ def compute_subtopic_coverage() -> dict:
 
 def fetch_user_notes_signals() -> list[dict]:
     """
-    Recent parallel session notes (per quiz session), for plan personalisation.
+    Recent per-session and per-question notes, for plan personalisation.
+
+    Sources (additive — both are read, legacy table preserved for backward compat):
+    1. session_user_notes — original session-level notes blob
+    2. question_notes (ISSUE-017) — per-question notes, only rows with still_weak=1
     """
+    con = sqlite3.connect(DB_PATH)
+    out: list[dict] = []
+
+    # Source 1: legacy session-level notes
     try:
-        con = sqlite3.connect(DB_PATH)
         rows = con.execute(
             """
             SELECT subtopic_id, confusion, mnemonic, still_weak, updated_at
@@ -167,23 +174,50 @@ def fetch_user_notes_signals() -> list[dict]:
             LIMIT 24
             """
         ).fetchall()
-        con.close()
+        for sub, conf, mnem, weak, upd in rows:
+            if not sub:
+                continue
+            out.append(
+                {
+                    "subtopic_id": sub,
+                    "confusion_excerpt": (conf or "")[:450],
+                    "mnemonic_excerpt": (mnem or "")[:220],
+                    "still_weak": bool(weak),
+                    "updated_at": upd,
+                    "source": "session_user_notes",
+                }
+            )
     except sqlite3.OperationalError:
-        return []
+        pass
 
-    out: list[dict] = []
-    for sub, conf, mnem, weak, upd in rows:
-        if not sub:
-            continue
-        out.append(
-            {
-                "subtopic_id": sub,
-                "confusion_excerpt": (conf or "")[:450],
-                "mnemonic_excerpt": (mnem or "")[:220],
-                "still_weak": bool(weak),
-                "updated_at": upd,
-            }
-        )
+    # Source 2: per-question notes flagged still_weak (ISSUE-017 question_notes table)
+    try:
+        qrows = con.execute(
+            """
+            SELECT subtopic_id, note_text, updated_at
+            FROM question_notes
+            WHERE user_id='user_1' AND still_weak=1
+            ORDER BY updated_at DESC
+            LIMIT 24
+            """
+        ).fetchall()
+        for sub, note, upd in qrows:
+            if not sub:
+                continue
+            out.append(
+                {
+                    "subtopic_id": sub,
+                    "confusion_excerpt": (note or "")[:450],
+                    "mnemonic_excerpt": "",
+                    "still_weak": True,
+                    "updated_at": upd,
+                    "source": "question_notes",
+                }
+            )
+    except sqlite3.OperationalError:
+        pass
+
+    con.close()
     return out
 
 

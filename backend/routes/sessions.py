@@ -384,6 +384,121 @@ def get_session(session_id: str):
     return {"session": dict(session), "answers": [dict(a) for a in answers]}
 
 
+def _ensure_question_notes_table_v2(con: sqlite3.Connection) -> None:
+    """Create the ISSUE-017 question_notes table if it does not exist. Additive only."""
+    con.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS question_notes (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id         TEXT    NOT NULL DEFAULT 'user_1',
+            session_id      TEXT    NOT NULL,
+            question_hash   TEXT    NOT NULL,
+            question_index  INTEGER NOT NULL,
+            subtopic_id     TEXT    NOT NULL,
+            subject_id      TEXT    NOT NULL,
+            note_text       TEXT    DEFAULT '',
+            still_weak      INTEGER DEFAULT 0,
+            updated_at      TEXT    DEFAULT (datetime('now')),
+            UNIQUE(session_id, question_hash)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_qn_session  ON question_notes(session_id);
+        CREATE INDEX IF NOT EXISTS idx_qn_subtopic ON question_notes(subtopic_id, still_weak);
+        CREATE INDEX IF NOT EXISTS idx_qn_qhash    ON question_notes(question_hash);
+        """
+    )
+    con.commit()
+
+
+@router.put("/{session_id}/question-notes/{question_hash}")
+def put_question_note(session_id: str, question_hash: str, body: dict):
+    """
+    Upsert a per-question note (ISSUE-017 Phase 1).
+    Called on 700 ms debounce from the note textarea — pure DB write, no AI calls.
+    """
+    subtopic_id = (body.get("subtopic_id") or "").strip()
+    subject_id = (body.get("subject_id") or "").strip()
+    note_text = str(body.get("note_text") or "")[:8000]
+    still_weak = 1 if body.get("still_weak") else 0
+
+    try:
+        question_index = int(body.get("question_index", 0))
+    except (TypeError, ValueError):
+        question_index = 0
+
+    if not subtopic_id:
+        raise HTTPException(status_code=400, detail="subtopic_id required")
+
+    now = datetime.now(timezone.utc).isoformat()
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    _ensure_question_notes_table_v2(con)
+
+    exists = con.execute("SELECT 1 FROM quiz_sessions WHERE id=?", (session_id,)).fetchone()
+    if not exists:
+        con.close()
+        raise HTTPException(status_code=404, detail="quiz session not found")
+
+    con.execute(
+        """
+        INSERT INTO question_notes
+            (user_id, session_id, question_hash, question_index, subtopic_id, subject_id,
+             note_text, still_weak, updated_at)
+        VALUES ('user_1', ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(session_id, question_hash) DO UPDATE SET
+            note_text    = excluded.note_text,
+            still_weak   = excluded.still_weak,
+            updated_at   = excluded.updated_at
+        """,
+        (
+            session_id,
+            question_hash,
+            question_index,
+            subtopic_id,
+            subject_id,
+            note_text,
+            still_weak,
+            now,
+        ),
+    )
+    con.commit()
+    con.close()
+    return {"status": "saved"}
+
+
+@router.get("/{session_id}/question-notes")
+def get_question_notes(session_id: str):
+    """
+    Return all per-question notes for a session (ISSUE-017 Phase 1).
+    Frontend calls this on session start to pre-populate note textareas.
+    """
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    _ensure_question_notes_table_v2(con)
+
+    rows = con.execute(
+        """
+        SELECT question_hash, question_index, note_text, still_weak
+        FROM question_notes
+        WHERE session_id=? AND user_id='user_1'
+        ORDER BY question_index
+        """,
+        (session_id,),
+    ).fetchall()
+    con.close()
+
+    notes = [
+        {
+            "question_hash": r["question_hash"],
+            "question_index": r["question_index"],
+            "note_text": r["note_text"] or "",
+            "still_weak": bool(r["still_weak"]),
+        }
+        for r in rows
+    ]
+    return {"notes": notes}
+
+
 @router.post("/import")
 def import_session(data: dict):
     """Import a session exported from phone (offline HTML export)."""
