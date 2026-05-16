@@ -76,10 +76,10 @@ These are ordered by impact. Pick from the top.
 | # | Feature / Fix | Priority | Description | Source |
 |---|---------------|----------|-------------|--------|
 | 1 | ~~PYQ subtopic ID normalisation~~ | ~~P1~~ | ~~SHIPPED~~ | ~~`HANDOFF.md → P1`~~ |
-| 2 | ChromaDB content audit + re-ingestion | P1 | Unknown how much study material is actually indexed. Most quiz questions fall back to generic stubs. Audit per-subject coverage and re-ingest gaps. | `HANDOFF.md → P2` |
-| 3 | Timed mode enforcement | P1 | Add live countdown display to `time_boxed` mode. Auto-close session when timer hits 0 — saves questions answered so far, skips remainder. Currently time limit is collected but never enforced. ~2–3 hrs. | Session planning May 12 |
-| 4 | Open-ended quiz mode | P1 | New quiz mode: no fixed question count or time limit. "Save & Close" button after each answered/skipped question closes the session as complete with questions done so far (save-as-complete, not resume-later). ~3–4 hrs. | Session planning May 12 |
-| 5 | Session summaries backfill | P2 | Historical polity/economy `session_summaries.weak_subtopics` arrays are empty (computed before subtopic fix). `get_persistently_weak_subtopics()` can't see past session weakness patterns. | `HANDOFF.md → P3` |
+| 2 | ChromaDB content audit + re-ingestion | P1 | Script written (`scripts/check_chroma_coverage.py`, PR #10) but **never run**. Coverage per subject is unknown. Quiz still falls back to Claude training knowledge for uncovered subtopics. Run script, then re-run `scripts/ingest.py` for thin/missing subjects. | `HANDOFF.md → P2` |
+| 3 | ~~Timed mode enforcement~~ | ~~P1~~ | ~~SHIPPED~~ | ~~PR #29~~ |
+| 4 | ~~Open-ended quiz mode~~ | ~~P1~~ | ~~SHIPPED~~ | ~~PR #29~~ |
+| 5 | Session summaries backfill | P2 | Script written (`scripts/backfill_session_summaries.py`, PR #7) but **never run**. Historical `session_summaries.weak_subtopics` arrays still `[]` — `get_persistently_weak_subtopics()` blind to past data. One command: `python3 scripts/backfill_session_summaries.py`. | PR #7 merged — execution pending |
 | 6 | Question deduplication | P2 | No mechanism to prevent same question appearing in two sessions. `question_hash` column exists but unused for filtering. | `HANDOFF.md → P4` |
 | 7 | Streak + daily time dashboard widget | P2 | Dashboard widget showing: consecutive days studied (streak), today's session count, and total study minutes today and this week. Derivable from session timestamps — no new DB columns needed. | [`plans/streak_tracker.md`](plans/streak_tracker.md) |
 | 8 | Quiz mode UX rename | P2 | Rename `fixed_set` → "Practice Set", `time_boxed` → "Timed Quiz", add "Open Practice" for the open-ended mode. Restructure the mode selector to be self-explanatory. ~1 hr UI only. | Session planning May 12 |
