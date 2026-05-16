@@ -84,7 +84,13 @@ export default function SessionPage() {
   const [notesExplainErr, setNotesExplainErr] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getPlan().then(setPlan).catch(() => {});
+    api.getPlan().then((data: any) => {
+      // Strip any CSAT sessions — CSAT has its own separate flow at /csat
+      if (data?.sessions) {
+        data = { ...data, sessions: data.sessions.filter((s: any) => s.subject_id !== "csat") };
+      }
+      setPlan(data);
+    }).catch(() => {});
     // API is authoritative — always overwrite with server state so stale localStorage never wins
     api.getPlanStatus()
       .then((s: { completed_subtopics: string[] }) => {

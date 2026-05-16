@@ -1,3 +1,24 @@
+# HANDOFF.md — Dev Session Update (May 16, 2026) — CSAT Separation Fix
+
+### fix/csat-separation — Complete CSAT separation from GS1 prep tracking — 2026-05-16
+
+**What changed:**
+- `scripts/plan_generator.py` — Added post-generation CSAT filter in `generate_plan()`: after Claude returns the plan JSON, any session with `subject_id == "csat"` is stripped before writing to `study_plan.json`. Prints a warning if sessions were removed. `compute_subtopic_coverage()` already excluded CSAT via `_EXCLUDED_SUBJECTS` (unchanged).
+- `backend/routes/plan.py` — Added `_filter_csat_sessions()` helper. Applied to `GET /plan/today`, `GET /plan/today-status`, and the `today_sessions_count` in `GET /plan/trajectory`. Prevents any CSAT session from leaking into the GS1 plan views even if the plan file was generated before this fix.
+- `backend/routes/tracker.py` — Added `AND subject_id != 'csat'` filter to `GET /tracker/subjects` and `GET /tracker/gaps` SQL queries. CSAT sessions recorded via the separate `/csat` flow will no longer appear in the GS1 tracker.
+- `web/src/app/tracker/page.tsx` — Frontend safety net: filters `subject_id !== "csat"` from subjects, gaps, and time-by-subject data after API fetch.
+- `web/src/app/session/page.tsx` — Filters CSAT sessions from plan data after `api.getPlan()` fetch.
+- `web/src/app/page.tsx` — Added `filterPlan()` helper; applied to `api.getPlan()` calls in both the initial load `useEffect` and `handleSync`.
+
+**Watch-outs:**
+- No DB changes. No schema changes. No destructive operations.
+- `scripts/batch_analyse.py` already excluded CSAT via `_EXCLUDED = {"csat"}` in `_build_syllabus_map()` — no change needed there.
+- CSAT's own routes (`backend/routes/csat.py`) and pages (`web/src/app/csat/`) are completely untouched.
+
+**Branch:** `fix/csat-separation` — PR open.
+
+---
+
 # HANDOFF.md — Dev Session Update (May 16, 2026) — Phase 2
 
 ### FEATURE-028 Phase 2 — Topic-level coverage in batch_analyse.py — 2026-05-16

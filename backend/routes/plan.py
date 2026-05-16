@@ -14,13 +14,27 @@ router = APIRouter()
 PLAN_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
 DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 
+# CSAT is a fully separate system — never mix it into GS1 plan views
+_CSAT_SUBJECT_ID = "csat"
+
+
+def _filter_csat_sessions(plan: dict) -> dict:
+    """Remove any CSAT sessions from a plan dict. CSAT has its own route at /csat."""
+    sessions = plan.get("sessions", [])
+    filtered = [s for s in sessions if s.get("subject_id", "").lower() != _CSAT_SUBJECT_ID]
+    if len(filtered) != len(sessions):
+        plan = dict(plan)
+        plan["sessions"] = filtered
+    return plan
+
 
 @router.get("/today")
 def get_plan():
     if not PLAN_PATH.exists():
         return {"message": "No plan yet. Click 'Plan Today' to generate."}
     try:
-        return json.loads(PLAN_PATH.read_text())
+        plan = json.loads(PLAN_PATH.read_text())
+        return _filter_csat_sessions(plan)
     except Exception:
         return {"message": "Plan file is corrupted. Generate a new one."}
 
@@ -32,6 +46,7 @@ def get_plan_status():
         return {"completed_subtopics": []}
     try:
         plan = json.loads(PLAN_PATH.read_text())
+        plan = _filter_csat_sessions(plan)
     except Exception:
         return {"completed_subtopics": []}
 
@@ -152,7 +167,7 @@ def get_trajectory():
     today_sessions_count = 0
     if PLAN_PATH.exists():
         try:
-            plan = json.loads(PLAN_PATH.read_text())
+            plan = _filter_csat_sessions(json.loads(PLAN_PATH.read_text()))
             today_sessions_count = len(plan.get("sessions", []))
         except Exception:
             pass
