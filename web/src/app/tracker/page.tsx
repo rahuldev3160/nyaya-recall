@@ -43,10 +43,17 @@ export default function TrackerPage() {
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getSubjects().then(setSubjects).catch(() => {});
-    api.getGaps().then(setGaps).catch(() => {});
+    // Filter out CSAT — it's a completely separate system at /csat
+    api.getSubjects().then((data: any[]) => setSubjects(data.filter((s) => s.subject_id !== "csat"))).catch(() => {});
+    api.getGaps().then((data: any[]) => setGaps(data.filter((g) => g.subject_id !== "csat"))).catch(() => {});
     api.getSar().then(setSar).catch(() => {});
-    api.getTimeStats().then(setTimeStats).catch(() => {});
+    api.getTimeStats().then((data: TimeStats) => {
+      // Filter CSAT from time-by-subject breakdown
+      const filtered: TimeStats = data?.by_subject
+        ? { ...data, by_subject: data.by_subject.filter((s) => s.subject_id !== "csat") }
+        : data;
+      setTimeStats(filtered);
+    }).catch(() => {});
     api.getProfile().then(setProfile).catch(() => {});
   }, []);
 

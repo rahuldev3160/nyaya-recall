@@ -266,8 +266,22 @@ def generate_plan(available_hours: float | None = None) -> dict:
     plan["days_remaining"] = remaining
     plan["total_days"] = total_days
 
+    # Safety filter: strip any CSAT sessions Claude may have included.
+    # CSAT is a completely separate system with its own flow at /csat.
+    sessions_before = plan.get("sessions", [])
+    sessions_after = [s for s in sessions_before if s.get("subject_id", "").lower() != "csat"]
+    if len(sessions_after) < len(sessions_before):
+        removed = len(sessions_before) - len(sessions_after)
+        print(f"  ⚠ Stripped {removed} CSAT session(s) from plan — CSAT is a separate system.")
+        plan["sessions"] = sessions_after
+
     PLAN_PATH.parent.mkdir(parents=True, exist_ok=True)
     PLAN_PATH.write_text(json.dumps(plan, indent=2))
+    # Clear any user-edited plan so the fresh AI plan takes over
+    user_plan_path = PLAN_PATH.parent / "study_plan_user.json"
+    if user_plan_path.exists():
+        user_plan_path.unlink()
+        print("🗑️  Cleared user-edited plan — fresh AI plan is now active.")
     print(f"✅ Plan generated for Day {day_number}/{total_days}. Sessions: {len(plan.get('sessions', []))}")
     return plan
 

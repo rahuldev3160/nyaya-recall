@@ -50,6 +50,8 @@
 | **FEATURE-027: Dimension-aware subtopic coverage (all phases)** | P1 | 205 subtopics × 4–8 testable dimensions in syllabus.json; quiz labels dimension_id per question; session_answers stores dimension_id; subtopic_dimension_scores table tracks per-dimension accuracy; batch_analyse uses dimension-weighted readiness with fallback to subtopic scores | Shipped May 16 (PRs #22–28) |
 | **Timed mode enforcement** | P1 | Live countdown in Timed Quiz mode; auto-close on expiry submitting all unreached questions as skipped; server-side expiry guard in sessions.py (409 on stale submit, auto-close on get_session) | Shipped May 16 (PR #29) |
 | **Open-ended quiz mode ("Open Practice")** | P1 | No upfront count — 10-question lazy-load buffer, +8 more when <2 remain, Save & Close after each revealed answer; UX rename: Practice Set / Timed Quiz / Open Practice | Shipped May 16 (PR #29) |
+| **ChromaDB coverage audit** | P1 | Ran `check_chroma_coverage.py` — 11,146 chunks, all 9 GS subjects healthy. CSAT excluded (separate system). No re-ingestion needed. | Resolved May 16 |
+| **Session summaries backfill** | P2 | Ran `scripts/backfill_session_summaries.py` — 17 historical sessions processed. All had neutral-zone accuracy (45–75%), correctly producing `weak=[]` and `strong=[]`. `get_persistently_weak_subtopics()` in batch_analyse.py is now unblocked for future sessions. | Shipped May 16 (PR #7) |
 
 ---
 
@@ -76,11 +78,11 @@ These are ordered by impact. Pick from the top.
 | # | Feature / Fix | Priority | Description | Source |
 |---|---------------|----------|-------------|--------|
 | 1 | ~~PYQ subtopic ID normalisation~~ | ~~P1~~ | ~~SHIPPED~~ | ~~`HANDOFF.md → P1`~~ |
-| 2 | ChromaDB content audit + re-ingestion | P1 | Unknown how much study material is actually indexed. Most quiz questions fall back to generic stubs. Audit per-subject coverage and re-ingest gaps. | `HANDOFF.md → P2` |
-| 2b | **User-editable daily plan** | P2 | After plan generation, let Rahul edit sessions inline: change format, duration, question count, difficulty; remove/reorder sessions; add a new session manually. Edits saved to `study_plan_user.json`; plan regeneration resets it. | [`plans/user_editable_plan.md`](plans/user_editable_plan.md) — IDEA-003 |
-| 3 | Timed mode enforcement | P1 | Add live countdown display to `time_boxed` mode. Auto-close session when timer hits 0 — saves questions answered so far, skips remainder. Currently time limit is collected but never enforced. ~2–3 hrs. | Session planning May 12 |
-| 4 | Open-ended quiz mode | P1 | New quiz mode: no fixed question count or time limit. "Save & Close" button after each answered/skipped question closes the session as complete with questions done so far (save-as-complete, not resume-later). ~3–4 hrs. | Session planning May 12 |
-| 5 | Session summaries backfill | P2 | Historical polity/economy `session_summaries.weak_subtopics` arrays are empty (computed before subtopic fix). `get_persistently_weak_subtopics()` can't see past session weakness patterns. | `HANDOFF.md → P3` |
+| 2 | ~~ChromaDB content audit + re-ingestion~~ | ~~P1~~ | ~~AUDITED May 16: 11,146 chunks across 9 GS subjects — all healthy. ir_governance lowest at 320 chunks (above threshold). CSAT has 0 chunks (intentional — separate system). No re-ingestion needed.~~ | ~~Resolved May 16~~ |
+| 2b | ~~User-editable daily plan~~ | ~~P2~~ | ~~SHIPPED — Rahul can edit sessions inline before starting; edits saved to `study_plan_user.json`; delta log persists what Claude suggested vs what was changed.~~ | ~~PR #32 — Spec: [`plans/user_editable_plan.md`](plans/user_editable_plan.md)~~ |
+| 3 | ~~Timed mode enforcement~~ | ~~P1~~ | ~~SHIPPED~~ | ~~PR #29~~ |
+| 4 | ~~Open-ended quiz mode~~ | ~~P1~~ | ~~SHIPPED~~ | ~~PR #29~~ |
+| 5 | ~~Session summaries backfill~~ | ~~P2~~ | ~~SHIPPED~~ | ~~PR #7 — executed May 16~~ |
 | 6 | Question deduplication | P2 | No mechanism to prevent same question appearing in two sessions. `question_hash` column exists but unused for filtering. | `HANDOFF.md → P4` |
 | 7 | Streak + daily time dashboard widget | P2 | Dashboard widget showing: consecutive days studied (streak), today's session count, and total study minutes today and this week. Derivable from session timestamps — no new DB columns needed. | [`plans/streak_tracker.md`](plans/streak_tracker.md) |
 | 8 | Quiz mode UX rename | P2 | Rename `fixed_set` → "Practice Set", `time_boxed` → "Timed Quiz", add "Open Practice" for the open-ended mode. Restructure the mode selector to be self-explanatory. ~1 hr UI only. | Session planning May 12 |
