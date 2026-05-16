@@ -184,6 +184,7 @@ export default function DiagnosticPage() {
       time_taken_sec: timeSec,
       subject_id: selected,
       subtopic_id: q.subtopic_id ?? selected,
+      dimension_id: q.dimension_id ?? null,
     }).catch(() => {});
   };
 
@@ -205,6 +206,7 @@ export default function DiagnosticPage() {
       time_taken_sec: timeSec,
       subject_id: selected,
       subtopic_id: q.subtopic_id ?? selected,
+      dimension_id: q.dimension_id ?? null,
     }).catch(() => {});
   };
 

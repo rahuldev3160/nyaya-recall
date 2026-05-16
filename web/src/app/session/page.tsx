@@ -313,6 +313,7 @@ export default function SessionPage() {
       time_taken_sec: 0,
       subject_id: plan?.sessions?.[activeSession!]?.subject_id,
       subtopic_id: q.subtopic_id ?? plan?.sessions?.[activeSession!]?.subtopic_id,
+      dimension_id: q.dimension_id ?? null,
     }).catch(() => {});
   };
 
