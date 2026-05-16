@@ -84,4 +84,19 @@ export const api = {
   getSessionHistory: (limit = 30) => get(`/sessions/?limit=${limit}`),
   getSession: (id: string) => get(`/sessions/${id}`),
   getTimeStats: () => get("/tracker/time-stats"),
+  getSyllabusTree: () => get("/plan/syllabus-tree"),
+  patchUserPlan: (sessions: object[]) =>
+    fetch(`${BASE}/plan/user-sessions`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessions }),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }),
+  resetUserPlan: () =>
+    fetch(`${BASE}/plan/user-overrides`, { method: "DELETE" }).then(async (res) => {
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }),
 };
