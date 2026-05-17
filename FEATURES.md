@@ -55,6 +55,7 @@
 | **Real-time feedback + prompt training (ISSUE-017)** | P1 | Per-question notes reset/autosave; `content_feedback` + `question_notes` tables; `ContentFeedback` 2×2 verdict UI on session + diagnostic + notes sections; `apply_feedback.py` prompt improvement pipeline (Haiku, manual); `batch_analyse.py` reminder at 20+ items. | Shipped May 17 (PRs #33, #34) |
 | **Multi-subtopic merged sessions** | P1 | Planner editor: select up to 4 subtopics per session (topic-grouped, PYQ-weight-proportional Q allocation). Notes gain "Cross-Subtopic Linkages" section when >1 subtopic. `quiz_session_subtopics` table stores full list. | Shipped May 17 (PR #35) |
 | **Exam simulation mode** | P1 | `/exam-sim` page: subject→topic→subtopic tree selector, configurable Q count (1–100) + duration. Timed quiz runner. Results screen with per-subject + per-topic accuracy breakdown. | Shipped May 17 (PR #35) |
+| **Exam sim score write-back + scheduling bias fixes** | P0 | Exam sim questions now get subject_id/topic_id overridden from authoritative allocation map; SHA256 question_hash generated server-side; empty subject_id guard in score_engine; needs_retest concept (< 3 attempts) in plan_generator; 2-session/subject daily cap; k=8 chunk scaling; batch_analyse max_tokens 8192 + topics[] stripped | Shipped May 17 (PR #37) |
 
 ---
 

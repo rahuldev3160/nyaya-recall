@@ -1,3 +1,47 @@
+### Exam sim score write-back + scheduling bias fixes — 2026-05-17 (PR #37)
+
+**What changed:**
+
+`backend/routes/quiz.py`
+- After parsing Claude's JSON in `start_exam_simulation`, each question's `subject_id`/`topic_id` is now overridden from the authoritative `alloc_map` (built from syllabus) — Claude drifts on multi-subject sets
+- Content-based `question_hash` (SHA256 of question_text, 16-char hex) now generated server-side, so excluded-hashes deduplication works for exam sim across sessions
+- `_chunk_k()` helper: `min(8, max(3, q+2))` — scales ChromaDB chunk count with questions allocated per subtopic (diagnostic + exam sim were flat k=2)
+
+`scripts/score_engine.py`
+- `_update_subtopic_scores`: guard changed to `if not subject_id or not subtopic_id: continue` — prevents junk rows when either field is empty
+- Groups by `(subject_id, subtopic_id)` only (not `topic_id`) — eliminates duplicate rows caused by topic_id mismatches between sessions
+- `if attempted == 0: continue` guard — prevents ghost rows from all-skipped sessions
+
+`scripts/plan_generator.py`
+- `needs_retest` concept: subtopics with < 3 attempts are now flagged separately (score unreliable); sorted by `(-pyq_weight, score)` for scheduling priority
+- Strips `topics[]` from `slim_profile` before Claude call (~4.8k tokens saved per plan generation)
+- `todays_done` merge updated for new `{subtopic_id: {"score", "attempts"}}` dict structure
+
+`scripts/batch_analyse.py`
+- `max_tokens` raised 4096 → 8192 — was truncating JSON on large profiles (root cause of "Internal Server Error" on Sync & Analyse)
+- `topics[]` stripped from both `slim_coverage` and `slim_profile` before Claude call
+- Session summaries capped to last 15
+- `ValueError` guard added for missing JSON in response
+
+`prompts/plan_generation.txt`
+- Coverage object description updated to explain `needs_retest` field
+- Rule 2 strengthened: 2-session-per-subject hard cap per day
+- Rule 8 (late sprint): prioritise `needs_retest` over new untested; subject priority polity > economy > geography > modern_history > ... > history_amac > current_affairs
+- Rule 10: when scheduling from `needs_retest`, prefer core subjects over peripheral ones
+
+`prompts/exam_simulation.txt`
+- Added `topic_id` to question output format (overridden server-side anyway, but keeps the LLM honest)
+
+**Watch-outs:**
+- The 15 duplicate subtopic_scores rows and 2 ghost rows were already deleted directly in DB last session — no further DB surgery needed
+- Exam sim sessions still store `subject_id` as comma-joined in `quiz_sessions` (cosmetic — doesn't affect scoring since `session_answers.subject_id` is per-answer)
+- `session_summaries.subject_id` for exam sim sessions = first answer's subject only (multi-subject summary accuracy is a future fix)
+- `subtopic_dimension_scores` table was never created (FEATURE-027 code exists but table is missing) — dimension tracking silently falls back to flat subtopic_scores; no functional impact yet
+
+**Branch:** `fix/exam-sim-score-writeback-scheduling-bias` — merged as PR #37 ✅
+
+---
+
 ### Multi-subtopic sessions + Exam simulation mode — 2026-05-17
 
 **What changed:**
