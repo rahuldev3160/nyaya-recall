@@ -56,6 +56,7 @@
 | **Multi-subtopic merged sessions** | P1 | Planner editor: select up to 4 subtopics per session (topic-grouped, PYQ-weight-proportional Q allocation). Notes gain "Cross-Subtopic Linkages" section when >1 subtopic. `quiz_session_subtopics` table stores full list. | Shipped May 17 (PR #35) |
 | **Exam simulation mode** | P1 | `/exam-sim` page: subject→topic→subtopic tree selector, configurable Q count (1–100) + duration. Timed quiz runner. Results screen with per-subject + per-topic accuracy breakdown. | Shipped May 17 (PR #35) |
 | **Exam sim score write-back + scheduling bias fixes** | P0 | Exam sim questions now get subject_id/topic_id overridden from authoritative allocation map; SHA256 question_hash generated server-side; empty subject_id guard in score_engine; needs_retest concept (< 3 attempts) in plan_generator; 2-session/subject daily cap; k=8 chunk scaling; batch_analyse max_tokens 8192 + topics[] stripped | Shipped May 17 (PR #37) |
+| **System audit phase 1 — correctness fixes** | P0 | C-01: exam sim now injects CA chunks + dimensions; C-02: single-subtopic chunk k scales with num_questions; C-05: close_session wrapped in BEGIN IMMEDIATE/COMMIT/ROLLBACK; H-05: session_answers UNIQUE(session_id, question_hash) + INSERT OR IGNORE; H-06: batch_analyse max_tokens 16000 + extended-output beta; H-07: plan_generator freshness warning at 12h; H-08: plan_generator max_tokens 8192 + extended-output beta; M-09: dashboard shows last-synced staleness indicator | Shipped May 17 (branch: fix/system-audit-phase1) |
 
 ---
 
