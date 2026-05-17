@@ -283,6 +283,15 @@ def generate_plan(available_hours: float | None = None) -> dict:
     except Exception:
         return {"message": "Prep profile is corrupted. Run batch analysis again to rebuild it."}
 
+    last_updated = profile.get("last_updated")
+    if last_updated:
+        try:
+            age_hours = (datetime.now(timezone.utc) - datetime.fromisoformat(last_updated)).total_seconds() / 3600
+            if age_hours > 12:
+                print(f"⚠️  WARNING: prep_profile.json is {age_hours:.0f}h old. Run batch_analyse.py first for an accurate plan.")
+        except Exception:
+            pass
+
     config = load_config()
     if available_hours is None:
         available_hours = float(config.get("daily_hours", 6))
@@ -319,7 +328,8 @@ def generate_plan(available_hours: float | None = None) -> dict:
 
     response = client.messages.create(
         model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
-        max_tokens=4096,
+        max_tokens=8192,
+        betas=["output-128k-2025-02-19"],
         messages=[{"role": "user", "content": prompt}]
     )
     raw = response.content[0].text.strip()

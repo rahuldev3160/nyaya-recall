@@ -83,6 +83,15 @@ export default function Dashboard() {
         <div className="text-right">
           <div className="text-5xl font-bold text-amber-400">{readiness}%</div>
           <div className="text-gray-400 text-sm mt-1">Overall Readiness</div>
+          {profile?.last_updated && (() => {
+            const ageH = Math.floor((Date.now() - new Date(profile.last_updated).getTime()) / 3_600_000);
+            const label = ageH === 0 ? "just now" : ageH === 1 ? "1 hour ago" : `${ageH} hours ago`;
+            return (
+              <p className={`text-xs mt-0.5 ${ageH >= 12 ? "text-amber-400" : "text-gray-500"}`}>
+                Last synced {label}
+              </p>
+            );
+          })()}
         </div>
       </div>
 

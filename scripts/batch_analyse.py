@@ -646,7 +646,8 @@ def run_analysis() -> dict:
 
     response = client.messages.create(
         model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
-        max_tokens=8192,
+        max_tokens=16000,
+        betas=["output-128k-2025-02-19"],
         messages=[{"role": "user", "content": prompt}],
     )
     raw = response.content[0].text.strip()

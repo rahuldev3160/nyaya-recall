@@ -256,12 +256,122 @@ function SyllabusSelector({
   );
 }
 
+// ── Types for exam sim history ────────────────────────────────────────────────
+
+type ExamSimRecord = {
+  session_id: string;
+  session_date: string;
+  total_questions: number;
+  correct: number;
+  skipped: number;
+  accuracy_pct: number;
+  timed_minutes: number | null;
+  subjects_covered: string[];
+  subject_breakdown: Record<string, { correct: number; total: number; skipped: number; accuracy_pct: number }>;
+  created_at: string;
+};
+
+// ── History panel component ───────────────────────────────────────────────────
+
+function ExamSimHistory({ records }: { records: ExamSimRecord[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  if (records.length === 0) {
+    return (
+      <div className="text-gray-600 text-sm text-center py-4">
+        No past simulations yet. Complete one to see your history here.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {records.map((r) => {
+        const isExpanded = expanded === r.session_id;
+        const weak = r.accuracy_pct < 50;
+        return (
+          <div
+            key={r.session_id}
+            className={`border rounded-xl overflow-hidden ${weak ? "border-red-900/60" : "border-gray-800"}`}
+          >
+            <button
+              type="button"
+              onClick={() => setExpanded(isExpanded ? null : r.session_id)}
+              className={`w-full flex items-center gap-4 px-4 py-3 text-left ${
+                weak ? "bg-red-950/30 hover:bg-red-950/50" : "bg-gray-900 hover:bg-gray-800"
+              }`}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-white">{r.session_date}</span>
+                  <span className="text-xs text-gray-500">{r.total_questions}Q</span>
+                  {r.timed_minutes && (
+                    <span className="text-xs text-gray-600">{r.timed_minutes}min</span>
+                  )}
+                  <span className="text-xs text-gray-600">
+                    {r.subjects_covered.map((s) => s.replace(/_/g, " ")).join(", ")}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {r.correct}/{r.total_questions - r.skipped} correct · {r.skipped} skipped
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span
+                  className={`text-lg font-bold ${
+                    r.accuracy_pct >= 70
+                      ? "text-green-400"
+                      : r.accuracy_pct >= 50
+                      ? "text-amber-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {r.accuracy_pct}%
+                </span>
+                <span className="text-gray-600 text-xs">{isExpanded ? "▲" : "▼"}</span>
+              </div>
+            </button>
+
+            {isExpanded && Object.keys(r.subject_breakdown).length > 0 && (
+              <div className="border-t border-gray-800 divide-y divide-gray-800/50 bg-gray-950">
+                {Object.entries(r.subject_breakdown).map(([sid, stats]) => (
+                  <div key={sid} className="flex items-center gap-3 px-6 py-2">
+                    <span className="flex-1 text-xs text-gray-400 capitalize">
+                      {sid.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {stats.correct}/{stats.total - stats.skipped} correct
+                    </span>
+                    <span
+                      className={`text-xs font-semibold w-10 text-right ${
+                        stats.accuracy_pct >= 70
+                          ? "text-green-400"
+                          : stats.accuracy_pct >= 50
+                          ? "text-amber-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {stats.accuracy_pct}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ExamSimPage() {
   const [view, setView] = useState<View>("setup");
   const [tree, setTree] = useState<SyllabusSubject[]>([]);
   const [treeLoading, setTreeLoading] = useState(true);
+  const [history, setHistory] = useState<ExamSimRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   // Setup state
   const [selection, setSelection] = useState<SelectionState>({
@@ -291,13 +401,24 @@ export default function ExamSimPage() {
   const [resultsLoading, setResultsLoading] = useState(false);
   const [expandedSubjects, setExpandedSubjects] = useState<Record<string, boolean>>({});
 
-  // Load syllabus tree
+  const loadHistory = useCallback(() => {
+    setHistoryLoading(true);
+    api
+      .getExamSimHistory()
+      .then((h: ExamSimRecord[]) => setHistory(h))
+      .catch(() => setHistory([]))
+      .finally(() => setHistoryLoading(false));
+  }, []);
+
+  // Load syllabus tree + history on mount
   useEffect(() => {
     api
       .getSyllabusTree()
       .then((t: SyllabusSubject[]) => setTree(t))
       .catch(() => {})
       .finally(() => setTreeLoading(false));
+    loadHistory();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedSubtopicIds = Object.entries(selection.subtopics)
@@ -423,7 +544,7 @@ export default function ExamSimPage() {
       /* ignore */
     }
 
-    // Fetch results
+    // Fetch results and refresh history in parallel
     setResultsLoading(true);
     setView("results");
     try {
@@ -434,6 +555,7 @@ export default function ExamSimPage() {
     } finally {
       setResultsLoading(false);
       setFinishLoading(false);
+      loadHistory();
     }
   };
 
@@ -513,6 +635,16 @@ export default function ExamSimPage() {
             Generating all {numQ} questions upfront. Timer starts after questions load.
           </p>
         )}
+
+        {/* ── Past Simulations ── */}
+        <div>
+          <h2 className="text-base font-semibold text-gray-200 mb-3">Past Simulations</h2>
+          {historyLoading ? (
+            <div className="text-gray-600 text-sm animate-pulse">Loading history...</div>
+          ) : (
+            <ExamSimHistory records={history} />
+          )}
+        </div>
       </div>
     );
   }

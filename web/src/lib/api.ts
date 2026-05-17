@@ -170,4 +170,8 @@ export const api = {
   /** Fetch subject/topic breakdown for a completed exam simulation. */
   getExamResults: (sessionId: string) =>
     get(`/sessions/${sessionId}/exam-results`),
+
+  /** Fetch past exam simulation history. */
+  getExamSimHistory: () =>
+    get("/sessions/exam-sim/history"),
 };

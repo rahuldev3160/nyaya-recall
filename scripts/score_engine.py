@@ -71,7 +71,7 @@ def record_answer(session_id: str, answer: dict) -> None:
     """Persist a single answer immediately after submission."""
     con = sqlite3.connect(DB_PATH)
     con.execute("""
-        INSERT INTO session_answers
+        INSERT OR IGNORE INTO session_answers
         (session_id, question_hash, question_text, options, correct_answer,
          user_answer, is_correct, time_taken_sec, skipped, subject_id, topic_id, subtopic_id, dimension_id)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -109,8 +109,11 @@ def close_session(session_id: str) -> dict:
     # Convert to mutable dicts; backfill missing subtopic/topic from session config
     answers = [dict(a) for a in answers]
     session_row = con.execute(
-        "SELECT config FROM quiz_sessions WHERE id=?", (session_id,)
+        "SELECT session_type, config FROM quiz_sessions WHERE id=?", (session_id,)
     ).fetchone()
+    session_type = session_row["session_type"] if session_row else None
+    is_exam_sim = session_type == "exam_simulation"
+    cfg: dict = {}
     if session_row and session_row["config"]:
         try:
             cfg = json.loads(session_row["config"])
@@ -135,21 +138,33 @@ def close_session(session_id: str) -> dict:
     skipped = sum(1 for a in answers if a["skipped"])
     score = (correct / max(total - skipped, 1)) * 100
 
-    con.execute("""
-        UPDATE quiz_sessions
-        SET end_time=?, answered=?, skipped=?, score=?
-        WHERE id=?
-    """, (datetime.now(timezone.utc).isoformat(), total - skipped, skipped, score, session_id))
-    con.commit()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        con.execute("""
+            UPDATE quiz_sessions
+            SET end_time=?, answered=?, skipped=?, score=?
+            WHERE id=?
+        """, (datetime.now(timezone.utc).isoformat(), total - skipped, skipped, score, session_id))
 
-    _update_subtopic_scores(con, answers)
-    _update_subtopic_dimension_scores(con, answers)
-    _store_session_summary(con, session_id, answers, score)
-    con.commit()
-    con.close()
+        if is_exam_sim:
+            # Exam sim is a test — do NOT pollute subtopic_scores or prep_profile.
+            # Write to dedicated exam_sim_records table instead.
+            _store_exam_sim_record(con, session_id, answers, score, cfg)
+        else:
+            _update_subtopic_scores(con, answers)
+            _update_subtopic_dimension_scores(con, answers)
 
-    # Difficulty updates open their own connections — do after main commit
-    _update_subtopic_difficulties(answers)
+        _store_session_summary(con, session_id, answers, score)
+        con.execute("COMMIT")
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+    finally:
+        con.close()
+
+    # Difficulty update is idempotent — run after the main transaction closes
+    if not is_exam_sim:
+        _update_subtopic_difficulties(answers)
 
     return {
         "session_id": session_id,
@@ -158,6 +173,78 @@ def close_session(session_id: str) -> dict:
         "skipped": skipped,
         "score": round(score, 1),
     }
+
+
+def _store_exam_sim_record(
+    con: sqlite3.Connection,
+    session_id: str,
+    answers: list[dict],
+    score: float,
+    cfg: dict,
+) -> None:
+    """Write a row to exam_sim_records for dedicated mock-test history tracking."""
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS exam_sim_records (
+            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id       TEXT NOT NULL UNIQUE,
+            user_id          TEXT DEFAULT 'user_1',
+            session_date     TEXT,
+            total_questions  INTEGER,
+            correct          INTEGER,
+            skipped          INTEGER,
+            accuracy_pct     REAL,
+            timed_minutes    INTEGER,
+            subjects_covered TEXT,
+            subject_breakdown TEXT,
+            created_at       TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    total = len(answers)
+    correct = sum(1 for a in answers if a["is_correct"] and not a["skipped"])
+    skipped = sum(1 for a in answers if a["skipped"])
+    timed = cfg.get("timed_duration_minutes") or cfg.get("time_minutes")
+
+    # Per-subject breakdown
+    subj_buckets: dict[str, dict] = {}
+    for a in answers:
+        sid = (a.get("subject_id") or "").split(",")[0].strip()
+        if not sid:
+            continue
+        b = subj_buckets.setdefault(sid, {"correct": 0, "total": 0, "skipped": 0})
+        b["total"] += 1
+        if a["skipped"]:
+            b["skipped"] += 1
+        elif a["is_correct"]:
+            b["correct"] += 1
+
+    subjects_covered = list(subj_buckets.keys())
+    subject_breakdown = {
+        sid: {
+            "correct": v["correct"],
+            "total": v["total"],
+            "skipped": v["skipped"],
+            "accuracy_pct": round(v["correct"] / max(v["total"] - v["skipped"], 1) * 100, 1),
+        }
+        for sid, v in subj_buckets.items()
+    }
+
+    con.execute("""
+        INSERT OR REPLACE INTO exam_sim_records
+            (session_id, user_id, session_date, total_questions, correct, skipped,
+             accuracy_pct, timed_minutes, subjects_covered, subject_breakdown)
+        VALUES (?, 'user_1', ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        session_id,
+        datetime.now(timezone.utc).date().isoformat(),
+        total,
+        correct,
+        skipped,
+        round(score, 1),
+        int(timed) if timed else None,
+        json.dumps(subjects_covered),
+        json.dumps(subject_breakdown),
+    ))
 
 
 def _store_session_summary(

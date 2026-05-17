@@ -881,7 +881,7 @@ def generate_quiz(config: dict):
             if session_type != "deep_dive":
                 prompt_file = "adaptive_quiz_only.txt"
         else:
-            chunks = fetch_chunks(subject_id, primary_subtopic_id)
+            chunks = fetch_chunks(subject_id, primary_subtopic_id, k=_chunk_k(num_q))
             if not chunks:
                 chunks = [
                     f"Standard UPSC Prelims content on {subject_id}: "
@@ -1165,6 +1165,26 @@ def start_exam_simulation(config: dict):
     # Build prompt parts
     subtopic_allocation_str, content_chunks_str = _build_exam_sim_prompt_parts(allocation)
 
+    # Fetch CA chunks per subject and join (exam sim spans multiple subjects)
+    ca_sections: list[str] = []
+    for subj in unique_subjects:
+        ca = fetch_ca_chunks(subj.replace("_", " "), k=3)
+        if ca:
+            ca_sections.append(f"[{subj}]\n" + "\n\n---\n\n".join(ca))
+    ca_str = "\n\n".join(ca_sections) if ca_sections else "No current-affairs chunks available."
+
+    # Build dimensions block: one section per unique (subject, subtopic) in allocation
+    dim_sections: list[str] = []
+    seen_subtopics: set[str] = set()
+    for item in allocation:
+        st_id = item["subtopic_id"]
+        subj = item["subject_id"]
+        if st_id and st_id not in seen_subtopics:
+            seen_subtopics.add(st_id)
+            dims = _get_subtopic_dimensions(subj, st_id)
+            dim_sections.append(f"[{st_id}]\n{dims}")
+    available_dimensions_str = "\n\n".join(dim_sections) if dim_sections else "No dimensions available."
+
     # Build recent questions block (aggregate across all subjects)
     recent_blocks: list[str] = []
     for subj in unique_subjects:
@@ -1179,16 +1199,22 @@ def start_exam_simulation(config: dict):
         .replace("{{num_questions}}", str(num_q))
         .replace("{{subtopic_allocation}}", subtopic_allocation_str)
         .replace("{{content_chunks}}", content_chunks_str)
+        .replace("{{current_affairs_chunks}}", ca_str)
+        .replace("{{available_dimensions}}", available_dimensions_str)
         .replace("{{recent_questions_block}}", recent_questions_block)
         .replace("{{excluded_question_hashes}}", excluded_hashes_str)
     )
 
-    response = client.messages.create(
-        model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
-        max_tokens=16000,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    raw = response.content[0].text.strip()
+    try:
+        response = client.messages.create(
+            model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
+            max_tokens=16000,
+            betas=["output-128k-2025-02-19"],
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text.strip()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
 
     try:
         first_brace = raw.find("{")
