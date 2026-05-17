@@ -65,6 +65,55 @@ def _save_cache(cache: dict) -> None:
     _CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False, indent=2))
 
 
+@router.get("/exam-sim/history")
+def exam_sim_history(limit: int = 30):
+    """Return past exam simulation records from dedicated tracking table."""
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    # Create table if it doesn't exist yet (first call before any exam sim is closed)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS exam_sim_records (
+            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id       TEXT NOT NULL UNIQUE,
+            user_id          TEXT DEFAULT 'user_1',
+            session_date     TEXT,
+            total_questions  INTEGER,
+            correct          INTEGER,
+            skipped          INTEGER,
+            accuracy_pct     REAL,
+            timed_minutes    INTEGER,
+            subjects_covered TEXT,
+            subject_breakdown TEXT,
+            created_at       TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    con.commit()
+    rows = con.execute(
+        """SELECT session_id, session_date, total_questions, correct, skipped,
+                  accuracy_pct, timed_minutes, subjects_covered, subject_breakdown,
+                  created_at
+           FROM exam_sim_records
+           WHERE user_id='user_1'
+           ORDER BY created_at DESC
+           LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    con.close()
+    result = []
+    for r in rows:
+        row = dict(r)
+        try:
+            row["subjects_covered"] = json.loads(row["subjects_covered"] or "[]")
+        except Exception:
+            row["subjects_covered"] = []
+        try:
+            row["subject_breakdown"] = json.loads(row["subject_breakdown"] or "{}")
+        except Exception:
+            row["subject_breakdown"] = {}
+        result.append(row)
+    return result
+
+
 @router.get("/")
 def list_sessions(limit: int = 30):
     con = sqlite3.connect(DB_PATH)
