@@ -76,16 +76,17 @@ def compute_subtopic_coverage() -> dict:
     except Exception:
         weights = {}
 
-    tested_map: dict[str, dict[str, float]] = {}
+    # tested_map: {subject_id: {subtopic_id: {"score": float, "attempts": int}}}
+    tested_map: dict[str, dict[str, dict]] = {}
     try:
         con = sqlite3.connect(DB_PATH)
         rows = con.execute(
-            "SELECT subject_id, subtopic_id, score FROM subtopic_scores WHERE user_id='user_1'"
+            "SELECT subject_id, subtopic_id, score, total_attempts FROM subtopic_scores WHERE user_id='user_1'"
         ).fetchall()
         con.close()
-        for subj_id, st_id, sc in rows:
+        for subj_id, st_id, sc, attempts in rows:
             if st_id:
-                tested_map.setdefault(subj_id, {})[st_id] = sc
+                tested_map.setdefault(subj_id, {})[st_id] = {"score": sc, "attempts": attempts or 0}
     except Exception:
         pass
 
@@ -94,10 +95,14 @@ def compute_subtopic_coverage() -> dict:
     for subj_id, st_scores in todays_done.items():
         for st_id, score in st_scores.items():
             if st_id not in tested_map.get(subj_id, {}):
-                tested_map.setdefault(subj_id, {})[st_id] = score
+                tested_map.setdefault(subj_id, {})[st_id] = {"score": score, "attempts": 1}
 
     # CSAT excluded — user is not preparing for CSAT
     _EXCLUDED_SUBJECTS = {"csat"}
+
+    # Shallow-tested threshold: < 3 attempts means the score is unreliable.
+    # These subtopics are not "untested" but should be re-tested before the exam.
+    _SHALLOW_ATTEMPTS = 3
 
     result: dict = {}
     for subj in syllabus.get("subjects", []):
@@ -116,8 +121,27 @@ def compute_subtopic_coverage() -> dict:
             key=lambda x: -x["pyq_weight"],
         )
         tested_list = sorted(
-            [{"id": st, "score": round(sc, 1), "pyq_weight": round(weights.get(st, 1.0), 2)} for st, sc in tested_in_subj.items()],
+            [
+                {
+                    "id": st,
+                    "score": round(info["score"], 1),
+                    "attempts": info["attempts"],
+                    "pyq_weight": round(weights.get(st, 1.0), 2),
+                }
+                for st, info in tested_in_subj.items()
+            ],
             key=lambda x: -x["pyq_weight"],
+        )
+
+        # Shallow-tested: in subtopic_scores but < 3 attempts — score is unreliable,
+        # these should be re-tested like untested subtopics, especially in late sprint.
+        needs_retest = sorted(
+            [
+                {"id": st, "score": round(info["score"], 1), "attempts": info["attempts"], "pyq_weight": round(weights.get(st, 1.0), 2)}
+                for st, info in tested_in_subj.items()
+                if info["attempts"] < _SHALLOW_ATTEMPTS
+            ],
+            key=lambda x: (-x["pyq_weight"], x["score"]),  # high PYQ weight + low score first
         )
 
         # Topic-grouped view of untested subtopics — used for topic-balance scheduling rule
@@ -144,9 +168,11 @@ def compute_subtopic_coverage() -> dict:
             "total_subtopics":   len(all_subs),
             "untested_count":    len(untested),
             "tested_count":      len(tested_list),
-            "untested":          untested,         # flat priority order — overall scheduling
+            "needs_retest_count": len(needs_retest),
+            "untested":          untested,          # flat priority order — overall scheduling
             "tested":            tested_list,
-            "untested_by_topic": untested_by_topic, # topic-grouped — use for balance rule
+            "needs_retest":      needs_retest,       # shallow-tested (< 3 attempts) — re-test priority
+            "untested_by_topic": untested_by_topic,  # topic-grouped — use for balance rule
         }
 
     return result
@@ -268,10 +294,20 @@ def generate_plan(available_hours: float | None = None) -> dict:
     subtopic_coverage = compute_subtopic_coverage()
     user_notes_signals = fetch_user_notes_signals()
 
+    # Strip topics[] from profile — planner gets topic data via subtopic_coverage instead,
+    # and sending both doubles the token cost for no benefit.
+    slim_profile = {
+        k: (
+            {sid: {fk: fv for fk, fv in sdata.items() if fk != "topics"} for sid, sdata in v.items()}
+            if k == "subjects" else v
+        )
+        for k, v in profile.items()
+    }
+
     prompt_template = PROMPT_PATH.read_text()
     prompt = (
         prompt_template
-        .replace("{{prep_profile}}",       json.dumps(profile, indent=2))
+        .replace("{{prep_profile}}",       json.dumps(slim_profile, indent=2))
         .replace("{{subtopic_coverage}}",  json.dumps(subtopic_coverage, indent=2))
         .replace("{{user_notes_signals}}", json.dumps(user_notes_signals, indent=2))
         .replace("{{day_number}}",         str(day_number))

@@ -12,8 +12,9 @@ Learner-reported signals from parallel session notes (latest first; may be empty
 When this array is non-empty, treat `still_weak: true` rows as explicit weak signals: prefer scheduling those `subtopic_id` values earlier today (respecting pyq_weight and other rules below). Use `confusion_excerpt` to understand what felt unclear; do not copy private text into the plan JSON verbatim — only reflect it in prioritisation and rationale wording.
 
 For each subject the coverage object contains:
-  "untested":          flat list of untopics never attempted, sorted by pyq_weight DESCENDING (highest ROI first)
-  "tested":            list of subtopics already attempted, with their current score
+  "untested":          flat list of subtopics never attempted, sorted by pyq_weight DESCENDING (highest ROI first)
+  "tested":            list of subtopics attempted, with their current score and attempt count
+  "needs_retest":      subtopics attempted < 3 times — score is unreliable, needs more data. Sorted by pyq_weight DESC then score ASC (highest-weight weakest first). Treat these as HIGHER PRIORITY than untested low-weight subtopics.
   "untested_by_topic": topic-grouped view — each entry has topic_id, topic_name, topic_pyq_weight (sum of its untested subtopic weights), and untested_subtopics sorted by pyq_weight. Topics are sorted by topic_pyq_weight DESCENDING. Use this to enforce topic balance (Rule 9).
 
 Days remaining (including today): {{days_remaining}}
@@ -48,7 +49,8 @@ Scheduling rules (apply in strict order):
    Never skip an untested subtopic with high pyq_weight in favour of re-testing something already done.
 
 2. CROSS-SUBJECT SPREAD: Each day must cover at least 3 different subjects.
-   Do not stack all sessions on one subject unless that subject has 0% coverage and days_remaining <= 2.
+   No single subject may occupy more than 2 sessions per day, regardless of how many untested subtopics it has.
+   Exception: if fewer than 3 subjects have any untested or needs_retest content at all, the cap may be raised to 3 for subjects with content.
 
 3. CAPACITY PLANNING FOR LATER DAYS: Lower-weight untested subtopics that don't fit today
    must be explicitly queued — the plan should implicitly leave room for them in future days
@@ -66,11 +68,16 @@ Scheduling rules (apply in strict order):
 
 7. TIME FIT: Total session time must fit within {{available_hours}} hours (60 min/hr).
 
-8. LATE SPRINT (Day 8–10): shift to hard difficulty, mixed formats, and strategy review sessions. Deprioritise any untested low-weight subtopics — focus only on confirmed weak areas.
+8. LATE SPRINT (Day 8–10): shift to hard difficulty, mixed formats, and strategy review sessions.
+   - DEPRIORITISE new untested subtopics with pyq_weight < 2.0 — not worth covering for the first time in the last 2 days.
+   - PRIORITISE `needs_retest` subtopics over new untested subtopics — solidifying shallow knowledge scores higher ROI than touching brand-new content.
+   - Subject priority for re-tests: polity > economy > geography > modern_history > environment > science_tech > ir_governance > history_amac > current_affairs.
 
 9. TOPIC BALANCE: Use `untested_by_topic` to ensure no topic is starved while another is over-scheduled.
    - Before scheduling a 2nd untested subtopic from any topic, check that every other topic in the same subject with untested subtopics has at least 1 subtopic scheduled today.
    - If two subjects both have untested topics, prefer the topic with higher `topic_pyq_weight` first.
    - Never schedule 3+ subtopics from a single topic in one day unless it is the only topic left in that subject.
+
+10. RETEST BALANCE: When scheduling from `needs_retest`, prefer CORE subjects (polity, economy, geography, modern_history) over peripheral ones (history_amac, current_affairs, ir_governance) if pyq_weight is similar. A 2-attempt polity subtopic with 60% score is higher priority than a 2-attempt history_amac subtopic with 60% score.
 
 - Output ONLY the JSON object, no other text.

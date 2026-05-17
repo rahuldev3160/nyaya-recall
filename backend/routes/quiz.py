@@ -430,6 +430,16 @@ def _allocate_questions_for_subtopic_ids(
     ]
 
 
+# ── Chunk count scaling ───────────────────────────────────────────────────────
+
+def _chunk_k(q_per_subtopic: int) -> int:
+    """Scale ChromaDB chunks with question count: more questions → richer context.
+    Formula: min(8, max(3, q + 2))
+    1Q→3, 3Q→5, 5Q→7, 6Q+→8 (capped)
+    """
+    return min(8, max(3, q_per_subtopic + 2))
+
+
 # ── Multi-subtopic chunk fetching ─────────────────────────────────────────────
 
 def fetch_chunks_merged(
@@ -482,14 +492,15 @@ def _build_merged_subtopic_allocation_str(
 
 
 def _build_merged_content_chunks_str(
-    subject_id: str, allocation: list[dict], k_per_subtopic: int = 3
+    subject_id: str, allocation: list[dict], k_per_subtopic: int | None = None
 ) -> str:
     """Fetch and merge ChromaDB chunks for all subtopics in allocation list."""
     sections: list[str] = []
     for item in allocation:
         st_id = item["subtopic_id"]
         n = item["num_questions"]
-        st_chunks = fetch_chunks(subject_id, st_id, k=k_per_subtopic)
+        k = k_per_subtopic if k_per_subtopic is not None else _chunk_k(n)
+        st_chunks = fetch_chunks(subject_id, st_id, k=k)
         if not st_chunks:
             st_chunks = [
                 f"Standard UPSC Prelims content on {subject_id}: "
@@ -758,7 +769,7 @@ def _build_multi_subtopic_prompt_parts(
         tag = "[UNTESTED — diagnose first]" if not item["is_tested"] else "[tested]"
         alloc_lines.append(f"  {st_id}: {n} question{'s' if n > 1 else ''}  {tag}  (PYQ weight {w})")
 
-        st_chunks = fetch_chunks(subject_id, st_id, k=2)
+        st_chunks = fetch_chunks(subject_id, st_id, k=_chunk_k(n))
         if not st_chunks:
             st_chunks = [
                 f"Standard UPSC Prelims content on {subject_id}: "
@@ -835,7 +846,7 @@ def generate_quiz(config: dict):
     if is_merged:
         allocation = _allocate_questions_for_subtopic_ids(subtopic_ids, num_q)
         subtopic_allocation = _build_merged_subtopic_allocation_str(allocation)
-        content_chunks_str = _build_merged_content_chunks_str(subject_id, allocation, k_per_subtopic=3)
+        content_chunks_str = _build_merged_content_chunks_str(subject_id, allocation)  # uses _chunk_k scaling
         ca_chunks = fetch_ca_chunks(subject_id.replace("_", " "), k=2)
         ca_str = "\n\n---\n\n".join(ca_chunks)
         spillover_block = ""
@@ -1076,7 +1087,7 @@ def _build_exam_sim_prompt_parts(
 ) -> tuple[str, str]:
     """
     Returns (subtopic_allocation_str, content_chunks_str) for exam sim mode.
-    Fetches 2 ChromaDB chunks per subtopic; falls back to syllabus stub if none found.
+    Fetches _chunk_k(n) chunks per subtopic (scales with question count, 3–8); falls back to syllabus stub if none found.
     """
     alloc_lines: list[str] = []
     chunk_sections: list[str] = []
@@ -1091,7 +1102,7 @@ def _build_exam_sim_prompt_parts(
             f"{n} question{'s' if n > 1 else ''}  (PYQ weight {w})"
         )
 
-        st_chunks = fetch_chunks(subject_id, st_id, k=2) if subject_id else []
+        st_chunks = fetch_chunks(subject_id, st_id, k=_chunk_k(n)) if subject_id else []
         if not st_chunks:
             st_chunks = [
                 f"Standard UPSC Prelims content on {subject_id or 'general'}: "
@@ -1190,6 +1201,21 @@ def start_exam_simulation(config: dict):
         questions = parsed if isinstance(parsed, list) else parsed.get("questions", [])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse exam sim JSON: {e}")
+
+    # Build authoritative subtopic → allocation lookup.
+    # Claude may drift on subject_id/topic_id in multi-subject sets — override with
+    # the allocation which was built from the syllabus and is always correct.
+    alloc_map: dict[str, dict] = {item["subtopic_id"]: item for item in allocation}
+    for q in questions:
+        # Content-based hash so excluded_hashes deduplication works across sessions.
+        q["question_hash"] = hashlib.sha256(
+            (q.get("question_text") or "").encode()
+        ).hexdigest()[:16]
+        # Fix subject_id/topic_id from allocation (source of truth).
+        st_id = q.get("subtopic_id")
+        if st_id and st_id in alloc_map:
+            q["subject_id"] = alloc_map[st_id]["subject_id"]
+            q["topic_id"]   = alloc_map[st_id]["topic_id"]
 
     # Create session record
     session_id = str(uuid.uuid4())

@@ -553,23 +553,50 @@ def run_analysis() -> dict:
     if persistent_weak:
         print(f"  Deep-drill raw data for {len(persistent_weak)} persistently weak subtopic(s)")
 
+    # Strip topics[] from coverage_report before sending to Claude — topics are merged
+    # deterministically below (line ~593), Claude doesn't need them for insight text.
+    # Removing them shrinks the prompt and keeps the response well within max_tokens.
+    slim_coverage = {
+        "overall_readiness": coverage_report.get("overall_readiness"),
+        "subjects": {
+            sid: {k: v for k, v in sdata.items() if k != "topics"}
+            for sid, sdata in coverage_report.get("subjects", {}).items()
+        },
+    }
+
+    # Strip topics[] from the profile before passing to Claude — topics[] are large
+    # (9 subjects × up to 9 topics each) and Claude only needs subject-level data for insight text.
+    # topics[] are preserved in the real profile dict and merged back deterministically below.
+    slim_profile = {
+        k: (
+            {sid: {fk: fv for fk, fv in sdata.items() if fk != "topics"} for sid, sdata in v.items()}
+            if k == "subjects" else v
+        )
+        for k, v in profile.items()
+    }
+
+    # Cap session summaries to last 15 — older sessions add noise, not signal, to insight generation
+    trimmed_summaries = summaries[-15:]
+
     prompt_template = PROMPT_PATH.read_text()
     prompt = (
         prompt_template
-        .replace("{{current_profile}}",      json.dumps(profile, indent=2))
-        .replace("{{session_summaries}}",    json.dumps(summaries, indent=2))
+        .replace("{{current_profile}}",      json.dumps(slim_profile, indent=2))
+        .replace("{{session_summaries}}",    json.dumps(trimmed_summaries, indent=2))
         .replace("{{deep_drill_subtopics}}", json.dumps(persistent_weak))
         .replace("{{deep_drill_answers}}",   json.dumps(deep_drill, indent=2))
-        .replace("{{coverage_report}}",      json.dumps(coverage_report, indent=2))
+        .replace("{{coverage_report}}",      json.dumps(slim_coverage, indent=2))
     )
 
     response = client.messages.create(
         model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
-        max_tokens=4096,
+        max_tokens=8192,
         messages=[{"role": "user", "content": prompt}],
     )
     raw = response.content[0].text.strip()
     start, end = raw.find("{"), raw.rfind("}") + 1
+    if start == -1 or end == 0:
+        raise ValueError(f"No JSON found in Claude response: {raw[:200]}")
     analysis = json.loads(raw[start:end])
 
     # Step 3: merge — computed numbers + LLM insight text

@@ -40,6 +40,7 @@ Return ONLY a JSON object (no markdown, no commentary):
       "difficulty": "easy|medium|hard",
       "subject_id": "<subject_id from allocation>",
       "subtopic_id": "<subtopic_id from allocation>",
+      "topic_id": "<topic_id parent of that subtopic>",
       "dimension_id": null
     }
   ]
