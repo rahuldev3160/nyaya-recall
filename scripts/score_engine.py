@@ -143,6 +143,7 @@ def close_session(session_id: str) -> dict:
     con.commit()
 
     _update_subtopic_scores(con, answers)
+    _update_subtopic_dimension_scores(con, answers)
     _store_session_summary(con, session_id, answers, score)
     con.commit()
     con.close()
@@ -305,6 +306,57 @@ def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
             """, (
                 subject_id, topic_id, subtopic_id, session_score, attempted, correct,
                 confidence, datetime.now(timezone.utc).isoformat(),
+            ))
+
+
+def _update_subtopic_dimension_scores(con: sqlite3.Connection, answers) -> None:
+    """Update per-dimension accuracy after a session closes.
+    Mirrors _update_subtopic_scores but groups by (subject_id, subtopic_id, dimension_id).
+    Skips answers with no dimension_id — most sessions won't have any yet.
+    """
+    grouped: dict[tuple, list] = {}
+    for a in answers:
+        if not a.get("dimension_id") or not a.get("subject_id") or not a.get("subtopic_id"):
+            continue
+        if a.get("skipped"):
+            continue
+        key = (a["subject_id"], a["subtopic_id"], a["dimension_id"])
+        grouped.setdefault(key, []).append(a)
+
+    for (subject_id, subtopic_id, dimension_id), ans in grouped.items():
+        correct  = sum(1 for a in ans if a["is_correct"])
+        attempted = len(ans)
+        if attempted == 0:
+            continue
+        session_score = (correct / attempted) * 100
+
+        existing = con.execute("""
+            SELECT score, attempts, correct_count FROM subtopic_dimension_scores
+            WHERE user_id='user_1' AND subject_id=? AND subtopic_id=? AND dimension_id=?
+        """, (subject_id, subtopic_id, dimension_id)).fetchone()
+
+        if existing:
+            new_attempts = existing["attempts"] + attempted
+            new_correct  = existing["correct_count"] + correct
+            new_score    = (new_correct / max(new_attempts, 1)) * 100
+            con.execute("""
+                UPDATE subtopic_dimension_scores
+                SET attempts=?, correct_count=?, score=?, last_tested=?
+                WHERE user_id='user_1' AND subject_id=? AND subtopic_id=? AND dimension_id=?
+            """, (
+                new_attempts, new_correct, new_score,
+                datetime.now(timezone.utc).isoformat(),
+                subject_id, subtopic_id, dimension_id,
+            ))
+        else:
+            con.execute("""
+                INSERT INTO subtopic_dimension_scores
+                (user_id, subject_id, subtopic_id, dimension_id, attempts, correct_count, score, last_tested)
+                VALUES ('user_1', ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                subject_id, subtopic_id, dimension_id,
+                attempted, correct, session_score,
+                datetime.now(timezone.utc).isoformat(),
             ))
 
 

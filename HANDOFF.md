@@ -1,3 +1,21 @@
+### Dimension tracking fully activated — 2026-05-17 (PR #39)
+
+**What changed:**
+- `data/upsc.db` — `subtopic_dimension_scores` table created via `db_init.py` (was missing since FEATURE-027 shipped; `CREATE TABLE IF NOT EXISTS` is safe/idempotent)
+- `scripts/score_engine.py` — added `_update_subtopic_dimension_scores(con, answers)` function and call in `close_session()`. FEATURE-027 shipped the table definition and the batch_analyse read path but never wrote to it — every session since launch has been silently skipping dimension writes. Now fixed.
+
+**Watch-out RESOLVED:** ~~`subtopic_dimension_scores` table was never created — dimension tracking silently falls back to flat subtopic_scores~~ ✅ Table created, write function added.
+
+**How dimension scores now flow:**
+1. Quiz generation tags each question with `dimension_id` (already working)
+2. `session_answers.dimension_id` stores it per answer (already working)
+3. `_update_subtopic_dimension_scores` ← NEW: groups by (subject, subtopic, dimension), running average UPSERT
+4. `batch_analyse._get_dimension_scores` reads from table, feeds into weighted readiness formula (already working, was just always empty)
+
+**Note:** Existing sessions won't backfill — dimension scores will build up from new sessions only.
+
+---
+
 ### Exam sim score write-back + scheduling bias fixes — 2026-05-17 (PR #37)
 
 **What changed:**
