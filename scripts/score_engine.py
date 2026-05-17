@@ -251,22 +251,28 @@ def _update_subtopic_difficulties(answers) -> None:
 
 
 def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
+    # Group by (subject_id, subtopic_id) only — topic_id varies across sessions for the
+    # same subtopic (canonical vs session-assigned), causing duplicate rows when included.
     grouped: dict[tuple, list] = {}
     for a in answers:
-        key = (a["subject_id"], a["topic_id"], a["subtopic_id"])
+        key = (a["subject_id"], a["subtopic_id"])
         grouped.setdefault(key, []).append(a)
 
-    for (subject_id, topic_id, subtopic_id), ans in grouped.items():
-        if not subtopic_id:
+    for (subject_id, subtopic_id), ans in grouped.items():
+        if not subject_id or not subtopic_id:
             continue
         correct = sum(1 for a in ans if a["is_correct"] and not a["skipped"])
         attempted = sum(1 for a in ans if not a["skipped"])
+        if attempted == 0:
+            continue  # never write a row for an all-skipped session — prevents ghost rows
         session_score = (correct / max(attempted, 1)) * 100
+        # Use the most recently resolved topic_id from this session's answers
+        topic_id = next((a["topic_id"] for a in ans if a.get("topic_id")), None)
 
         existing = con.execute("""
             SELECT score, total_attempts, correct_count FROM subtopic_scores
-            WHERE user_id='user_1' AND subject_id=? AND topic_id IS ? AND subtopic_id=?
-        """, (subject_id, topic_id, subtopic_id)).fetchone()
+            WHERE user_id='user_1' AND subject_id=? AND subtopic_id=?
+        """, (subject_id, subtopic_id)).fetchone()
 
         if existing:
             new_total = existing["total_attempts"] + attempted
@@ -281,13 +287,13 @@ def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
             confidence = _confidence_label(new_score, new_total)
             con.execute("""
                 UPDATE subtopic_scores
-                SET score=?, total_attempts=?, correct_count=?, trend=?, confidence_level=?,
-                    last_tested=?, updated_at=?
-                WHERE user_id='user_1' AND subject_id=? AND topic_id IS ? AND subtopic_id=?
+                SET topic_id=?, score=?, total_attempts=?, correct_count=?, trend=?,
+                    confidence_level=?, last_tested=?, updated_at=?
+                WHERE user_id='user_1' AND subject_id=? AND subtopic_id=?
             """, (
-                new_score, new_total, new_correct, trend, confidence,
+                topic_id, new_score, new_total, new_correct, trend, confidence,
                 datetime.now(timezone.utc).isoformat(), datetime.now(timezone.utc).isoformat(),
-                subject_id, topic_id, subtopic_id,
+                subject_id, subtopic_id,
             ))
         else:
             confidence = _confidence_label(session_score, attempted)
