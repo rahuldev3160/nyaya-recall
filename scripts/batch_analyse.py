@@ -397,6 +397,37 @@ def compute_weighted_readiness(
 # Session data helpers
 # ---------------------------------------------------------------------------
 
+def _expand_multi_subject_summary(
+    base: dict,
+    session_answers: list,
+    subjects: list[str],
+) -> list[dict]:
+    """
+    Given a summary dict (from session_summaries or a fallback) and the raw answers
+    for that session, return one entry per subject for exam sim multi-subject sessions.
+
+    Each entry has the same session_id but scoped totals/accuracy for that subject.
+    Fields from `base` that aren't per-subject totals are forwarded as-is.
+    """
+    expanded: list[dict] = []
+    for subj in subjects:
+        subj_answers = [a for a in session_answers if a["subject_id"] == subj]
+        total   = len(subj_answers)
+        correct = sum(1 for a in subj_answers if a["is_correct"] and not a["skipped"])
+        entry = {
+            **base,
+            "subject_id":      subj,
+            "total_questions": total,
+            "correct":         correct,
+            "accuracy_pct":    round((correct / max(total, 1)) * 100, 1),
+            # Keep the original session_id so it still gets marked synced
+            "session_id":      base["session_id"],
+            "note":            base.get("note", "exam_sim_per_subject_split"),
+        }
+        expanded.append(entry)
+    return expanded
+
+
 def get_unsynced_summaries() -> tuple[list[dict], list[str]]:
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
@@ -411,24 +442,49 @@ def get_unsynced_summaries() -> tuple[list[dict], list[str]]:
         row = con.execute(
             "SELECT * FROM session_summaries WHERE session_id=?", (s["id"],)
         ).fetchone()
+
+        # Determine subjects for this session
+        # subject_id may be a comma-joined string for exam sim sessions
+        raw_subject_id = (row["subject_id"] if row else None) or s["subject_id"] or ""
+        subjects = [x.strip() for x in raw_subject_id.split(",") if x.strip()]
+        is_multi_subject = len(subjects) > 1
+
+        # Always fetch answers — needed for multi-subject expansion (and cheap for single-subject)
+        answers = con.execute(
+            "SELECT subject_id, subtopic_id, is_correct, skipped FROM session_answers "
+            "WHERE session_id=?", (s["id"],)
+        ).fetchall()
+        answers = [dict(a) for a in answers]
+
         if row:
-            summaries.append(dict(row))
+            base = dict(row)
+            if is_multi_subject:
+                # Expand the stored summary into one entry per subject
+                summaries.extend(
+                    _expand_multi_subject_summary(base, answers, subjects)
+                )
+            else:
+                summaries.append(base)
         else:
-            answers = con.execute(
-                "SELECT subject_id, subtopic_id, is_correct, skipped FROM session_answers "
-                "WHERE session_id=?", (s["id"],)
-            ).fetchall()
+            # Fallback: no session_summaries row yet
             total   = len(answers)
             correct = sum(1 for a in answers if a["is_correct"] and not a["skipped"])
-            summaries.append({
+            base = {
                 "session_id":      s["id"],
-                "subject_id":      s["subject_id"],
+                "subject_id":      raw_subject_id,
                 "session_date":    (s["end_time"] or "")[:10],
                 "total_questions": total,
                 "correct":         correct,
                 "accuracy_pct":    round((correct / max(total, 1)) * 100, 1),
                 "note":            "summary_missing_raw_fallback",
-            })
+            }
+            if is_multi_subject:
+                summaries.extend(
+                    _expand_multi_subject_summary(base, answers, subjects)
+                )
+            else:
+                summaries.append(base)
+
     con.close()
     return summaries, session_ids
 

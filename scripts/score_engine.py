@@ -162,7 +162,12 @@ def close_session(session_id: str) -> dict:
 def _store_session_summary(
     con: sqlite3.Connection, session_id: str, answers, session_score: float
 ) -> None:
-    subject_id = answers[0]["subject_id"] if answers else None
+    # For exam simulation sessions spanning multiple subjects, collect all unique
+    # non-empty subject IDs and join them. Single-subject sessions stay as-is.
+    unique_subjects = list(dict.fromkeys(
+        a["subject_id"] for a in answers if a.get("subject_id")
+    ))
+    subject_id = ",".join(unique_subjects) if unique_subjects else None
     session_date = datetime.now(timezone.utc).date().isoformat()
 
     total = len(answers)
