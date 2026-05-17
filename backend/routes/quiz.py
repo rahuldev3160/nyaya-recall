@@ -1183,12 +1183,16 @@ def start_exam_simulation(config: dict):
         .replace("{{excluded_question_hashes}}", excluded_hashes_str)
     )
 
-    response = client.messages.create(
-        model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
-        max_tokens=16000,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    raw = response.content[0].text.strip()
+    try:
+        response = client.messages.create(
+            model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
+            max_tokens=16000,
+            betas=["output-128k-2025-02-19"],
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text.strip()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
 
     try:
         first_brace = raw.find("{")
