@@ -336,6 +336,21 @@ def generate_plan(available_hours: float | None = None) -> dict:
     plan["days_remaining"] = remaining
     plan["total_days"] = total_days
 
+    # Deterministic rule enforcement: validate and auto-fix Claude's output.
+    try:
+        from plan_validator import validate_and_fix
+        plan = validate_and_fix(plan, available_hours, subtopic_coverage)
+        corr = plan.get("validation", {}).get("corrections", [])
+        warn = plan.get("validation", {}).get("warnings", [])
+        if corr:
+            print(f"  ✅ Validator auto-fixed {len(corr)} rule violation(s):")
+            for c in corr: print(f"     - {c}")
+        if warn:
+            print(f"  ⚠️  Validator warnings ({len(warn)}):")
+            for w in warn: print(f"     - {w}")
+    except Exception as e:
+        print(f"  ⚠️  Plan validator skipped: {e}")
+
     # Safety filter: strip any CSAT sessions Claude may have included.
     # CSAT is a completely separate system with its own flow at /csat.
     sessions_before = plan.get("sessions", [])
