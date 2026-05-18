@@ -8,6 +8,12 @@ Generate ALL {{num_questions}} questions upfront — every question must be tagg
 Content from indexed study materials (grouped by subtopic):
 {{content_chunks}}
 
+Recent current-affairs context (use to craft contemporary-linkage questions where relevant):
+{{current_affairs_chunks}}
+
+Available dimension_ids for this exam (assign the most relevant dimension_id to each question — do NOT leave null):
+{{available_dimensions}}
+
 {{recent_questions_block}}
 
 CRITICAL RULES:
@@ -41,7 +47,7 @@ Return ONLY a JSON object (no markdown, no commentary):
       "subject_id": "<subject_id from allocation>",
       "subtopic_id": "<subtopic_id from allocation>",
       "topic_id": "<topic_id parent of that subtopic>",
-      "dimension_id": null
+      "dimension_id": "<dimension_id from available list — do not leave null>"
     }
   ]
 }

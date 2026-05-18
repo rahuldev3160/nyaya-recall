@@ -65,7 +65,8 @@ def init_db():
         subtopic_id      TEXT,
         dimension_id     TEXT,
         concept_expanded INTEGER DEFAULT 0,
-        created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(session_id, question_hash)
     );
 
     CREATE TABLE IF NOT EXISTS subtopic_scores (
@@ -207,6 +208,7 @@ def init_db():
 
     CREATE INDEX IF NOT EXISTS idx_sa_session ON session_answers(session_id);
     CREATE INDEX IF NOT EXISTS idx_sa_subj_sub ON session_answers(subject_id, subtopic_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_sa_session_qhash ON session_answers(session_id, question_hash);
     CREATE INDEX IF NOT EXISTS idx_qs_end ON quiz_sessions(end_time);
     CREATE INDEX IF NOT EXISTS idx_qs_start ON quiz_sessions(start_time);
     CREATE INDEX IF NOT EXISTS idx_subtopic_scores_lookup ON subtopic_scores(user_id, subject_id);

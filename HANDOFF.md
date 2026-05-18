@@ -1,3 +1,27 @@
+### System audit phase 1 — correctness fixes — 2026-05-17
+
+**What changed:**
+- `prompts/exam_simulation.txt` — added `{{current_affairs_chunks}}` + `{{available_dimensions}}` blocks; `dimension_id` no longer hardcoded null in output schema
+- `backend/routes/quiz.py` (`start_exam_simulation`) — now fetches CA chunks per subject (k=3) and builds per-subtopic dimension blocks before injecting into exam prompt
+- `backend/routes/quiz.py` (line ~884) — single-subtopic non-notes path now uses `_chunk_k(num_q)` instead of default k=5
+- `scripts/score_engine.py` (`close_session`) — wrapped in `BEGIN IMMEDIATE`/`COMMIT`/`ROLLBACK`; `_update_subtopic_difficulties` moved outside transaction (idempotent)
+- `scripts/score_engine.py` (`record_answer`) — changed to `INSERT OR IGNORE` to block duplicate answer inflation
+- `scripts/db_init.py` — `session_answers` schema gains `UNIQUE(session_id, question_hash)`; migration: `CREATE UNIQUE INDEX IF NOT EXISTS idx_sa_session_qhash`
+- `scripts/batch_analyse.py` — `max_tokens` raised 8192 → 16000 with extended-output beta
+- `scripts/plan_generator.py` — `max_tokens` raised 4096 → 8192 with extended-output beta; freshness warning printed when profile is >12h old
+- `web/src/app/page.tsx` — "Last synced X hours ago" staleness indicator next to readiness %; turns amber at ≥12h
+- Also ships: exam sim history panel (`ExamSimHistory` component, `GET /sessions/exam-sim/history`, `api.getExamSimHistory`)
+
+**Watch-outs:**
+- The unique index migration (`idx_sa_session_qhash`) will fail silently (via `IF NOT EXISTS`) on new DBs since the table-level UNIQUE covers it — but on existing DBs it protects without requiring schema migration
+- Exam sim dimensions require subtopics to have `dimensions[]` populated in `syllabus.json` — subtopics without dimensions fall back to "Use your best judgment"
+- C-04 (localStorage session hydration) was already fixed — the audit draft was stale; code was correct before this session
+- M-08 (per-question notes pre-populate) was already working — `getQuestionNotes` was already called and merged into React state
+
+**Branch:** `fix/system-audit-phase1` — not yet pushed (no remote configured in cloud environment)
+
+---
+
 ### Dimension tracking fully activated — 2026-05-17 (PR #39)
 
 **What changed:**
@@ -344,24 +368,18 @@ New files:
 
 ## Open issues — current priority order
 
+✅ ISSUE-007, 012, 016, 017, 018, 019, 020, 021, 022, 023 — all resolved in ISSUES.md (PRs #2, #3, #31, #33, #34). This table was stale.
+
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| ISSUE-007/016/021 | ← Previous + score + submit confirm in `session/page.tsx` | P1 | Patterns already done in `diagnostic/page.tsx` — one PR |
-| ISSUE-023 | Sessions not marked complete in Today's plan | P1 | Need to investigate which component renders plan sessions |
-| ISSUE-020 | "Medium" label unclear | P1 | Replace with "Medium difficulty" or add context |
-| ISSUE-019 | Note box doesn't reset/autosave per question | P1 | `session_user_notes` table exists; wire per-question index |
-| ISSUE-022 | Session notes missing core concept depth | P1 | Rewrite Core Concept section in `prompts/session_notes.txt` |
-| ISSUE-018 | No revision notes on session finish (adaptive) | P1 | Diagnostic has it; check if `session/page.tsx` also calls it |
-| ISSUE-012 | CSAT in tracker UI / readiness scoring | P1 | Audit `batch_analyse.py` + tracker page |
-| ISSUE-017 | Note-taking as feedback/training data | P1 | Spec needed first → `plans/feedback_training.md` |
-| ISSUE-014 | Portal time tracker | P2 | Spec needed |
-| ISSUE-015 | AI chat integration evaluation | P2 | Cost/benefit analysis needed |
+| ISSUE-014 | Portal time tracker | P2 | Spec needed — write `plans/time_tracker.md` |
+| ISSUE-015 | AI chat integration evaluation | P2 | Cost/benefit analysis needed before any implementation |
 
 ## Pending one-time tasks (need Rahul go-ahead)
 
 | Task | Cost | What it does |
 |------|------|--------------|
-| `python3 scripts/retag_pyq_subtopics.py` | ~$0.05 | Better PYQ→subtopic matching; improves readiness scoring |
+| ~~`python3 scripts/retag_pyq_subtopics.py`~~ | ~~Done May 16~~ | ~~Ran — 714 PYQ rows reclassified to canonical subtopic_ids~~ |
 | ~~`python3 scripts/check_chroma_coverage.py`~~ | ~~Done May 16~~ | ~~All 9 GS subjects healthy — no action needed~~ |
 
 ---
@@ -623,15 +641,9 @@ logic from the per-subtopic answer grouping so single-answer sessions still move
 
 ---
 
-### P6 — Plan scheduling is LLM-decided, not deterministically enforced [LOW IMPACT]
+### ✅ P6 — Plan validation layer — RESOLVED May 17 (PR #40)
 
-The plan generator passes scheduling rules to Claude and trusts the output. Claude can ignore
-the rules or make suboptimal choices. There's no post-generation validation.
-
-**Fix:** add a Python function that validates Claude's plan output against the rules (session
-time fits hours budget, minimum 3 subjects covered, no re-testing >75% subtopics) and
-either corrects violations programmatically or retries the Claude call with the specific
-rule that was broken.
+`scripts/plan_validator.py` added — deterministic post-Claude rule enforcement: time budget, subject spread, re-test rules. `plan_generator.py` calls `validate_and_fix()` after Claude returns the plan JSON.
 
 ---
 

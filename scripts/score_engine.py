@@ -71,7 +71,7 @@ def record_answer(session_id: str, answer: dict) -> None:
     """Persist a single answer immediately after submission."""
     con = sqlite3.connect(DB_PATH)
     con.execute("""
-        INSERT INTO session_answers
+        INSERT OR IGNORE INTO session_answers
         (session_id, question_hash, question_text, options, correct_answer,
          user_answer, is_correct, time_taken_sec, skipped, subject_id, topic_id, subtopic_id, dimension_id)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -138,25 +138,33 @@ def close_session(session_id: str) -> dict:
     skipped = sum(1 for a in answers if a["skipped"])
     score = (correct / max(total - skipped, 1)) * 100
 
-    con.execute("""
-        UPDATE quiz_sessions
-        SET end_time=?, answered=?, skipped=?, score=?
-        WHERE id=?
-    """, (datetime.now(timezone.utc).isoformat(), total - skipped, skipped, score, session_id))
-    con.commit()
+    try:
+        con.execute("BEGIN IMMEDIATE")
+        con.execute("""
+            UPDATE quiz_sessions
+            SET end_time=?, answered=?, skipped=?, score=?
+            WHERE id=?
+        """, (datetime.now(timezone.utc).isoformat(), total - skipped, skipped, score, session_id))
 
-    if is_exam_sim:
-        # Exam sim is a test — do NOT pollute subtopic_scores or prep_profile.
-        # Write to dedicated exam_sim_records table instead.
-        _store_exam_sim_record(con, session_id, answers, score, cfg)
-    else:
-        _update_subtopic_scores(con, answers)
-        _update_subtopic_dimension_scores(con, answers)
+        if is_exam_sim:
+            # Exam sim is a test — do NOT pollute subtopic_scores or prep_profile.
+            # Write to dedicated exam_sim_records table instead.
+            _store_exam_sim_record(con, session_id, answers, score, cfg)
+        else:
+            _update_subtopic_scores(con, answers)
+            _update_subtopic_dimension_scores(con, answers)
+
+        _store_session_summary(con, session_id, answers, score)
+        con.execute("COMMIT")
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+    finally:
+        con.close()
+
+    # Difficulty update is idempotent — run after the main transaction closes
+    if not is_exam_sim:
         _update_subtopic_difficulties(answers)
-
-    _store_session_summary(con, session_id, answers, score)
-    con.commit()
-    con.close()
 
     return {
         "session_id": session_id,
