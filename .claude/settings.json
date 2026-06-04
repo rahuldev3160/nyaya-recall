@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"Knowledge base reminder: if this session involved an audit, multi-agent task, significant bug fix, or architecture plan — ensure .knowledge/INDEX.md and the relevant record files have been updated. If not done yet, do it now before stopping.\"}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

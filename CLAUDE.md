@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Knowledge Base — ALWAYS CHECK FIRST
+Before any audit, bug investigation, or architecture review:
+1. Read `.knowledge/INDEX.md` — open bugs, pending approvals, queued features snapshot
+2. Read `~/.claude/knowledge/patterns/PATTERNS.md` — cross-project patterns before investigating from scratch
+3. For full detail: `ISSUES.md` (bugs), `FEATURES.md` (features), `HANDOFF.md` (session history)
+
+## Knowledge Base — ALWAYS UPDATE AFTER
+After any audit, multi-agent task, significant fix, or architecture decision — write synthesized
+records to `.knowledge/` and update `INDEX.md` before finishing the response.
+
 ## Project
 
 A local-only, AI-powered 10-day UPSC Prelims adaptive preparation system.
