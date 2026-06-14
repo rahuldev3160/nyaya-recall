@@ -1,3 +1,61 @@
+### Sprint 2 architecture locked + 3-agent audit complete — 2026-06-15 (evening)
+
+**What was done:**
+- PR #42 merged (Sprint 0: C7 exam date, C6 KeyError, C2 WAL mode)
+- 3-agent parallel audit produced: `docs/migration/01_codebase_audit.md` + `docs/migration/02_infra_architecture.md` + `SPRINT_BOARD.md`
+- Sprint board fully specced with parallel task clusters and dependency map
+
+**Key findings from audit (read full docs for detail):**
+- 41 hardcoded `'user_1'` sites (not 16 as estimated) — all are SILENT_BREAK
+- JSON files (`prep_profile.json`, `study_plan.json`) are CRITICAL risk — batch_analyse.py has no user_id filter; User B's sync corrupts User A's profile
+- Frontend has ZERO auth infrastructure — all 30+ API calls have no Authorization header
+- `subtopic_difficulty` table: no user_id — architectural decision pending Rahul (recommend: keep global)
+- Routes bypass `get_conn()` WAL helper — WAL is durable so reads are safe, but busy_timeout missing on 29 route connection sites
+
+**Infra decisions locked:**
+- Reuse Railway (add Recall as 2nd service on Nyaya Scribe's project)
+- SQLite→PostgreSQL in Sprint 2 (not later — avoids two migrations)
+- Application-layer user_id filtering (not RLS until Sprint 7)
+- Supabase free tier through all 8 sprints (50k MAU limit — safe)
+- Soft launch with manual UPI; Razorpay KYC starts Sprint 4
+
+**Sprint 2 estimate revised:** 3 days → 5-6 days (41 sites + JSON migration + PostgreSQL)
+
+**Next session — exact first steps (TWO parallel tracks):**
+
+Track A — Sprint 1 unblock (start immediately, no Supabase needed):
+```
+1. Build scripts/download_answer_keys.py:
+   - Fetch official UPSC answer key PDFs from upsc.gov.in URL pattern for 2015–2025
+   - Fetch 2013 from: https://lotusarise.com/wp-content/uploads/2021/12/UPSC-Prelims-Official-Answer-Key-2013.pdf
+   - Extract {question_number: answer_letter} tables using pdfplumber
+   - Also clone/download iaseth/prelimspattern JSON for cross-validation
+2. Build scripts/import_answer_keys.py:
+   - JOIN extracted keys to pyq_questions by (year, question_number)
+   - Update correct_answer, set answer_source='upsc_official_key'
+   - PREREQUISITE: ALTER TABLE pyq_questions (add q_number, answer_source, answer_disputed, dispute_note)
+     → Flag to Rahul for approval before running ALTER
+```
+
+Track B — Sprint 2 Cluster A+C (start in parallel with Track A):
+```
+1. Create backend/auth.py with get_current_user() — PyJWT + SUPABASE_JWT_SECRET
+2. Create web/src/app/login/page.tsx + web/src/lib/supabase.ts + web/src/lib/auth.ts
+3. Update web/src/lib/api.ts — add Authorization: Bearer header to all 30+ fetch() calls
+4. Wire Depends(get_current_user) into POST /quiz/generate as pilot route
+PREREQUISITE: Rahul creates Supabase project (10 min) and adds keys to .env
+```
+
+**Pending Rahul decisions before Sprint 2:**
+- B-1: Create Supabase project (10 min) → supabase.com → New project → copy 3 keys to .env
+- B-2: Create Railway service for Recall + PostgreSQL addon (15 min)
+- B-3: Approve subtopic_difficulty as global (recommended) or per-user
+- B-4: Approve ALTER TABLE pyq_questions (4 new columns) — unblocks automated answer pipeline
+
+**SPRINT_BOARD.md** — living task board; update after each sprint completes.
+
+---
+
 ### Public launch planning + 12-month roadmap — 2026-06-15
 
 **Session type:** Planning only. No code written. Next session = Sprint 0 implementation.

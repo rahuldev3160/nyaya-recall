@@ -57,6 +57,7 @@
 | **Exam simulation mode** | P1 | `/exam-sim` page: subject→topic→subtopic tree selector, configurable Q count (1–100) + duration. Timed quiz runner. Results screen with per-subject + per-topic accuracy breakdown. | Shipped May 17 (PR #35) |
 | **Exam sim score write-back + scheduling bias fixes** | P0 | Exam sim questions now get subject_id/topic_id overridden from authoritative allocation map; SHA256 question_hash generated server-side; empty subject_id guard in score_engine; needs_retest concept (< 3 attempts) in plan_generator; 2-session/subject daily cap; k=8 chunk scaling; batch_analyse max_tokens 8192 + topics[] stripped | Shipped May 17 (PR #37) |
 | **System audit phase 1 — correctness fixes** | P0 | C-01: exam sim now injects CA chunks + dimensions; C-02: single-subtopic chunk k scales with num_questions; C-05: close_session wrapped in BEGIN IMMEDIATE/COMMIT/ROLLBACK; H-05: session_answers UNIQUE(session_id, question_hash) + INSERT OR IGNORE; H-06: batch_analyse max_tokens 16000 + extended-output beta; H-07: plan_generator freshness warning at 12h; H-08: plan_generator max_tokens 8192 + extended-output beta; M-09: dashboard shows last-synced staleness indicator | Shipped May 17 (branch: fix/system-audit-phase1) |
+| **Sprint 0 — 3 critical launch blockers** | P0 | C7: hardcoded `EXAM_DATE(2026-05-20)` in plan.py → `_get_exam_date()` reading `target_date` from prep_config.json; C6: `a["concept_expanded"]` KeyError on fresh DB → `.get()`; C2: SQLite WAL mode missing → `backend/db.py` with `get_conn()` + `enable_wal()` at startup | Shipped Jun 15, 2026 (PR #42) |
 
 ---
 
@@ -101,7 +102,8 @@ These are ordered by impact. Pick from the top.
 | 12 | Onboarding redesign | P3 | First-run experience is rough. User needs guided setup for API key, study material ingestion, and first diagnostic. | [`plans/onboarding_redesign.md`](plans/onboarding_redesign.md) |
 | 13 | Mock test mode | P3 | Full UPSC Prelims simulation: 100 questions, 2 hours, mixed subjects, auto-scored with strategy analysis. | [`plans/github_collab.md`](plans/github_collab.md) — rough notes |
 | 14 | Auto-start on Mac reboot | P3 | Both servers must be manually started after every restart. `pm2` or `launchd` plist files would fix this. | `HANDOFF.md → P7` |
-| 15 | Multi-user / dynamic user_id | P3 | `user_id = 'user_1'` is hardcoded everywhere. Making it dynamic unlocks multi-user. | `docs/PLANNING.md` |
+| 15 | **Multi-user auth + multi-tenancy + PostgreSQL (Sprint 2)** | **P0** | 41 hardcoded `'user_1'` sites across 9 files (all SILENT_BREAK). Supabase JWT auth, user_profiles table, JSON file → DB migration, PostgreSQL on Railway. 5–6 build days. Full spec in `SPRINT_BOARD.md` and `docs/migration/`. | `SPRINT_BOARD.md §Sprint2` |
+| 21 | **Automated UPSC answer key pipeline (Sprint 1 unblock)** | **P0** | `scripts/download_answer_keys.py` fetches official UPSC PDFs programmatically + iaseth/prelimspattern JSON; `scripts/import_answer_keys.py` extracts Q#→A/B/C/D via pdfplumber and updates `correct_answer` + sets `answer_source='upsc_official_key'`. Eliminates manual PDF download blocker. Needs ALTER TABLE approval first. | `SPRINT_BOARD.md §Sprint1` |
 | 16 | Session resumption — resume later | P3 | Resume a paused quiz session from the exact question after page reload or app close. Deferred — needs cost/scope evaluation post-exam. Full thought process and decision criteria documented. | [`plans/session_resumption.md`](plans/session_resumption.md) |
 
 ---
