@@ -11,6 +11,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback
+from db import enable_wal
 
 DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 
@@ -88,6 +89,7 @@ def _ensure_question_notes_and_feedback_tables() -> None:
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
+    enable_wal(DB_PATH)
     _ensure_session_user_notes_table()
     _ensure_question_notes_and_feedback_tables()
     yield

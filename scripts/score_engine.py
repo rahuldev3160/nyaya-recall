@@ -309,7 +309,7 @@ def _store_session_summary(
     # Track which subtopics the user chose to expand — learning interest signal
     expanded = list({
         a["subtopic_id"] for a in answers
-        if a["concept_expanded"] and a["subtopic_id"]
+        if a.get("concept_expanded") and a["subtopic_id"]
     })
 
     con.execute("""

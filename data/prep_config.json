@@ -1,5 +1,6 @@
 {
-  "total_days": 10,
-  "daily_hours": 6.0,
-  "start_date": "2026-05-11"
+  "total_days": 5,
+  "daily_hours": 2.0,
+  "start_date": "2026-06-06",
+  "target_date": "2026-11-29"
 }

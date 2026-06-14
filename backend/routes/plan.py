@@ -211,7 +211,21 @@ def create_plan(body: dict = {}):
 
 
 PREP_PROFILE_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
-EXAM_DATE = datetime.date(2026, 5, 20)
+PREP_CONFIG_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
+
+
+def _get_exam_date() -> datetime.date:
+    """Read exam date from prep_config.json; fall back to start_date+total_days, then today+30."""
+    try:
+        cfg = json.loads(PREP_CONFIG_PATH.read_text())
+        if cfg.get("target_date"):
+            return datetime.date.fromisoformat(cfg["target_date"])
+        if cfg.get("start_date") and cfg.get("total_days"):
+            start = datetime.date.fromisoformat(cfg["start_date"])
+            return start + datetime.timedelta(days=int(cfg["total_days"]))
+    except Exception:
+        pass
+    return datetime.date.today() + datetime.timedelta(days=30)
 
 _SUBJECT_NAMES = {
     "polity": "Polity & Governance",
@@ -229,7 +243,7 @@ _SUBJECT_NAMES = {
 @router.get("/trajectory")
 def get_trajectory():
     today = datetime.date.today()
-    days_remaining = max((EXAM_DATE - today).days, 0)
+    days_remaining = max((_get_exam_date() - today).days, 0)
 
     if not PREP_PROFILE_PATH.exists():
         return {"error": "No prep profile found. Run batch_analyse.py first."}
@@ -313,7 +327,7 @@ def get_trajectory():
         trajectory_note = "Exam day is today — focus on revision and strategy."
 
     return {
-        "exam_date": EXAM_DATE.isoformat(),
+        "exam_date": _get_exam_date().isoformat(),
         "days_remaining": days_remaining,
         "overall_readiness": overall_readiness,
         "subjects": subject_list,
