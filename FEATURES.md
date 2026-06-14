@@ -82,6 +82,10 @@ These are ordered by impact. Pick from the top.
 
 | # | Feature / Fix | Priority | Description | Source |
 |---|---------------|----------|-------------|--------|
+| 17 | **PYQ Data Foundation** | **P0** | Official UPSC answer keys for 2013–2025 (scope: 2013 onwards for PYQ Browser). Fix incomplete years (2018 lowest at 72 of 100), fix 2014 duplication (132 rows), tag cancelled + disputed answers. Blocker for PYQ Browser + Explanations. | [`plans/pyq_data_foundation.md`](plans/pyq_data_foundation.md) |
+| 18 | **PYQ Browser** | P1 | Year → Subject → Topic → Subtopic navigation for Civil Services GS Prelims 2013–2025. Structured PYQ practice. Tracks attempts in `pyq_attempts` table. | [`plans/pyq_browser.md`](plans/pyq_browser.md) |
+| 19 | **PYQ Explanations (Paid Content)** | P1 | Pre-generate concept explanation per PYQ via Haiku Batch (~₹85 one-time). Covers: concept tested, why each wrong option is wrong, memory hook. Pro-gated explanation card in PYQ Browser. | [`plans/pyq_explanations.md`](plans/pyq_explanations.md) |
+| 20 | **Multi-Exam Question Bank** | P1 | Harvest CDS/NDA/CAPF/CISF PYQs (~6,500–7,000 questions, official UPSC answer keys, zero AI cost) into `question_bank` table. AI gap-fill only for underrepresented subtopics (~₹75). Feeds all diagnostics, simulations, adaptive engine. | [`plans/multi_exam_bank.md`](plans/multi_exam_bank.md) |
 | 1 | ~~PYQ subtopic ID normalisation~~ | ~~P1~~ | ~~SHIPPED~~ | ~~`HANDOFF.md → P1`~~ |
 | 2 | ~~ChromaDB content audit + re-ingestion~~ | ~~P1~~ | ~~AUDITED May 16: 11,146 chunks across 9 GS subjects — all healthy. ir_governance lowest at 320 chunks (above threshold). CSAT has 0 chunks (intentional — separate system). No re-ingestion needed.~~ | ~~Resolved May 16~~ |
 | 2b | ~~User-editable daily plan~~ | ~~P2~~ | ~~SHIPPED — Rahul can edit sessions inline before starting; edits saved to `study_plan_user.json`; delta log persists what Claude suggested vs what was changed.~~ | ~~PR #32 — Spec: [`plans/user_editable_plan.md`](plans/user_editable_plan.md)~~ |

@@ -11,5 +11,6 @@ router = APIRouter()
 @router.post("/sync")
 def sync_and_analyse(body: dict = {}):
     """Trigger end-of-session/day batch analysis."""
-    result = run_analysis()
+    force = bool(body.get("force", False))
+    result = run_analysis(force=force)
     return result or {"message": "No unsynced sessions found"}

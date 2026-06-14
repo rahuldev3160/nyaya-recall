@@ -546,7 +546,7 @@ def mark_synced(session_ids: list[str]):
 # Main analysis runner
 # ---------------------------------------------------------------------------
 
-def run_analysis() -> dict:
+def run_analysis(force: bool = False) -> dict:
     summaries, session_ids = get_unsynced_summaries()
     if not session_ids:
         print("No unsynced sessions found.")
@@ -554,6 +554,17 @@ def run_analysis() -> dict:
 
     print(f"Analysing {len(session_ids)} session(s) via summaries...")
     profile = load_profile()
+
+    # Guard: Claude analysis costs ~$0.07/run — cap at once per day.
+    # Unsynced sessions are left intact so they roll into the next run.
+    last_updated = profile.get("last_updated", "")
+    if last_updated and last_updated[:10] == date.today().isoformat() and not force:
+        print(
+            f"⚠ Analysis already ran today ({last_updated[:10]}). "
+            f"{len(session_ids)} unsynced session(s) will roll into the next run. "
+            f"Use --force (CLI) or force=true (API) to override."
+        )
+        return {"skipped": True, "reason": "already_ran_today"}
 
     # Build syllabus_dims_map once: {subtopic_id -> list of dimension dicts}
     # Used by the dimension-aware readiness formula (FEATURE-027 Phase 5)
@@ -722,4 +733,9 @@ def run_analysis() -> dict:
 
 
 if __name__ == "__main__":
-    run_analysis()
+    import argparse
+    _parser = argparse.ArgumentParser(description="End-of-day batch analysis")
+    _parser.add_argument("--force", action="store_true",
+                         help="Re-run Claude analysis even if already ran today")
+    _args = _parser.parse_args()
+    run_analysis(force=_args.force)

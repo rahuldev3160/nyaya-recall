@@ -1,24 +1,123 @@
-### System audit phase 1 — correctness fixes — 2026-05-17
+### Public launch planning + 12-month roadmap — 2026-06-15
+
+**Session type:** Planning only. No code written. Next session = Sprint 0 implementation.
+
+**What was decided:**
+
+**1. Public launch as Nyaya Recall — 3 hard launch blockers identified (fix in Sprint 0):**
+- **C7 — BLOCKS LAUNCH:** `backend/routes/plan.py:214` — `EXAM_DATE = datetime.date(2026, 5, 20)` hardcoded. Every new public user sees "0 days remaining". Fix: read `target_date` from `prep_config.json`.
+- **C6 — BLOCKS LAUNCH:** `scripts/score_engine.py:312` — `a["concept_expanded"]` KeyError crashes `close_session` for every new user on fresh DB. Fix: `a.get("concept_expanded")`.
+- **C2 — BLOCKS LAUNCH:** No SQLite WAL mode. Two simultaneous users → `database is locked`. Fix: create `backend/db.py` with WAL pragma; all routes import from it.
+
+**2. Multi-user architecture — 16 hardcoded `user_1` sites mapped:**
+- Every table has `user_id TEXT DEFAULT 'user_1'` (db_init.py lines 36–191)
+- score_engine.py: 8 sites; plan_generator.py: 3 sites; sessions.py: 8 sites; quiz.py: 2 sites; tracker.py: 4 sites; feedback.py: 2 sites
+- auth.py (new file) → Supabase JWT middleware → `Depends(get_current_user)` threaded through all routes
+- Rahul's data migration: one-time `UPDATE ... SET user_id='rahul' WHERE user_id='user_1'` (approval gate before execution)
+- `prep_profile.json` + `study_plan.json` move to `data/profiles/{user_id}.json` namespacing
+
+**3. Sprint sequence locked (11–13 build days total):**
+- Sprint 0 (1 day): Fix C7 + C6 + C2 — DO THIS FIRST NEXT SESSION
+- Sprint 1 (1 day + Rahul sourcing): PYQ Data Foundation — official UPSC answer keys 2013–2025
+- Sprint 2 (3 days): Supabase auth + multi-tenancy + SQLite→PostgreSQL
+- Sprint 3 (1 day): PYQ Browser
+- Sprint 4 (1 day): PYQ Explanations + Pro gating (~₹85 Haiku batch)
+- Sprint 5 (1 day): Onboarding + per-user exam date
+- Sprint 6 (1.5 days): Multi-exam question bank (CDS/NDA PYQs)
+- Sprint 7 (3 days): Analytics + weakness engine
+- Sprint 8 (1 day): Deploy + launch (Railway + Vercel + Reddit r/upsc)
+
+**4. Exam context update:**
+- Rahul appearing IES (Economic Service) 2026 June 19–21 for experience
+- UPSC Prelims 2026 was May 24 (done; result pending Aug–Sep)
+- Primary exam target: RAS 2026 (Nov 29, 607 vacancies, application deadline July 3)
+- IES 2027 (Jun 18, 2027) — 2nd attempt; OBC NCL age limit 33 → ~4 more attempts after this
+- UPSC CSE 2027 (May 23, 2027) — 8 OBC attempts remaining
+
+**Next session — exact first step:**
+```
+Fix backend/routes/plan.py:214 — replace hardcoded EXAM_DATE with prep_config.json target_date read
+Then: score_engine.py:312 — a["concept_expanded"] → a.get("concept_expanded")
+Then: create backend/db.py with WAL pragma, import in all routes
+Commit as: "fix(critical): Sprint 0 — fix C7 exam date, C6 KeyError, C2 WAL mode"
+```
+
+**Watch-outs for Sprint 0:**
+- `prep_config.json` may not have `target_date` field — add it if missing, default to 30 days from today
+- After WAL mode fix, verify `data/upsc.db-wal` file appears on first write (confirms WAL active)
+- Do NOT start Sprint 1 (PYQ Data) until Sprint 0 is committed and pushed
+
+---
+
+### PYQ full indexing complete — 2026-05-30
 
 **What changed:**
-- `prompts/exam_simulation.txt` — added `{{current_affairs_chunks}}` + `{{available_dimensions}}` blocks; `dimension_id` no longer hardcoded null in output schema
-- `backend/routes/quiz.py` (`start_exam_simulation`) — now fetches CA chunks per subject (k=3) and builds per-subtopic dimension blocks before injecting into exam prompt
-- `backend/routes/quiz.py` (line ~884) — single-subtopic non-notes path now uses `_chunk_k(num_q)` instead of default k=5
-- `scripts/score_engine.py` (`close_session`) — wrapped in `BEGIN IMMEDIATE`/`COMMIT`/`ROLLBACK`; `_update_subtopic_difficulties` moved outside transaction (idempotent)
-- `scripts/score_engine.py` (`record_answer`) — changed to `INSERT OR IGNORE` to block duplicate answer inflation
-- `scripts/db_init.py` — `session_answers` schema gains `UNIQUE(session_id, question_hash)`; migration: `CREATE UNIQUE INDEX IF NOT EXISTS idx_sa_session_qhash`
-- `scripts/batch_analyse.py` — `max_tokens` raised 8192 → 16000 with extended-output beta
-- `scripts/plan_generator.py` — `max_tokens` raised 4096 → 8192 with extended-output beta; freshness warning printed when profile is >12h old
-- `web/src/app/page.tsx` — "Last synced X hours ago" staleness indicator next to readiness %; turns amber at ≥12h
-- Also ships: exam sim history panel (`ExamSimHistory` component, `GET /sessions/exam-sim/history`, `api.getExamSimHistory`)
+- `scripts/tag_pyq_questions.py` — NEW script fills topic_id + subtopic_id for community-imported rows with NULL subtopic_id. Uses Haiku in batches of 20 per subject.
+- **Result:** 904 rows tagged, 0 failures. All 9 GS subjects at 100% topic/subtopic coverage.
+- Per-year coverage: 2014, 2016–2018, 2020, 2022–2025 at 100%. 2015/2019/2021 at 96–99% (12 genuinely uncategorisable rows — Hindi OCR failures with no question text, NULL subject_id).
+- **PYQ Browser is now unblocked.** Every question has year + subject + topic + subtopic — full 4-level navigation is possible.
+
+**Still open in FEATURE-17 (PYQ Data Foundation):**
+- ⚠️ ALTER TABLE pyq_questions (add answer_source, answer_disputed, dispute_note, q_number) — needs Rahul's explicit approval before running
+- ⚠️ DELETE to fix 2014 duplication — needs approval
+- Rahul to download official UPSC final answer keys (2014–2025) from upsc.gov.in
+
+**Next autonomous task:** FEATURE-18 — PYQ Browser (year → subject → topic → subtopic navigation UI)
+
+---
+
+### Question bank strategy finalised — 2026-05-30
+
+**Decision:** Two-table architecture.
+- `pyq_questions` = Civil Services GS Prelims 2013–2025 only (PYQ Browser feature)
+- `question_bank` = CDS/NDA/CAPF/CISF PYQs + AI gap-fill (diagnostic engine, simulations, adaptive quizzes)
+
+**Why:** ~6,500–7,000 real UPSC exam questions with official answer keys at zero cost from CDS/NDA/CAPF/CISF. AI generation is a last resort for subtopics with < 10 questions in the bank. Data sourcing effort for Phase 0 is also simpler: 2013–2025 only (not 2009–2025).
+
+**New plan:** `plans/multi_exam_bank.md`
+**Updated:** `plans/public_platform.md` (Phase 4 now covers multi-exam ingestion), `plans/pyq_data_foundation.md` (scoped to 2013–2025)
+
+---
+
+### PYQ platform plan fully specced — 2026-05-30
+
+**What changed:**
+- `plans/public_platform.md` — rewritten with 6 phases in correct priority order; includes PYQ Browser and Explanations as paid content
+- `plans/pyq_data_foundation.md` — NEW: executable plan for sourcing official UPSC answer keys (2009–2025), ingesting missing years, fixing duplicates, adding answer_source/answer_disputed columns
+- `plans/pyq_browser.md` — NEW: year→subject→topic→subtopic navigation, new `pyq_attempts` table, API endpoints
+- `plans/pyq_explanations.md` — NEW: Haiku Batch explanation generation (~₹81 one-time), ExplanationCard UI, Pro gating
+- `FEATURES.md` — added FEATURE-17 (PYQ Data Foundation P0), FEATURE-18 (PYQ Browser P1), FEATURE-19 (PYQ Explanations P1) to Queued
+
+**Nothing executed — all plan-only.**
+
+**Critical sequence:**
+1. FEATURE-17 (PYQ Data Foundation) must happen first — requires Rahul to download official UPSC PDFs + answer keys
+2. FEATURE-18 (PYQ Browser) builds on top of clean data
+3. FEATURE-19 (Explanations) runs only after official correct_answers are in DB (otherwise explains wrong answers)
+
+**Approval gates in FEATURE-17 (must flag before executing):**
+- `ALTER TABLE pyq_questions` (add answer_source, answer_disputed, dispute_note, q_number columns)
+- `DELETE FROM pyq_questions` to fix 2014 duplication (132 rows → ~100)
+
+---
+
+### Public platform plan + cost fixes — 2026-05-30
+
+**What changed:**
+- `scripts/batch_analyse.py` — re-run guard added: Claude analysis capped at once per day. Second call in same day marks sessions synced but skips the Sonnet call. Use `--force` (CLI) or `{"force": true}` (API body) to override. Saves ~$0.07/extra run.
+- `backend/routes/analysis.py` — `POST /sync` now accepts `force` in request body.
+- `Descriptive-exams/scripts/generate_answers.py` — batch results now cached locally to `cache/answer_batch_results/{batch_id}.jsonl`. Re-running reads from local file instead of re-calling the API. Prevents re-billing for the 1,219 IES Sonnet answers (~$16 one-time).
+- `plans/public_platform.md` — full public platform plan saved (market research + tech architecture + pricing model).
+
+**PYQ data audit findings (action required before public launch):**
+- Missing years: 2009–2013 (5 years, ~500 questions) — source year-wise PDFs from upsc.gov.in
+- **Critical:** 518/1,081 PYQs have no `correct_answer` — Claude Haiku infers answers from question text during ingestion; UPSC PDFs don't include inline answer keys. Source official answer keys from UPSC website and import.
+- Correct answers for existing 563 questions are AI-inferred, not validated against official keys — reliability risk for a public platform.
+- No `dimension_id` on `pyq_questions` table — dimension tagging of PYQs not yet done.
 
 **Watch-outs:**
-- The unique index migration (`idx_sa_session_qhash`) will fail silently (via `IF NOT EXISTS`) on new DBs since the table-level UNIQUE covers it — but on existing DBs it protects without requiring schema migration
-- Exam sim dimensions require subtopics to have `dimensions[]` populated in `syllabus.json` — subtopics without dimensions fall back to "Use your best judgment"
-- C-04 (localStorage session hydration) was already fixed — the audit draft was stale; code was correct before this session
-- M-08 (per-question notes pre-populate) was already working — `getQuestionNotes` was already called and merged into React state
-
-**Branch:** `fix/system-audit-phase1` — not yet pushed (no remote configured in cloud environment)
+- Do not launch publicly until correct answers are sourced from official UPSC answer keys.
+- `feature/exam-sim-history` local branch is stale — already merged as PR #41, safe to delete.
 
 ---
 
@@ -368,18 +467,18 @@ New files:
 
 ## Open issues — current priority order
 
-✅ ISSUE-007, 012, 016, 017, 018, 019, 020, 021, 022, 023 — all resolved in ISSUES.md (PRs #2, #3, #31, #33, #34). This table was stale.
-
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| ISSUE-014 | Portal time tracker | P2 | Spec needed — write `plans/time_tracker.md` |
-| ISSUE-015 | AI chat integration evaluation | P2 | Cost/benefit analysis needed before any implementation |
+| ISSUE-015 | AI chat integration evaluation | P2 | Cost/benefit vs existing Dive Deeper — spec needed |
+| ISSUE-014 | Portal time tracker | P2 | Spec needed → `plans/time_tracker.md` |
 
-## Pending one-time tasks (need Rahul go-ahead)
+_All P1 issues (ISSUE-007, 012, 017, 018, 019, 020, 021, 022, 023) are resolved — see ISSUES.md._
+
+## Pending one-time tasks
 
 | Task | Cost | What it does |
 |------|------|--------------|
-| ~~`python3 scripts/retag_pyq_subtopics.py`~~ | ~~Done May 16~~ | ~~Ran — 714 PYQ rows reclassified to canonical subtopic_ids~~ |
+| ~~`python3 scripts/retag_pyq_subtopics.py`~~ | ~~Done (PR #17)~~ | ~~PYQ→subtopic canonical matching~~ |
 | ~~`python3 scripts/check_chroma_coverage.py`~~ | ~~Done May 16~~ | ~~All 9 GS subjects healthy — no action needed~~ |
 
 ---
@@ -641,9 +740,15 @@ logic from the per-subtopic answer grouping so single-answer sessions still move
 
 ---
 
-### ✅ P6 — Plan validation layer — RESOLVED May 17 (PR #40)
+### P6 — Plan scheduling is LLM-decided, not deterministically enforced [LOW IMPACT]
 
-`scripts/plan_validator.py` added — deterministic post-Claude rule enforcement: time budget, subject spread, re-test rules. `plan_generator.py` calls `validate_and_fix()` after Claude returns the plan JSON.
+The plan generator passes scheduling rules to Claude and trusts the output. Claude can ignore
+the rules or make suboptimal choices. There's no post-generation validation.
+
+**Fix:** add a Python function that validates Claude's plan output against the rules (session
+time fits hours budget, minimum 3 subjects covered, no re-testing >75% subtopics) and
+either corrects violations programmatically or retries the Claude call with the specific
+rule that was broken.
 
 ---
 
