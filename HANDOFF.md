@@ -1,3 +1,28 @@
+### Sprint 3 — PYQ Browser — 2026-06-15 (PR #45, merged ✅)
+
+**What changed:**
+- `backend/routes/pyq.py` (NEW) — 6 endpoints: `GET /pyq/years`, `GET /pyq/{year}/subjects`, `GET /pyq/{year}/{subject_id}/topics`, `GET /pyq/{year}/{subject_id}/{topic_id}/questions`, `POST /pyq/attempt`, `GET /pyq/stats/summary`
+- `backend/server.py` — `_ensure_pyq_attempts_table()` + pyq router registered at `/pyq`
+- `web/src/lib/api.ts` — 6 PYQ API helpers (`getPYQYears`, `getPYQSubjects`, `getPYQTopics`, `getPYQQuestions`, `recordPYQAttempt`, `getPYQStats`)
+- `web/src/components/YearGrid.tsx`, `SubjectCards.tsx`, `TopicAccordion.tsx`, `PYQQuizRunner.tsx` (all NEW)
+- `web/src/app/pyq/page.tsx` (NEW) — orchestrates all 4 components with breadcrumb nav
+- `web/src/app/layout.tsx` — "PYQ" added to nav bar
+
+**Architecture notes:**
+- `pyq_attempts` is a separate table — answers here do NOT feed `batch_analyse` or `score_engine`. This is intentional: PYQ Browser is pure practice, not part of the adaptive prep loop.
+- Graceful fallback: `answer_source` and `answer_disputed` columns don't exist yet in `pyq_questions`. Backend detects via `PRAGMA table_info` and serves defaults (`ai_inferred` / `false`). Will show correct values automatically once ALTER TABLE is approved.
+- Quiz runner auto-resumes from first unattempted question (skips already-answered on re-entry).
+
+**Watch-outs:**
+- Year `0` rows in `pyq_questions` are filtered out (`WHERE year > 0`) in `/pyq/years` — these are unclassified questions from ingestion, not real PYQ
+- PYQ data coverage varies by year (2018 is lowest at 72/100 questions) — users will see partial sets until Sprint 1 data foundation is complete
+
+**Still blocked on Rahul:**
+- B-3: Approve `ALTER TABLE pyq_questions` (4 cols: `answer_source`, `answer_disputed`, `dispute_note`, `q_number`) — unblocks Sprint 1 scripts
+- B-1/B-2: Supabase + Railway setup for real multi-user
+
+---
+
 ### Sprint 2 auth prep — get_conn, user_id threading, auth stubs — 2026-06-15 (PR #43, open)
 
 **What changed:**
