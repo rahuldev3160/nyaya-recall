@@ -14,14 +14,14 @@ router = APIRouter()
 PLAN_PATH      = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
 USER_PLAN_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan_user.json"
 SYLLABUS_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
-DB_PATH        = os.getenv("DB_PATH", "data/upsc.db")
+from db import get_conn, DB_PATH
 
 _GS1_SUBJECTS = {"polity", "economy", "history_amac", "modern_history", "geography",
                   "environment", "science_tech", "current_affairs", "ir_governance"}
 
 
 def _ensure_edit_log_table():
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.execute("""
         CREATE TABLE IF NOT EXISTS plan_edit_log (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -133,7 +133,7 @@ def patch_user_sessions(body: dict):
     DELTA_FIELDS = ("subject_id", "topic_id", "subtopic_id", "format", "difficulty",
                     "num_questions", "estimated_minutes")
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = get_conn()
         now = datetime.datetime.utcnow().isoformat()
         for i, edited in enumerate(edited_sessions):
             original = original_sessions[i] if i < len(original_sessions) else {}
@@ -184,7 +184,7 @@ def get_plan_status():
 
     completed: list[str] = []
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = get_conn()
         rows = con.execute(
             """
             SELECT DISTINCT sa.subtopic_id

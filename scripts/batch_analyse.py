@@ -26,7 +26,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent))
 from priority_scorer import compute_all_priorities
 
-DB_PATH       = os.getenv("DB_PATH", "data/upsc.db")
+from db_helper import get_conn, DB_PATH
 PROFILE_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
 CONFIG_PATH   = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
 SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
@@ -97,12 +97,12 @@ def _build_syllabus_map() -> dict[str, dict]:
     return result
 
 
-def _get_tested_subtopics() -> dict[str, dict[str, float]]:
+def _get_tested_subtopics(user_id: str = "user_1") -> dict[str, dict[str, float]]:
     """Returns {subject_id: {subtopic_id: score}} from subtopic_scores table."""
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     rows = con.execute(
-        "SELECT subject_id, subtopic_id, score FROM subtopic_scores WHERE user_id='user_1'"
+        "SELECT subject_id, subtopic_id, score FROM subtopic_scores WHERE user_id=?",
+        (user_id,),
     ).fetchall()
     con.close()
     tested: dict[str, dict[str, float]] = {}
@@ -112,7 +112,7 @@ def _get_tested_subtopics() -> dict[str, dict[str, float]]:
     return tested
 
 
-def _get_dimension_scores(con: sqlite3.Connection, subject_id: str) -> dict[str, list[dict]]:
+def _get_dimension_scores(con: sqlite3.Connection, subject_id: str, user_id: str = "user_1") -> dict[str, list[dict]]:
     """
     Returns {subtopic_id: [{dimension_id, score, attempts}, ...]} for a given subject.
     Falls back to empty dict if the table doesn't exist yet (pre-Phase 4 merge).
@@ -121,8 +121,8 @@ def _get_dimension_scores(con: sqlite3.Connection, subject_id: str) -> dict[str,
         rows = con.execute(
             "SELECT subtopic_id, dimension_id, score, attempts "
             "FROM subtopic_dimension_scores "
-            "WHERE user_id='user_1' AND subject_id=?",
-            (subject_id,),
+            "WHERE user_id=? AND subject_id=?",
+            (user_id, subject_id),
         ).fetchall()
     except sqlite3.OperationalError:
         # Table doesn't exist yet — graceful fallback
@@ -429,7 +429,7 @@ def _expand_multi_subject_summary(
 
 
 def get_unsynced_summaries() -> tuple[list[dict], list[str]]:
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.row_factory = sqlite3.Row
     sessions = con.execute(
         "SELECT * FROM quiz_sessions WHERE synced=0 AND end_time IS NOT NULL"
@@ -492,7 +492,7 @@ def get_unsynced_summaries() -> tuple[list[dict], list[str]]:
 def get_persistently_weak_subtopics(session_ids: list[str]) -> list[str]:
     if not session_ids:
         return []
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.row_factory = sqlite3.Row
     weak_count: dict[str, int] = {}
     for sid in session_ids:
@@ -509,7 +509,7 @@ def get_persistently_weak_subtopics(session_ids: list[str]) -> list[str]:
 def get_raw_answers_for_subtopics(session_ids: list[str], subtopics: list[str]) -> list[dict]:
     if not subtopics or not session_ids:
         return []
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.row_factory = sqlite3.Row
     ph_s = ",".join("?" * len(session_ids))
     ph_t = ",".join("?" * len(subtopics))
@@ -533,7 +533,7 @@ def _safe_json_list(value: str | None) -> list:
 
 
 def mark_synced(session_ids: list[str]):
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     placeholders = ",".join("?" * len(session_ids))
     con.execute(
         f"UPDATE quiz_sessions SET synced=1 WHERE id IN ({placeholders})", session_ids
@@ -582,7 +582,7 @@ def run_analysis(force: bool = False) -> dict:
     # Fetch per-dimension scores for every subject from the DB
     _dim_scores_by_subject: dict[str, dict[str, list[dict]]] = {}
     try:
-        _dim_con = sqlite3.connect(DB_PATH)
+        _dim_con = get_conn()
         _dim_con.row_factory = sqlite3.Row
         _syllabus_map_for_sids = _build_syllabus_map()
         for _sid in _syllabus_map_for_sids:
@@ -715,7 +715,7 @@ def run_analysis(force: bool = False) -> dict:
 
     # Feedback accumulation reminder — printed when 20+ rows have built up
     try:
-        _fb_con = sqlite3.connect(DB_PATH)
+        _fb_con = get_conn()
         _fb_count = _fb_con.execute(
             "SELECT COUNT(*) FROM content_feedback"
         ).fetchone()[0]

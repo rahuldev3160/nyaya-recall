@@ -46,6 +46,22 @@ export interface StudyPlan {
 // All calls go through the Next.js proxy (/api/backend → port 8000).
 const BASE = "/api/backend";
 
+/** Wraps fetch with an Authorization header when a Supabase session exists. */
+export async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  let token: string | null = null;
+  try {
+    const { getAccessToken } = await import("./auth");
+    token = await getAccessToken();
+  } catch {
+    // Auth not configured yet — fall through to unauthenticated request
+  }
+  const headers: HeadersInit = {
+    ...(options.headers ?? {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  return fetch(url, { ...options, headers });
+}
+
 async function post(path: string, body: object = {}) {
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",

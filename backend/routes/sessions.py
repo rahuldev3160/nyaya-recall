@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 import sys
 import anthropic
 import hashlib
@@ -14,9 +14,13 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 from score_engine import record_answer, close_session
+from db import get_conn, DB_PATH
 
 router = APIRouter()
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
+
+
+def _get_user_id() -> str:
+    return "user_1"
 
 
 def _maybe_auto_close_expired(session_id: str, con: sqlite3.Connection) -> bool:
@@ -66,16 +70,15 @@ def _save_cache(cache: dict) -> None:
 
 
 @router.get("/exam-sim/history")
-def exam_sim_history(limit: int = 30):
+def exam_sim_history(limit: int = 30, user_id: str = Depends(_get_user_id)):
     """Return past exam simulation records from dedicated tracking table."""
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     # Create table if it doesn't exist yet (first call before any exam sim is closed)
     con.execute("""
         CREATE TABLE IF NOT EXISTS exam_sim_records (
             id               INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id       TEXT NOT NULL UNIQUE,
-            user_id          TEXT DEFAULT 'user_1',
+            user_id          TEXT NOT NULL,
             session_date     TEXT,
             total_questions  INTEGER,
             correct          INTEGER,
@@ -93,10 +96,10 @@ def exam_sim_history(limit: int = 30):
                   accuracy_pct, timed_minutes, subjects_covered, subject_breakdown,
                   created_at
            FROM exam_sim_records
-           WHERE user_id='user_1'
+           WHERE user_id=?
            ORDER BY created_at DESC
            LIMIT ?""",
-        (limit,),
+        (user_id, limit),
     ).fetchall()
     con.close()
     result = []
@@ -116,8 +119,7 @@ def exam_sim_history(limit: int = 30):
 
 @router.get("/")
 def list_sessions(limit: int = 30):
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     rows = con.execute(
         """SELECT id, subject_id, topic_id, score, start_time, end_time,
                   total_questions, answered, skipped
@@ -133,8 +135,7 @@ def list_sessions(limit: int = 30):
 
 @router.post("/answer")
 def submit_answer(answer: dict):
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     expired = _maybe_auto_close_expired(answer["session_id"], con)
     con.close()
     if expired:
@@ -171,7 +172,7 @@ def expand_concept(body: dict):
 
     if session_id and question_hash:
         try:
-            con = sqlite3.connect(DB_PATH)
+            con = get_conn()
             con.execute(
                 "UPDATE session_answers SET concept_expanded=1 WHERE session_id=? AND question_hash=?",
                 (session_id, question_hash),
@@ -220,7 +221,7 @@ def _ensure_question_notes_table(con: sqlite3.Connection) -> None:
         CREATE TABLE IF NOT EXISTS session_question_notes (
             session_id   TEXT NOT NULL,
             question_index INTEGER NOT NULL,
-            user_id      TEXT DEFAULT 'user_1',
+            user_id      TEXT NOT NULL,
             note_text    TEXT DEFAULT '',
             updated_at   TEXT DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (session_id, question_index)
@@ -231,18 +232,17 @@ def _ensure_question_notes_table(con: sqlite3.Connection) -> None:
 
 
 @router.get("/{session_id}/user-notes")
-def get_user_notes(session_id: str):
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+def get_user_notes(session_id: str, user_id: str = Depends(_get_user_id)):
+    con = get_conn()
     _ensure_question_notes_table(con)
     row = con.execute(
-        "SELECT * FROM session_user_notes WHERE session_id=? AND user_id='user_1'",
-        (session_id,),
+        "SELECT * FROM session_user_notes WHERE session_id=? AND user_id=?",
+        (session_id, user_id),
     ).fetchone()
     # Also return per-question notes as a dict keyed by question index
     q_rows = con.execute(
-        "SELECT question_index, note_text FROM session_question_notes WHERE session_id=? AND user_id='user_1'",
-        (session_id,),
+        "SELECT question_index, note_text FROM session_question_notes WHERE session_id=? AND user_id=?",
+        (session_id, user_id),
     ).fetchall()
     con.close()
     per_question: dict = {str(r["question_index"]): r["note_text"] for r in q_rows}
@@ -264,12 +264,12 @@ def get_user_notes(session_id: str):
 
 
 @router.put("/{session_id}/user-notes")
-def put_user_notes(session_id: str, body: dict):
+def put_user_notes(session_id: str, body: dict, user_id: str = Depends(_get_user_id)):
     subtopic_id = body.get("subtopic_id")
     if not subtopic_id:
         raise HTTPException(status_code=400, detail="subtopic_id required")
 
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     _ensure_question_notes_table(con)
     exists = con.execute("SELECT 1 FROM quiz_sessions WHERE id=?", (session_id,)).fetchone()
     if not exists:
@@ -304,7 +304,7 @@ def put_user_notes(session_id: str, body: dict):
         """,
         (
             session_id,
-            "user_1",
+            user_id,
             subject_id,
             subtopic_id,
             confusion,
@@ -321,12 +321,12 @@ def put_user_notes(session_id: str, body: dict):
         con.execute(
             """
             INSERT INTO session_question_notes (session_id, question_index, user_id, note_text, updated_at)
-            VALUES (?, ?, 'user_1', ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(session_id, question_index) DO UPDATE SET
                 note_text=excluded.note_text,
                 updated_at=excluded.updated_at
             """,
-            (session_id, qidx, str(note_text)[:8000], now),
+            (session_id, qidx, user_id, str(note_text)[:8000], now),
         )
 
     con.commit()
@@ -337,8 +337,7 @@ def put_user_notes(session_id: str, body: dict):
 @router.post("/{session_id}/revision-notes")
 def get_revision_notes(session_id: str):
     """Generate (and cache) brief correction notes for wrong answers in a session."""
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     rows = con.execute(
         """
         SELECT question_hash, question_text, correct_answer, user_answer, options
@@ -421,8 +420,7 @@ def end_session(session_id: str):
 
 @router.get("/{session_id}")
 def get_session(session_id: str):
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     _maybe_auto_close_expired(session_id, con)
     session = con.execute("SELECT * FROM quiz_sessions WHERE id=?", (session_id,)).fetchone()
     if not session:
@@ -439,7 +437,7 @@ def _ensure_question_notes_table_v2(con: sqlite3.Connection) -> None:
         """
         CREATE TABLE IF NOT EXISTS question_notes (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id         TEXT    NOT NULL DEFAULT 'user_1',
+            user_id         TEXT    NOT NULL,
             session_id      TEXT    NOT NULL,
             question_hash   TEXT    NOT NULL,
             question_index  INTEGER NOT NULL,
@@ -460,7 +458,7 @@ def _ensure_question_notes_table_v2(con: sqlite3.Connection) -> None:
 
 
 @router.put("/{session_id}/question-notes/{question_hash}")
-def put_question_note(session_id: str, question_hash: str, body: dict):
+def put_question_note(session_id: str, question_hash: str, body: dict, user_id: str = Depends(_get_user_id)):
     """
     Upsert a per-question note (ISSUE-017 Phase 1).
     Called on 700 ms debounce from the note textarea — pure DB write, no AI calls.
@@ -479,8 +477,7 @@ def put_question_note(session_id: str, question_hash: str, body: dict):
         raise HTTPException(status_code=400, detail="subtopic_id required")
 
     now = datetime.now(timezone.utc).isoformat()
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     _ensure_question_notes_table_v2(con)
 
     exists = con.execute("SELECT 1 FROM quiz_sessions WHERE id=?", (session_id,)).fetchone()
@@ -493,13 +490,14 @@ def put_question_note(session_id: str, question_hash: str, body: dict):
         INSERT INTO question_notes
             (user_id, session_id, question_hash, question_index, subtopic_id, subject_id,
              note_text, still_weak, updated_at)
-        VALUES ('user_1', ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(session_id, question_hash) DO UPDATE SET
             note_text    = excluded.note_text,
             still_weak   = excluded.still_weak,
             updated_at   = excluded.updated_at
         """,
         (
+            user_id,
             session_id,
             question_hash,
             question_index,
@@ -516,23 +514,22 @@ def put_question_note(session_id: str, question_hash: str, body: dict):
 
 
 @router.get("/{session_id}/question-notes")
-def get_question_notes(session_id: str):
+def get_question_notes(session_id: str, user_id: str = Depends(_get_user_id)):
     """
     Return all per-question notes for a session (ISSUE-017 Phase 1).
     Frontend calls this on session start to pre-populate note textareas.
     """
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     _ensure_question_notes_table_v2(con)
 
     rows = con.execute(
         """
         SELECT question_hash, question_index, note_text, still_weak
         FROM question_notes
-        WHERE session_id=? AND user_id='user_1'
+        WHERE session_id=? AND user_id=?
         ORDER BY question_index
         """,
-        (session_id,),
+        (session_id, user_id),
     ).fetchall()
     con.close()
 
@@ -554,8 +551,7 @@ def get_exam_results(session_id: str):
     Return per-subject and per-topic breakdown for an exam_simulation session.
     Reads session_answers joined with the syllabus to resolve topic names.
     """
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
 
     session_row = con.execute(
         "SELECT session_type, config FROM quiz_sessions WHERE id=?", (session_id,)
@@ -689,7 +685,7 @@ def import_session(data: dict):
     if not session.get("id"):
         raise HTTPException(status_code=400, detail="Missing session id")
 
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.execute(
         """
         INSERT OR IGNORE INTO quiz_sessions

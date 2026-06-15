@@ -10,7 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
+from db_helper import get_conn, DB_PATH
 _SYLLABUS_PATH = Path(__file__).parent.parent / "data" / "syllabus.json"
 _syllabus_cache: dict | None = None
 
@@ -67,9 +67,9 @@ def detect_question_type(text: str) -> str:
     return "direct_fact"
 
 
-def record_answer(session_id: str, answer: dict) -> None:
+def record_answer(session_id: str, answer: dict, user_id: str = "user_1") -> None:
     """Persist a single answer immediately after submission."""
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.execute("""
         INSERT OR IGNORE INTO session_answers
         (session_id, question_hash, question_text, options, correct_answer,
@@ -94,9 +94,9 @@ def record_answer(session_id: str, answer: dict) -> None:
     con.close()
 
 
-def close_session(session_id: str) -> dict:
+def close_session(session_id: str, user_id: str = "user_1") -> dict:
     """Mark session as ended, compute score, store summary, update difficulty."""
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.row_factory = sqlite3.Row
     answers = con.execute(
         "SELECT * FROM session_answers WHERE session_id = ?", (session_id,)
@@ -149,10 +149,10 @@ def close_session(session_id: str) -> dict:
         if is_exam_sim:
             # Exam sim is a test — do NOT pollute subtopic_scores or prep_profile.
             # Write to dedicated exam_sim_records table instead.
-            _store_exam_sim_record(con, session_id, answers, score, cfg)
+            _store_exam_sim_record(con, session_id, answers, score, cfg, user_id)
         else:
-            _update_subtopic_scores(con, answers)
-            _update_subtopic_dimension_scores(con, answers)
+            _update_subtopic_scores(con, answers, user_id)
+            _update_subtopic_dimension_scores(con, answers, user_id)
 
         _store_session_summary(con, session_id, answers, score)
         con.execute("COMMIT")
@@ -181,13 +181,14 @@ def _store_exam_sim_record(
     answers: list[dict],
     score: float,
     cfg: dict,
+    user_id: str = "user_1",
 ) -> None:
     """Write a row to exam_sim_records for dedicated mock-test history tracking."""
     con.execute("""
         CREATE TABLE IF NOT EXISTS exam_sim_records (
             id               INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id       TEXT NOT NULL UNIQUE,
-            user_id          TEXT DEFAULT 'user_1',
+            user_id          TEXT NOT NULL,
             session_date     TEXT,
             total_questions  INTEGER,
             correct          INTEGER,
@@ -233,9 +234,10 @@ def _store_exam_sim_record(
         INSERT OR REPLACE INTO exam_sim_records
             (session_id, user_id, session_date, total_questions, correct, skipped,
              accuracy_pct, timed_minutes, subjects_covered, subject_breakdown)
-        VALUES (?, 'user_1', ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         session_id,
+        user_id,
         datetime.now(timezone.utc).date().isoformat(),
         total,
         correct,
@@ -343,7 +345,7 @@ def _update_subtopic_difficulties(answers) -> None:
         update_difficulty(subtopic_id, ans[0]["subject_id"], accuracy)
 
 
-def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
+def _update_subtopic_scores(con: sqlite3.Connection, answers, user_id: str = "user_1") -> None:
     # Group by (subject_id, subtopic_id) only — topic_id varies across sessions for the
     # same subtopic (canonical vs session-assigned), causing duplicate rows when included.
     grouped: dict[tuple, list] = {}
@@ -364,8 +366,8 @@ def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
 
         existing = con.execute("""
             SELECT score, total_attempts, correct_count FROM subtopic_scores
-            WHERE user_id='user_1' AND subject_id=? AND subtopic_id=?
-        """, (subject_id, subtopic_id)).fetchone()
+            WHERE user_id=? AND subject_id=? AND subtopic_id=?
+        """, (user_id, subject_id, subtopic_id)).fetchone()
 
         if existing:
             new_total = existing["total_attempts"] + attempted
@@ -382,11 +384,11 @@ def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
                 UPDATE subtopic_scores
                 SET topic_id=?, score=?, total_attempts=?, correct_count=?, trend=?,
                     confidence_level=?, last_tested=?, updated_at=?
-                WHERE user_id='user_1' AND subject_id=? AND subtopic_id=?
+                WHERE user_id=? AND subject_id=? AND subtopic_id=?
             """, (
                 topic_id, new_score, new_total, new_correct, trend, confidence,
                 datetime.now(timezone.utc).isoformat(), datetime.now(timezone.utc).isoformat(),
-                subject_id, subtopic_id,
+                user_id, subject_id, subtopic_id,
             ))
         else:
             confidence = _confidence_label(session_score, attempted)
@@ -394,14 +396,14 @@ def _update_subtopic_scores(con: sqlite3.Connection, answers) -> None:
                 INSERT INTO subtopic_scores
                 (user_id, subject_id, topic_id, subtopic_id, score, total_attempts,
                  correct_count, confidence_level, last_tested)
-                VALUES ('user_1',?,?,?,?,?,?,?,?)
+                VALUES (?,?,?,?,?,?,?,?,?)
             """, (
-                subject_id, topic_id, subtopic_id, session_score, attempted, correct,
+                user_id, subject_id, topic_id, subtopic_id, session_score, attempted, correct,
                 confidence, datetime.now(timezone.utc).isoformat(),
             ))
 
 
-def _update_subtopic_dimension_scores(con: sqlite3.Connection, answers) -> None:
+def _update_subtopic_dimension_scores(con: sqlite3.Connection, answers, user_id: str = "user_1") -> None:
     """Update per-dimension accuracy after a session closes.
     Mirrors _update_subtopic_scores but groups by (subject_id, subtopic_id, dimension_id).
     Skips answers with no dimension_id — most sessions won't have any yet.
@@ -424,8 +426,8 @@ def _update_subtopic_dimension_scores(con: sqlite3.Connection, answers) -> None:
 
         existing = con.execute("""
             SELECT score, attempts, correct_count FROM subtopic_dimension_scores
-            WHERE user_id='user_1' AND subject_id=? AND subtopic_id=? AND dimension_id=?
-        """, (subject_id, subtopic_id, dimension_id)).fetchone()
+            WHERE user_id=? AND subject_id=? AND subtopic_id=? AND dimension_id=?
+        """, (user_id, subject_id, subtopic_id, dimension_id)).fetchone()
 
         if existing:
             new_attempts = existing["attempts"] + attempted
@@ -434,19 +436,19 @@ def _update_subtopic_dimension_scores(con: sqlite3.Connection, answers) -> None:
             con.execute("""
                 UPDATE subtopic_dimension_scores
                 SET attempts=?, correct_count=?, score=?, last_tested=?
-                WHERE user_id='user_1' AND subject_id=? AND subtopic_id=? AND dimension_id=?
+                WHERE user_id=? AND subject_id=? AND subtopic_id=? AND dimension_id=?
             """, (
                 new_attempts, new_correct, new_score,
                 datetime.now(timezone.utc).isoformat(),
-                subject_id, subtopic_id, dimension_id,
+                user_id, subject_id, subtopic_id, dimension_id,
             ))
         else:
             con.execute("""
                 INSERT INTO subtopic_dimension_scores
                 (user_id, subject_id, subtopic_id, dimension_id, attempts, correct_count, score, last_tested)
-                VALUES ('user_1', ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                subject_id, subtopic_id, dimension_id,
+                user_id, subject_id, subtopic_id, dimension_id,
                 attempted, correct, session_score,
                 datetime.now(timezone.utc).isoformat(),
             ))
@@ -462,13 +464,12 @@ def _confidence_label(score: float, attempts: int) -> str:
     return "weak"
 
 
-def get_subject_summary(subject_id: str) -> dict:
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+def get_subject_summary(subject_id: str, user_id: str = "user_1") -> dict:
+    con = get_conn()
     rows = con.execute("""
         SELECT subtopic_id, score, confidence_level, total_attempts, trend
-        FROM subtopic_scores WHERE user_id='user_1' AND subject_id=?
-    """, (subject_id,)).fetchall()
+        FROM subtopic_scores WHERE user_id=? AND subject_id=?
+    """, (user_id, subject_id)).fetchall()
     con.close()
     if not rows:
         return {"subject_id": subject_id, "avg_score": 0, "subtopics": []}

@@ -2,12 +2,16 @@ import os
 import json
 import sqlite3
 from pathlib import Path
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from db import get_conn, DB_PATH
 
 router = APIRouter()
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 PROFILE_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
 SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
+
+
+def _get_user_id() -> str:
+    return "user_1"
 
 
 @router.get("/profile")
@@ -18,46 +22,43 @@ def get_profile():
 
 
 @router.get("/subjects")
-def get_all_subjects():
+def get_all_subjects(user_id: str = Depends(_get_user_id)):
     """Returns GS1 subject scores only. CSAT is excluded — it has its own separate tracker."""
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     rows = con.execute("""
         SELECT subject_id,
                AVG(score) as avg_score,
                COUNT(*) as subtopics_assessed,
                SUM(CASE WHEN confidence_level='strong' THEN 1 ELSE 0 END) as strong_count,
                SUM(CASE WHEN confidence_level='weak' THEN 1 ELSE 0 END) as weak_count
-        FROM subtopic_scores WHERE user_id='user_1' AND subject_id != 'csat'
+        FROM subtopic_scores WHERE user_id=? AND subject_id != 'csat'
         GROUP BY subject_id
-    """).fetchall()
+    """, (user_id,)).fetchall()
     con.close()
     return [dict(r) for r in rows]
 
 
 @router.get("/subtopics/{subject_id}")
-def get_subtopics(subject_id: str):
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+def get_subtopics(subject_id: str, user_id: str = Depends(_get_user_id)):
+    con = get_conn()
     rows = con.execute("""
         SELECT subtopic_id, topic_id, score, confidence_level, total_attempts, trend, last_tested
-        FROM subtopic_scores WHERE user_id='user_1' AND subject_id=?
+        FROM subtopic_scores WHERE user_id=? AND subject_id=?
         ORDER BY score ASC
-    """, (subject_id,)).fetchall()
+    """, (user_id, subject_id)).fetchall()
     con.close()
     return [dict(r) for r in rows]
 
 
 @router.get("/gaps")
-def get_gaps():
+def get_gaps(user_id: str = Depends(_get_user_id)):
     """Returns GS1 subjects/subtopics still below 75% threshold. CSAT excluded — separate system."""
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     rows = con.execute("""
         SELECT subject_id, subtopic_id, topic_id, score, total_attempts
-        FROM subtopic_scores WHERE user_id='user_1' AND score < 75 AND subject_id != 'csat'
+        FROM subtopic_scores WHERE user_id=? AND score < 75 AND subject_id != 'csat'
         ORDER BY score ASC
-    """).fetchall()
+    """, (user_id,)).fetchall()
     con.close()
 
     gaps = []
@@ -68,10 +69,9 @@ def get_gaps():
 
 
 @router.get("/sar")
-def get_sar():
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
-    row = con.execute("SELECT * FROM sar_scores WHERE user_id='user_1'").fetchone()
+def get_sar(user_id: str = Depends(_get_user_id)):
+    con = get_conn()
+    row = con.execute("SELECT * FROM sar_scores WHERE user_id=?", (user_id,)).fetchone()
     con.close()
     if not row:
         return {"sar": 0.5, "total_claims": 0}
@@ -81,8 +81,7 @@ def get_sar():
 @router.get("/time-stats")
 def get_time_stats():
     """Returns study time totals: today, all-time, per-subject, avg Q time, 10-day breakdown."""
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
 
     # Total today — prefer end_time-start_time when end_time exists, else fall back to session_answers
     today_row = con.execute("""

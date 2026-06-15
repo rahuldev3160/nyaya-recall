@@ -4,13 +4,17 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from dotenv import load_dotenv
+from db import get_conn, DB_PATH
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 router = APIRouter()
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
+
+
+def _get_user_id() -> str:
+    return "user_1"
 
 # Maps content_type to the prompt file that generated it
 _ADAPTIVE_SESSION_TYPES = {"adaptive", "session"}
@@ -26,7 +30,7 @@ def _ensure_feedback_table(con: sqlite3.Connection) -> None:
         """
         CREATE TABLE IF NOT EXISTS content_feedback (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id         TEXT    NOT NULL DEFAULT 'user_1',
+            user_id         TEXT    NOT NULL,
             content_type    TEXT    NOT NULL,
             session_id      TEXT    NOT NULL,
             question_hash   TEXT,
@@ -69,7 +73,7 @@ def _resolve_prompt_file(content_type: str, session_id: str, con: sqlite3.Connec
 # ── POST /feedback/content ────────────────────────────────────────────────────
 
 @router.post("/content")
-def post_content_feedback(body: dict):
+def post_content_feedback(body: dict, user_id: str = Depends(_get_user_id)):
     """
     Record qualitative feedback on a question, explanation, or notes section.
     Uses INSERT (not upsert) — multiple verdicts are allowed; aggregation reads the latest.
@@ -118,8 +122,7 @@ def post_content_feedback(body: dict):
                 detail="question_hash required when content_type is 'question' or 'explanation'",
             )
 
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     _ensure_feedback_table(con)
 
     prompt_file = _resolve_prompt_file(content_type, session_id, con)
@@ -129,9 +132,10 @@ def post_content_feedback(body: dict):
         INSERT INTO content_feedback
             (user_id, content_type, session_id, question_hash, subtopic_id, subject_id,
              notes_section, verdict, note_text, prompt_file)
-        VALUES ('user_1', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
+            user_id,
             content_type,
             session_id,
             question_hash,
@@ -175,8 +179,7 @@ def get_content_feedback_summary(since: str = Query(default="", description="ISO
         "total_feedback_items": N
       }
     """
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     _ensure_feedback_table(con)
 
     # Build date filter clause

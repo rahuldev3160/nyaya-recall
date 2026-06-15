@@ -11,19 +11,17 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback
-from db import enable_wal
-
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
+from db import enable_wal, get_conn, DB_PATH
 
 
 def _ensure_session_user_notes_table() -> None:
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.execute(
         """
         CREATE TABLE IF NOT EXISTS session_user_notes (
             session_id               TEXT PRIMARY KEY,
-            user_id                  TEXT DEFAULT 'user_1',
+            user_id                  TEXT NOT NULL,
             subject_id               TEXT,
             subtopic_id              TEXT NOT NULL,
             confusion                TEXT DEFAULT '',
@@ -41,12 +39,12 @@ def _ensure_session_user_notes_table() -> None:
 def _ensure_question_notes_and_feedback_tables() -> None:
     """Create ISSUE-017 Phase 1 tables if they do not exist. Safe to re-run."""
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.executescript(
         """
         CREATE TABLE IF NOT EXISTS question_notes (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id         TEXT    NOT NULL DEFAULT 'user_1',
+            user_id         TEXT    NOT NULL,
             session_id      TEXT    NOT NULL,
             question_hash   TEXT    NOT NULL,
             question_index  INTEGER NOT NULL,
@@ -64,7 +62,7 @@ def _ensure_question_notes_and_feedback_tables() -> None:
 
         CREATE TABLE IF NOT EXISTS content_feedback (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id         TEXT    NOT NULL DEFAULT 'user_1',
+            user_id         TEXT    NOT NULL,
             content_type    TEXT    NOT NULL,
             session_id      TEXT    NOT NULL,
             question_hash   TEXT,
