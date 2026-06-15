@@ -5,6 +5,9 @@ import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import { api } from "@/lib/api";
 import ContentFeedback from "@/components/ContentFeedback";
+import ConfidenceSelector from "@/components/ConfidenceSelector";
+import AmbientTimer from "@/components/AmbientTimer";
+import SessionPauseScreen from "@/components/SessionPauseScreen";
 
 const notesMarkdownComponents: Partial<Components> = {
   h2: ({ children, ...props }) => (
@@ -137,6 +140,14 @@ export default function SessionPage() {
   const [notesExplainText, setNotesExplainText] = useState<string | null>(null);
   const [notesExplainErr, setNotesExplainErr] = useState<string | null>(null);
 
+  // Confidence selector (per question, resets on question change)
+  const [confidence, setConfidence] = useState<"sure" | "unsure" | "guess" | null>(null);
+  // Ambient timer reset key — increments on each new question
+  const [resetTimerKey, setResetTimerKey] = useState(0);
+  // 10-question pause screen
+  const [questionsAnsweredThisChunk, setQuestionsAnsweredThisChunk] = useState(0);
+  const [showPauseScreen, setShowPauseScreen] = useState(false);
+
   // Plan-edit modal state
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [syllabusTree, setSyllabusTree] = useState<SyllabusSubject[]>([]);
@@ -264,6 +275,8 @@ export default function SessionPage() {
 
   useEffect(() => {
     setPendingAnswer(null);
+    setConfidence(null);
+    setResetTimerKey((k) => k + 1);
     // Per-question note: flush any pending save for the previous question before switching
     if (perQuestionSaveTimer.current) clearTimeout(perQuestionSaveTimer.current);
   }, [currentQ]);
@@ -423,6 +436,14 @@ export default function SessionPage() {
     const q = quiz.questions[currentQ];
     setAnswers((a) => ({ ...a, [currentQ]: opt }));
     setRevealed((r) => ({ ...r, [currentQ]: true }));
+
+    // Track 10-question chunk for pause screen
+    const newChunk = questionsAnsweredThisChunk + 1;
+    setQuestionsAnsweredThisChunk(newChunk);
+    if (newChunk >= 10) {
+      setShowPauseScreen(true);
+    }
+
     await api.submitAnswer({
       session_id: quiz.session_id,
       question_hash: `${quiz.session_id}_${currentQ}`,
@@ -435,6 +456,7 @@ export default function SessionPage() {
       subject_id: plan?.sessions?.[activeSession!]?.subject_id,
       subtopic_id: q.subtopic_id ?? plan?.sessions?.[activeSession!]?.subtopic_id,
       dimension_id: q.dimension_id ?? null,
+      confidence: confidence ?? "guess",
     }).catch(() => {});
   };
 
@@ -763,8 +785,34 @@ export default function SessionPage() {
   ];
   const isLast = currentQ === quiz.questions.length - 1;
 
+  // Compute pause screen stats
+  const answeredIndexes = Object.keys(answers).map(Number);
+  const correctInChunk = answeredIndexes.filter(
+    (i) => quiz?.questions?.[i]?.correct_answer === answers[i]
+  ).length;
+  const chunkTotal = answeredIndexes.length;
+
   return (
     <div className="relative min-h-[60vh]">
+      {/* 10-question pause screen */}
+      {showPauseScreen && (
+        <SessionPauseScreen
+          correct={correctInChunk}
+          total={chunkTotal}
+          avgTimeSec={0}
+          streak={0}
+          weakTopics={[]}
+          strongTopics={[]}
+          onContinue={() => {
+            setShowPauseScreen(false);
+            setQuestionsAnsweredThisChunk(0);
+          }}
+          onExit={() => {
+            setShowPauseScreen(false);
+            finishSession();
+          }}
+        />
+      )}
       <div className="max-w-2xl space-y-6 pb-24">
         {quiz.notes_summary && !answers[0] && (
           <div className="bg-blue-950 border border-blue-800 rounded-xl p-5">
@@ -824,9 +872,18 @@ export default function SessionPage() {
           </span>
         </div>
 
-        <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
+        <div className="bg-gray-900 rounded-xl p-5 border border-gray-800 space-y-4">
+          {/* Ambient timer — sits above question text */}
+          <AmbientTimer active={!revealed[currentQ]} resetKey={resetTimerKey} />
           <p className="text-white leading-relaxed whitespace-pre-wrap">{q.question_text}</p>
         </div>
+
+        {/* Confidence selector — shown before the answer options */}
+        <ConfidenceSelector
+          value={confidence}
+          onChange={setConfidence}
+          disabled={!!revealed[currentQ]}
+        />
 
         <div className="space-y-3">
           {options.map((opt) => {

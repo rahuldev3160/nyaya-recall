@@ -84,9 +84,25 @@ async function get(path: string, timeoutMs = 8000) {
   }
 }
 
+export interface SubmitAnswerPayload {
+  session_id: string;
+  question_hash: string;
+  question_text: string;
+  options: { a: string; b: string; c: string; d: string };
+  correct_answer: string;
+  user_answer: string | null;
+  is_correct: boolean;
+  time_taken_sec: number;
+  subject_id?: string;
+  subtopic_id?: string;
+  dimension_id?: string | null;
+  confidence?: string;
+  skipped?: boolean;
+}
+
 export const api = {
   generateQuiz: (config: object) => post("/quiz/generate", config),
-  submitAnswer: (answer: object) => post("/sessions/answer", answer),
+  submitAnswer: (answer: SubmitAnswerPayload) => post("/sessions/answer", answer),
   closeSession: (id: string) => post(`/sessions/${id}/close`),
   importSession: (data: object) => post("/sessions/import", data),
   syncAnalysis: () => post("/analysis/sync"),
@@ -202,3 +218,30 @@ export const api = {
   getExamSimHistory: () =>
     get("/sessions/exam-sim/history"),
 };
+
+// ── Multi-user UI helpers ──────────────────────────────────────────────────────
+
+export async function getStreakInfo(): Promise<{
+  current_streak: number;
+  longest_streak: number;
+  last_activity_date: string | null;
+}> {
+  try {
+    const res = await fetch(`${BASE}/questions/streak`);
+    if (!res.ok) throw new Error("streak endpoint not available");
+    return res.json();
+  } catch {
+    return { current_streak: 0, longest_streak: 0, last_activity_date: null };
+  }
+}
+
+export async function getDueCount(): Promise<number> {
+  try {
+    const res = await fetch(`${BASE}/questions/due-count`);
+    if (!res.ok) throw new Error("due-count endpoint not available");
+    const data = await res.json();
+    return typeof data?.count === "number" ? data.count : 0;
+  } catch {
+    return 0;
+  }
+}

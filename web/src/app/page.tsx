@@ -1,62 +1,132 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { api } from "@/lib/api";
+import { getStreakInfo, getDueCount } from "@/lib/api";
+import StreakBadge from "@/components/StreakBadge";
+import DueBadge from "@/components/DueBadge";
+import HeatmapGrid, { SubjectReadiness } from "@/components/HeatmapGrid";
+import TodaysFocus from "@/components/TodaysFocus";
 
-const SUBJECTS = [
-  { id: "polity", name: "Polity & Governance" },
-  { id: "history_amac", name: "Ancient, Medieval & Culture" },
-  { id: "modern_history", name: "Modern History" },
-  { id: "geography", name: "Geography" },
-  { id: "economy", name: "Economy" },
-  { id: "environment", name: "Environment" },
-  { id: "science_tech", name: "Science & Tech" },
-  { id: "current_affairs", name: "Current Affairs" },
-  { id: "ir_governance", name: "IR & Governance" },
-];
+// ── helpers ───────────────────────────────────────────────────────────────────
 
-function scoreColor(score: number) {
-  if (score >= 75) return "bg-green-500";
-  if (score >= 50) return "bg-amber-500";
-  return "bg-red-500";
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
-function planLabel(totalDays: number) {
-  if (totalDays <= 14) return "Sprint";
-  if (totalDays <= 45) return "Prep Plan";
-  return "Long-term Plan";
+/** Map the /tracker/subjects payload to HeatmapGrid's SubjectReadiness shape. */
+function mapToSubjectReadiness(raw: Record<string, unknown>[]): SubjectReadiness[] {
+  return raw.map((s: Record<string, unknown>) => {
+    const subtopics = (s.subtopics as Record<string, unknown>[] | undefined) ?? [];
+    const total = subtopics.length;
+    let strong = 0, partial = 0, weak = 0;
+    for (const st of subtopics) {
+      const score = typeof st.avg_score === "number" ? st.avg_score : 0;
+      const tested = typeof st.questions_attempted === "number" ? (st.questions_attempted as number) > 0 : false;
+      if (!tested) continue;
+      if (score >= 70) strong++;
+      else if (score >= 40) partial++;
+      else weak++;
+    }
+    const readiness = typeof s.readiness === "number" ? (s.readiness as number) :
+      typeof s.avg_score === "number" ? (s.avg_score as number) / 100 : 0;
+
+    return {
+      subject_id: String(s.subject_id ?? s.id ?? ""),
+      subject_name: String(s.subject_name ?? s.name ?? ""),
+      readiness,
+      subtopics_total: total,
+      subtopics_tested: strong + partial + weak,
+      subtopics_weak: weak,
+      subtopics_partial: partial,
+      subtopics_strong: strong,
+    };
+  });
 }
+
+/** Pick today's focus: weakest subject by readiness. */
+function pickFocus(subjects: SubjectReadiness[]): SubjectReadiness | null {
+  if (!subjects.length) return null;
+  return subjects.reduce((min, s) => (s.readiness < min.readiness ? s : min), subjects[0]);
+}
+
+// ── skeleton placeholder ──────────────────────────────────────────────────────
+
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse bg-gray-800 rounded-lg ${className ?? ""}`} />;
+}
+
+// ── component ─────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
-  const [profile, setProfile] = useState<any>(null);
-  const [plan, setPlan] = useState<any>(null);
-  const [config, setConfig] = useState<any>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const router = useRouter();
 
-  /** Strip CSAT sessions from any plan response — CSAT has its own separate flow at /csat */
-  const filterPlan = (data: any): any => {
-    if (data?.sessions) {
-      return { ...data, sessions: (data.sessions as any[]).filter((s) => s.subject_id !== "csat") };
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
+  const [plan, setPlan] = useState<Record<string, unknown> | null>(null);
+  const [config, setConfig] = useState<Record<string, unknown> | null>(null);
+  const [subjects, setSubjects] = useState<SubjectReadiness[]>([]);
+  const [streak, setStreak] = useState(0);
+  const [dueCount, setDueCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+
+  /** Strip CSAT sessions — CSAT has its own separate flow at /csat */
+  const filterPlan = (data: Record<string, unknown>): Record<string, unknown> => {
+    if (Array.isArray(data?.sessions)) {
+      return {
+        ...data,
+        sessions: (data.sessions as Record<string, unknown>[]).filter(
+          (s) => s.subject_id !== "csat"
+        ),
+      };
     }
     return data;
   };
 
   useEffect(() => {
     (async () => {
-      try {
-        const [prof, pl, cfg] = await Promise.allSettled([
-          api.getProfile(),
-          api.getPlan(),
-          api.getConfig(),
-        ]);
-        if (prof.status === "fulfilled") setProfile(prof.value);
-        if (pl.status === "fulfilled")   setPlan(filterPlan(pl.value));
-        if (cfg.status === "fulfilled")  setConfig(cfg.value);
-        const failed = [prof, pl, cfg].filter((r) => r.status === "rejected").length;
-        if (failed > 0) setLoadError(`${failed} dashboard section${failed > 1 ? "s" : ""} failed to load — is the backend running?`);
-      } catch (e) {
-        setLoadError("Backend unreachable — start the server with: cd backend && uvicorn server:app --reload");
+      setLoading(true);
+      const results = await Promise.allSettled([
+        api.getProfile(),
+        api.getPlan(),
+        api.getConfig(),
+        api.getSubjects(),
+        getStreakInfo(),
+        getDueCount(),
+      ]);
+
+      const [profR, planR, cfgR, subjR, streakR, dueR] = results;
+
+      if (profR.status === "fulfilled") setProfile(profR.value as Record<string, unknown>);
+      if (planR.status === "fulfilled") setPlan(filterPlan(planR.value as Record<string, unknown>));
+      if (cfgR.status === "fulfilled") setConfig(cfgR.value as Record<string, unknown>);
+      if (subjR.status === "fulfilled") {
+        const raw = subjR.value;
+        const arr: Record<string, unknown>[] = Array.isArray(raw)
+          ? (raw as Record<string, unknown>[])
+          : typeof raw === "object" && raw !== null
+          ? Object.values(raw as Record<string, Record<string, unknown>>)
+          : [];
+        setSubjects(mapToSubjectReadiness(arr));
       }
+      if (streakR.status === "fulfilled") {
+        setStreak((streakR.value as { current_streak: number }).current_streak);
+      }
+      if (dueR.status === "fulfilled") setDueCount(dueR.value as number);
+
+      // Only show error for critical failures; streak/due degrade gracefully to 0
+      if (profR.status === "rejected" || planR.status === "rejected") {
+        setLoadError(
+          "Some dashboard data failed to load — is the backend running?"
+        );
+      }
+
+      setLoading(false);
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -65,12 +135,24 @@ export default function Dashboard() {
     setLoadError(null);
     try {
       await api.syncAnalysis();
-      const [prof, pl, cfg] = await Promise.allSettled([
-        api.getProfile(), api.getPlan(), api.getConfig(),
+      const [profR, planR, cfgR, subjR] = await Promise.allSettled([
+        api.getProfile(),
+        api.getPlan(),
+        api.getConfig(),
+        api.getSubjects(),
       ]);
-      if (prof.status === "fulfilled") setProfile(prof.value);
-      if (pl.status === "fulfilled")   setPlan(filterPlan(pl.value));
-      if (cfg.status === "fulfilled")  setConfig(cfg.value);
+      if (profR.status === "fulfilled") setProfile(profR.value as Record<string, unknown>);
+      if (planR.status === "fulfilled") setPlan(filterPlan(planR.value as Record<string, unknown>));
+      if (cfgR.status === "fulfilled") setConfig(cfgR.value as Record<string, unknown>);
+      if (subjR.status === "fulfilled") {
+        const raw = subjR.value;
+        const arr: Record<string, unknown>[] = Array.isArray(raw)
+          ? (raw as Record<string, unknown>[])
+          : typeof raw === "object" && raw !== null
+          ? Object.values(raw as Record<string, Record<string, unknown>>)
+          : [];
+        setSubjects(mapToSubjectReadiness(arr));
+      }
     } catch (e) {
       setLoadError(String(e));
     } finally {
@@ -78,152 +160,172 @@ export default function Dashboard() {
     }
   };
 
-  const totalDays = config?.total_days ?? 10;
-  const startDate = config?.start_date ? new Date(config.start_date) : null;
-  const today = new Date();
-  const elapsed = startDate
-    ? Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / 86400000))
-    : 0;
-  const dayNumber = elapsed + 1;
-  const daysLeft = Math.max(0, totalDays - elapsed);
-  const readiness = profile?.overall_readiness ?? 0;
+  // Derive today's focus from subject readiness
+  const focusSubject = pickFocus(subjects);
+  const focusPlanSession = Array.isArray(plan?.sessions)
+    ? (plan!.sessions as Record<string, unknown>[])[0]
+    : null;
+
+  // Streak at risk: after 6PM and streak is active but no session today
+  const isAfter6PM = new Date().getHours() >= 18;
+  const streakAtRisk = isAfter6PM && streak > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {loadError && (
         <div className="rounded-lg border border-red-700 bg-red-900/20 px-4 py-3 text-sm text-red-300 flex items-center gap-2">
           <span className="text-red-500">⚠</span> {loadError}
         </div>
       )}
-      {/* Header */}
-      <div className="flex items-start justify-between">
+
+      {/* ── Top bar: greeting + streak + due ── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">UPSC {planLabel(totalDays)}</h1>
-          <p className="text-gray-400 mt-1">
-            Day {dayNumber} of {totalDays} · {daysLeft} day{daysLeft !== 1 ? "s" : ""} remaining
-          </p>
+          <h1 className="text-2xl font-bold text-white">
+            {greeting()}
+            {profile && typeof (profile as Record<string, unknown>).username === "string"
+              ? `, ${(profile as Record<string, unknown>).username}`
+              : ", there"}
+            .
+          </h1>
+          {config && (
+            <p className="text-gray-400 text-sm mt-0.5">
+              {typeof config.total_days === "number"
+                ? `${config.total_days}-day sprint`
+                : "Prep sprint active"}
+            </p>
+          )}
         </div>
-        <div className="text-right">
-          <div className="text-5xl font-bold text-amber-400">{readiness}%</div>
-          <div className="text-gray-400 text-sm mt-1">Overall Readiness</div>
-          {profile?.last_updated && (() => {
-            const ageH = Math.floor((Date.now() - new Date(profile.last_updated).getTime()) / 3_600_000);
-            const label = ageH === 0 ? "just now" : ageH === 1 ? "1 hour ago" : `${ageH} hours ago`;
-            return (
-              <p className={`text-xs mt-0.5 ${ageH >= 12 ? "text-amber-400" : "text-gray-500"}`}>
-                Last synced {label}
-              </p>
-            );
-          })()}
+        <div className="flex items-center gap-2">
+          {loading ? (
+            <>
+              <Skeleton className="w-16 h-7" />
+              <Skeleton className="w-16 h-7" />
+            </>
+          ) : (
+            <>
+              <StreakBadge streak={streak} atRisk={streakAtRisk} />
+              {dueCount > 0 && <DueBadge count={dueCount} />}
+            </>
+          )}
         </div>
       </div>
 
-      {/* No config yet — prompt setup */}
-      {!config && (
+      {/* ── No config prompt ── */}
+      {!loading && !config && (
         <div className="bg-amber-950 border border-amber-800 rounded-xl p-5 flex items-center justify-between">
           <div>
             <p className="text-amber-300 font-medium">Set up your prep plan first</p>
-            <p className="text-amber-500 text-sm mt-0.5">Choose your timeline and daily study hours to personalise everything.</p>
+            <p className="text-amber-500 text-sm mt-0.5">
+              Choose your timeline and daily hours to personalise everything.
+            </p>
           </div>
-          <a href="/setup" className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium shrink-0 ml-4">
+          <a
+            href="/setup"
+            className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium shrink-0 ml-4"
+          >
             Set Up →
           </a>
         </div>
       )}
 
-      {/* Readiness bar */}
-      <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-amber-400 rounded-full transition-all duration-500"
-          style={{ width: `${readiness}%` }}
+      {/* ── Today's Focus ── */}
+      {loading ? (
+        <Skeleton className="h-24 w-full" />
+      ) : focusSubject ? (
+        <TodaysFocus
+          subtopic_name={
+            focusPlanSession
+              ? String(focusPlanSession.subtopic_id ?? "").replace(/_/g, " ")
+              : `Weakest: ${focusSubject.subject_name}`
+          }
+          subject_name={focusSubject.subject_name}
+          estimated_questions={
+            typeof focusPlanSession?.num_questions === "number"
+              ? (focusPlanSession.num_questions as number)
+              : 10
+          }
+          estimated_minutes={
+            typeof focusPlanSession?.estimated_minutes === "number"
+              ? (focusPlanSession.estimated_minutes as number)
+              : 15
+          }
+          onStart={() => router.push("/session")}
         />
-      </div>
+      ) : null}
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Start Diagnostic", href: "/diagnostic", color: "bg-blue-600 hover:bg-blue-500" },
-          { label: "Today's Sessions", href: "/session", color: "bg-green-600 hover:bg-green-500" },
-          { label: "View Tracker", href: "/tracker", color: "bg-purple-600 hover:bg-purple-500" },
-          { label: "Exam Strategy", href: "/strategy", color: "bg-orange-600 hover:bg-orange-500" },
-        ].map((btn) => (
-          <a key={btn.label} href={btn.href}
-            className={`${btn.color} text-white text-center py-3 px-4 rounded-lg font-medium transition-colors`}>
-            {btn.label}
-          </a>
-        ))}
-      </div>
-
-      {/* Today's plan */}
-      {plan?.sessions && plan.sessions.length > 0 && (
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-          <h2 className="text-lg font-semibold mb-4">
-            Today&apos;s Plan — Day {plan.day_number ?? dayNumber}
-          </h2>
-          {plan.daily_goal && (
-            <p className="text-amber-300 text-sm mb-4">{plan.daily_goal}</p>
-          )}
-          <div className="space-y-2">
-            {plan.sessions.map((s: any, i: number) => (
-              <div key={i} className="flex items-center gap-4 p-3 bg-gray-800 rounded-lg">
-                <span className="text-gray-500 text-sm w-5">{i + 1}</span>
-                <span className="flex-1 text-sm">
-                  <span className="text-white font-medium">{s.subject_id?.replace(/_/g, " ")}</span>
-                  <span className="text-gray-400"> → {s.subtopic_id?.replace(/_/g, " ")}</span>
-                </span>
-                <span className="text-gray-500 text-xs">{s.estimated_minutes} min</span>
-                <span className={`text-xs px-2 py-0.5 rounded ${
-                  s.format === "notes_then_quiz" ? "bg-blue-900 text-blue-300" : "bg-gray-700 text-gray-300"
-                }`}>
-                  {s.format?.replace(/_/g, " ")}
-                </span>
-              </div>
+      {/* ── Heatmap Grid ── */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
+          Your Readiness
+        </h2>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-16" />
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Subject scores */}
-      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h2 className="text-lg font-semibold mb-4">Subject Readiness</h2>
-        <div className="space-y-3">
-          {SUBJECTS.map((s) => {
-            const data = profile?.subjects?.[s.id];
-            const score = data?.avg_score ?? 0;
-            return (
-              <div key={s.id} className="flex items-center gap-4">
-                <span className="text-sm text-gray-300 w-44 shrink-0">{s.name}</span>
-                <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className={`h-full ${scoreColor(score)} rounded-full transition-all`}
-                    style={{ width: `${score}%` }} />
-                </div>
-                <span className="text-sm text-gray-400 w-10 text-right">
-                  {score > 0 ? `${Math.round(score)}%` : "—"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        ) : subjects.length > 0 ? (
+          <HeatmapGrid subjects={subjects} />
+        ) : (
+          <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 text-center text-gray-400 text-sm">
+            No readiness data yet — complete a session to see your heatmap.
+          </div>
+        )}
       </div>
 
-      {/* Sync + analysis */}
+      {/* ── Quick links row ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <Link
+          href="/pyq"
+          className="rounded-xl border border-gray-800 bg-gray-900 hover:border-gray-600 p-4 text-center transition-colors"
+        >
+          <div className="text-xl mb-1">📚</div>
+          <div className="text-sm font-medium text-gray-200">PYQ Browser</div>
+        </Link>
+        <Link
+          href="/tracker"
+          className="rounded-xl border border-gray-800 bg-gray-900 hover:border-gray-600 p-4 text-center transition-colors"
+        >
+          <div className="text-xl mb-1">📊</div>
+          <div className="text-sm font-medium text-gray-200">Full Progress</div>
+        </Link>
+        <Link
+          href="/leaderboard"
+          className="rounded-xl border border-gray-800 bg-gray-900 hover:border-gray-600 p-4 text-center transition-colors"
+        >
+          <div className="text-xl mb-1">🏆</div>
+          <div className="text-sm font-medium text-gray-200">Leaderboard</div>
+        </Link>
+      </div>
+
+      {/* ── Last analysis note ── */}
+      {profile &&
+        typeof (profile as Record<string, unknown>).last_analysis === "string" && (
+          <div className="bg-gray-900 border border-amber-900 rounded-xl p-4">
+            <p className="text-amber-300 text-sm font-medium mb-1">Last Analysis</p>
+            <p className="text-gray-300 text-sm">
+              {String((profile as Record<string, unknown>).last_analysis)}
+            </p>
+          </div>
+        )}
+
+      {/* ── Sync button ── */}
       <div className="flex gap-4">
-        <button onClick={handleSync} disabled={syncing}
-          className="bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium px-6 py-3 rounded-lg transition-colors">
+        <button
+          onClick={handleSync}
+          disabled={syncing}
+          className="bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+        >
           {syncing ? "Syncing..." : "Sync & Plan Tomorrow"}
         </button>
-        <a href="/analysis"
-          className="border border-gray-700 text-gray-300 hover:text-white px-6 py-3 rounded-lg transition-colors">
+        <a
+          href="/analysis"
+          className="border border-gray-700 text-gray-300 hover:text-white px-6 py-3 rounded-lg transition-colors"
+        >
           View Full Analysis
         </a>
       </div>
-
-      {profile?.last_analysis && (
-        <div className="bg-gray-900 border border-amber-900 rounded-xl p-4">
-          <p className="text-amber-300 text-sm font-medium mb-1">Last Analysis</p>
-          <p className="text-gray-300 text-sm">{profile.last_analysis}</p>
-        </div>
-      )}
     </div>
   );
 }
