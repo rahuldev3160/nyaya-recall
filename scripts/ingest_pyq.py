@@ -67,6 +67,17 @@ def clean_bilingual_text(text: str) -> str:
     return "\n".join(cleaned)
 
 
+Q_NUMBER_RE = re.compile(r"^(?:Q\.?\s*)?(\d{1,3})[\.\)]\s")
+
+
+def extract_q_number(block: str) -> int | None:
+    """Extract the leading question number from a question block, if present."""
+    m = Q_NUMBER_RE.match(block.strip())
+    if m:
+        return int(m.group(1))
+    return None
+
+
 def extract_questions_from_text(text: str) -> list[str]:
     """Split raw PDF text into individual question blocks."""
     text = clean_bilingual_text(text)
@@ -173,29 +184,54 @@ def classify_batch(questions: list[str], year: int) -> list[dict]:
         return []
 
 
+def _has_q_number_column(cur: sqlite3.Cursor) -> bool:
+    cur.execute("PRAGMA table_info(pyq_questions)")
+    return any(row[1] == "q_number" for row in cur.fetchall())
+
+
 def store_questions(classified: list[dict], source_file: str, year: int):
     con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+    use_q_number = _has_q_number_column(cur)
     inserted = 0
     for q in classified:
         if not q or not (q.get("question_text") or "").strip():
             continue
         qhash = question_hash(q.get("question_text") or "", year)
+        q_number = extract_q_number(q.get("question_text") or "")
         try:
-            con.execute("""
-                INSERT OR IGNORE INTO pyq_questions
-                (year, question_text, option_a, option_b, option_c, option_d,
-                 correct_answer, subject_id, topic_id, subtopic_id, concepts, source_file, question_hash)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-            """, (
-                year,
-                q.get("question_text") or "",
-                q.get("option_a"), q.get("option_b"),
-                q.get("option_c"), q.get("option_d"),
-                q.get("correct_answer"),
-                q.get("subject_id"), q.get("topic_id"), q.get("subtopic_id"),
-                json.dumps(q.get("concepts", [])),
-                source_file, qhash
-            ))
+            if use_q_number:
+                cur.execute("""
+                    INSERT OR IGNORE INTO pyq_questions
+                    (year, q_number, question_text, option_a, option_b, option_c, option_d,
+                     correct_answer, subject_id, topic_id, subtopic_id, concepts, source_file, question_hash)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """, (
+                    year, q_number,
+                    q.get("question_text") or "",
+                    q.get("option_a"), q.get("option_b"),
+                    q.get("option_c"), q.get("option_d"),
+                    q.get("correct_answer"),
+                    q.get("subject_id"), q.get("topic_id"), q.get("subtopic_id"),
+                    json.dumps(q.get("concepts", [])),
+                    source_file, qhash
+                ))
+            else:
+                cur.execute("""
+                    INSERT OR IGNORE INTO pyq_questions
+                    (year, question_text, option_a, option_b, option_c, option_d,
+                     correct_answer, subject_id, topic_id, subtopic_id, concepts, source_file, question_hash)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """, (
+                    year,
+                    q.get("question_text") or "",
+                    q.get("option_a"), q.get("option_b"),
+                    q.get("option_c"), q.get("option_d"),
+                    q.get("correct_answer"),
+                    q.get("subject_id"), q.get("topic_id"), q.get("subtopic_id"),
+                    json.dumps(q.get("concepts", [])),
+                    source_file, qhash
+                ))
             inserted += 1
         except Exception:
             pass

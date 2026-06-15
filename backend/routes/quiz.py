@@ -14,10 +14,9 @@ import chromadb
 from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
+from db import get_conn, DB_PATH
 
 router = APIRouter()
-
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 CHROMA_PATH = os.getenv("CHROMA_PATH", "vector_store")
 PROMPT_DIR = Path(__file__).parent.parent.parent / "prompts"
 _SYLLABUS_PATH = Path(__file__).parent.parent.parent / "data" / "syllabus.json"
@@ -106,14 +105,14 @@ def _get_subject_subtopics(subject_id: str) -> list[str]:
     return []
 
 
-def _get_tested_subtopics_for_subject(subject_id: str) -> set[str]:
+def _get_tested_subtopics_for_subject(subject_id: str, user_id: str = "user_1") -> set[str]:
     """Return subtopic_ids already in subtopic_scores for this subject."""
     sid = _SUBJECT_ALIAS.get(subject_id, subject_id)
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = get_conn()
         rows = con.execute(
-            "SELECT subtopic_id FROM subtopic_scores WHERE user_id='user_1' AND subject_id=?",
-            (sid,),
+            "SELECT subtopic_id FROM subtopic_scores WHERE user_id=? AND subject_id=?",
+            (user_id, sid),
         ).fetchall()
         con.close()
         return {r[0] for r in rows if r[0]}
@@ -125,7 +124,7 @@ def _fetch_recent_question_texts(subject_id: str, days: int = 30, limit: int = 4
     """Return up to `limit` question texts seen for this subject in the last `days` days."""
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = get_conn()
         rows = con.execute(
             """
             SELECT sa.question_text
@@ -161,7 +160,7 @@ def _build_recent_questions_block(subject_id: str) -> str:
     return "\n".join(lines)
 
 
-def _get_quiz_intelligence(subject_id: str, subtopic_id: str | None = None) -> dict:
+def _get_quiz_intelligence(subject_id: str, subtopic_id: str | None = None, user_id: str = "user_1") -> dict:
     """
     Queries DB for context that makes question generation smarter.
     Returns:
@@ -180,7 +179,7 @@ def _get_quiz_intelligence(subject_id: str, subtopic_id: str | None = None) -> d
         "user_notes_context": "",
     }
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = get_conn()
 
         # excluded_hashes: question_hash seen in last 30 days for this subject
         try:
@@ -225,9 +224,9 @@ def _get_quiz_intelligence(subject_id: str, subtopic_id: str | None = None) -> d
             try:
                 row = con.execute(
                     """SELECT confusion, mnemonic FROM session_user_notes
-                       WHERE subtopic_id=? AND user_id='user_1'
+                       WHERE subtopic_id=? AND user_id=?
                        ORDER BY updated_at DESC LIMIT 1""",
-                    (subtopic_id,),
+                    (subtopic_id, user_id),
                 ).fetchone()
                 if row:
                     parts = []
@@ -369,7 +368,7 @@ def _ensure_session_subtopics_table(con: sqlite3.Connection) -> None:
 
 def _store_session_subtopics(session_id: str, subtopic_ids: list[str]) -> None:
     """Persist the full subtopic_ids list for a session in the new additive table."""
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     _ensure_session_subtopics_table(con)
     con.execute(
         "INSERT OR REPLACE INTO quiz_session_subtopics (session_id, subtopic_ids) VALUES (?, ?)",
@@ -1002,7 +1001,7 @@ def generate_quiz(config: dict):
     # Full subtopic list stored in additive quiz_session_subtopics table
     session_id = str(uuid.uuid4())
     stored_config = {**config, "topic_id": topic_id or config.get("topic_id", "")}
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.execute("""
         INSERT INTO quiz_sessions (id, session_type, subject_id, topic_id, mode, config, start_time, total_questions)
         VALUES (?,?,?,?,?,?,?,?)
@@ -1260,7 +1259,7 @@ def start_exam_simulation(config: dict):
         sorted({a["subject_id"] for a in allocation if a["subject_id"]})
     )
 
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     con.execute(
         """
         INSERT INTO quiz_sessions
@@ -1297,8 +1296,7 @@ def get_pyq_questions(params: dict):
     limit = params.get("limit", 10)
     year_from = params.get("year_from", 2016)
 
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
+    con = get_conn()
     query = "SELECT * FROM pyq_questions WHERE year >= ?"
     args: list = [year_from]
 

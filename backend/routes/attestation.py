@@ -12,8 +12,9 @@ from self_attestation import compute_effective_level, record_attestation
 from score_engine import close_session
 from priority_scorer import rank_subtopics
 
+from db import get_conn, DB_PATH
+
 router = APIRouter()
-DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 CHROMA_PATH = os.getenv("CHROMA_PATH", "vector_store")
 PROMPT_PATH = Path(__file__).parent.parent.parent / "prompts" / "validation_quiz.txt"
 

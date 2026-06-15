@@ -21,7 +21,7 @@ PLAN_PATH     = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json
 CONFIG_PATH   = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
 SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
 PROMPT_PATH   = Path(__file__).parent.parent / "prompts" / "plan_generation.txt"
-DB_PATH       = os.getenv("DB_PATH", "data/upsc.db")
+from db_helper import get_conn, DB_PATH
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
@@ -34,7 +34,7 @@ def _get_todays_completed_subtopics() -> dict[str, dict[str, float]]:
     """
     result: dict[str, dict[str, float]] = {}
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = get_conn()
         rows = con.execute(
             """
             SELECT sa.subject_id, sa.subtopic_id,
@@ -58,7 +58,7 @@ def _get_todays_completed_subtopics() -> dict[str, dict[str, float]]:
     return result
 
 
-def compute_subtopic_coverage() -> dict:
+def compute_subtopic_coverage(user_id: str = "user_1") -> dict:
     """
     Returns {subject_id: {total, untested: [{id, pyq_weight}], tested: [{id, score, pyq_weight}]}}.
     untested list is sorted by pyq_weight descending — this is the scheduling priority order.
@@ -79,9 +79,10 @@ def compute_subtopic_coverage() -> dict:
     # tested_map: {subject_id: {subtopic_id: {"score": float, "attempts": int}}}
     tested_map: dict[str, dict[str, dict]] = {}
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = get_conn()
         rows = con.execute(
-            "SELECT subject_id, subtopic_id, score, total_attempts FROM subtopic_scores WHERE user_id='user_1'"
+            "SELECT subject_id, subtopic_id, score, total_attempts FROM subtopic_scores WHERE user_id=?",
+            (user_id,),
         ).fetchall()
         con.close()
         for subj_id, st_id, sc, attempts in rows:
@@ -178,7 +179,7 @@ def compute_subtopic_coverage() -> dict:
     return result
 
 
-def fetch_user_notes_signals() -> list[dict]:
+def fetch_user_notes_signals(user_id: str = "user_1") -> list[dict]:
     """
     Recent per-session and per-question notes, for plan personalisation.
 
@@ -186,7 +187,7 @@ def fetch_user_notes_signals() -> list[dict]:
     1. session_user_notes — original session-level notes blob
     2. question_notes (ISSUE-017) — per-question notes, only rows with still_weak=1
     """
-    con = sqlite3.connect(DB_PATH)
+    con = get_conn()
     out: list[dict] = []
 
     # Source 1: legacy session-level notes
@@ -195,10 +196,11 @@ def fetch_user_notes_signals() -> list[dict]:
             """
             SELECT subtopic_id, confusion, mnemonic, still_weak, updated_at
             FROM session_user_notes
-            WHERE user_id='user_1'
+            WHERE user_id=?
             ORDER BY updated_at DESC
             LIMIT 24
-            """
+            """,
+            (user_id,),
         ).fetchall()
         for sub, conf, mnem, weak, upd in rows:
             if not sub:
@@ -222,10 +224,11 @@ def fetch_user_notes_signals() -> list[dict]:
             """
             SELECT subtopic_id, note_text, updated_at
             FROM question_notes
-            WHERE user_id='user_1' AND still_weak=1
+            WHERE user_id=? AND still_weak=1
             ORDER BY updated_at DESC
             LIMIT 24
-            """
+            """,
+            (user_id,),
         ).fetchall()
         for sub, note, upd in qrows:
             if not sub:
