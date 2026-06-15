@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
+import ExplanationCard from "@/components/ExplanationCard";
 
 export interface PYQQuestion {
   id: number;
@@ -44,6 +45,15 @@ export default function PYQQuizRunner({ questions, year, onDone }: Props) {
   const [sessionCorrect, setSessionCorrect] = useState(0);
   const [sessionAttempted, setSessionAttempted] = useState(0);
   const startRef = useRef<number>(Date.now());
+  const [explanation, setExplanation] = useState<{
+    concept_tested: string;
+    correct_explanation: string;
+    option_a_note: string | null;
+    option_b_note: string | null;
+    option_c_note: string | null;
+    option_d_note: string | null;
+    memory_hook: string | null;
+  } | null>(null);
 
   const q = questions[idx];
 
@@ -55,8 +65,13 @@ export default function PYQQuizRunner({ questions, year, onDone }: Props) {
         correct: !!q.user_correct,
         correctAnswer: q.correct_answer,
       });
+      api.getPYQExplanation(q.id).then((data) => {
+        if (data.available) setExplanation(data);
+        else setExplanation(null);
+      }).catch(() => setExplanation(null));
     } else {
       setReveal({ revealed: false });
+      setExplanation(null);
     }
     startRef.current = Date.now();
   }, [idx, q]);
@@ -74,9 +89,12 @@ export default function PYQQuizRunner({ questions, year, onDone }: Props) {
       setReveal({ revealed: true, correct: result.correct, correctAnswer: result.correct_answer });
       setSessionAttempted((n) => n + 1);
       if (result.correct) setSessionCorrect((n) => n + 1);
-      // Update local state so navigating back shows result
       q.user_answer = option;
       q.user_correct = result.correct;
+      // Fetch explanation (zero-cost — pre-generated)
+      api.getPYQExplanation(q.id).then((data) => {
+        if (data.available) setExplanation(data);
+      }).catch(() => null);
     } catch {
       // Silent fail — don't block the user
     } finally {
@@ -168,13 +186,21 @@ export default function PYQQuizRunner({ questions, year, onDone }: Props) {
         </div>
 
         {reveal.revealed && (
-          <div className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
-            reveal.correct
-              ? "border-green-700 bg-green-900/20 text-green-300"
-              : "border-red-700 bg-red-900/20 text-red-300"
-          }`}>
-            {reveal.correct ? "Correct!" : `Incorrect. Correct answer: ${reveal.correctAnswer.toUpperCase()}`}
-          </div>
+          <>
+            <div className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
+              reveal.correct
+                ? "border-green-700 bg-green-900/20 text-green-300"
+                : "border-red-700 bg-red-900/20 text-red-300"
+            }`}>
+              {reveal.correct ? "Correct!" : `Incorrect. Correct answer: ${reveal.correctAnswer.toUpperCase()}`}
+            </div>
+            <ExplanationCard
+              explanation={explanation}
+              correctAnswer={reveal.correctAnswer}
+              disputed={q.answer_disputed}
+              disputeNote={null}
+            />
+          </>
         )}
       </div>
 

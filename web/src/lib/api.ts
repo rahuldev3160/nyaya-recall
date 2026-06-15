@@ -199,6 +199,7 @@ export const api = {
   recordPYQAttempt: (body: { question_id: number; answer: string; time_taken_sec?: number }) =>
     post("/pyq/attempt", body),
   getPYQStats: () => get("/pyq/stats/summary"),
+  getPYQExplanation: (questionId: number) => get(`/pyq/explanation/${questionId}`),
 
   // ── Exam Simulation ────────────────────────────────────────────────────────
 

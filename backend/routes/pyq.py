@@ -269,6 +269,40 @@ def record_attempt(body: dict, user_id: str = Depends(_get_user_id)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/explanation/{question_id}")
+def get_explanation(question_id: int):
+    """Return pre-generated concept explanation for a PYQ. Zero API calls."""
+    try:
+        con = get_conn()
+        row = con.execute(
+            """
+            SELECT concept_tested, correct_explanation,
+                   option_a_note, option_b_note, option_c_note, option_d_note,
+                   memory_hook, model_used, generated_at
+            FROM question_explanations
+            WHERE question_id = ?
+            """,
+            (question_id,),
+        ).fetchone()
+        con.close()
+        if not row:
+            return {"available": False}
+        return {
+            "available": True,
+            "concept_tested":      row["concept_tested"],
+            "correct_explanation": row["correct_explanation"],
+            "option_a_note":       row["option_a_note"],
+            "option_b_note":       row["option_b_note"],
+            "option_c_note":       row["option_c_note"],
+            "option_d_note":       row["option_d_note"],
+            "memory_hook":         row["memory_hook"],
+            "model_used":          row["model_used"],
+            "generated_at":        row["generated_at"],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/stats/summary")
 def get_stats_summary(user_id: str = Depends(_get_user_id)):
     """Summary stats for dashboard widget."""

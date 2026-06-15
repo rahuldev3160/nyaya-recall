@@ -63,6 +63,8 @@
 | **Community answer consensus + ALTER TABLE** | P0 | `answer_source`, `answer_disputed`, `dispute_note`, `q_number` columns added; `build_answer_consensus.py` cross-validates AI-inferred answers against Aquib-Nawaz dataset (3-level matching); 999 `community_validated`, 9 AI answers corrected; `pyq.py` ORDER BY `COALESCE(q_number, id)` | Shipped Jun 15, 2026 (PRs #46, #47) |
 | **PYQ + attempts indexes** | P0 | 5 indexes on `pyq_questions` (year/subject/topic, subject, year, year+q_number, answer_source) + 2 on `pyq_attempts` (user+question, question); added via `_ensure_pyq_indexes()` in server.py lifespan | Shipped Jun 15, 2026 (PR #48) |
 | **Scribe security lessons** | P0 | `PRAGMA foreign_keys=ON`; per-user path functions in tracker.py + quiz.py (cross-user data leak fix); CORS locked to `CORS_ORIGINS` env var; pyq.py try/except + NULL answer guard; dashboard `Promise.allSettled` + visible error banner | Shipped Jun 15, 2026 (PR #49) |
+| **Question bank backend** | P1 | SRS SM-2 engine, streak service (user-configurable shield), username generator, 12 pre-planned query patterns, 4 new tables, serving waterfall, daily challenge cron script, coverage audit script | Shipped Jun 15, 2026 (PR #51) |
+| **Multi-user retention UI** | P1 | 9 new components (StreakBadge, DueBadge, HeatmapGrid, TodaysFocus, ConfidenceSelector, AmbientTimer, SessionPauseScreen, GateCta, NavClient); redesigned homepage; /practice page; confidence selector + ambient timer + pause screen in session; SubmitAnswerPayload type fix | Shipped Jun 15, 2026 (PR #52) |
 
 ---
 
