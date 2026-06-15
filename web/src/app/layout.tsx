@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ["CSAT", "/csat"],
             ["Attest", "/attestation"],
             ["Analysis", "/analysis"],
+            ["PYQ", "/pyq"],
             ["Exam Sim", "/exam-sim"],
             ["Setup", "/setup"],
           ].map(([label, href]) => (
