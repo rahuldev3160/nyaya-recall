@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback
+from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback, pyq
 from db import enable_wal, get_conn, DB_PATH
 
 
@@ -51,6 +51,28 @@ def _ensure_user_profiles_table() -> None:
             created_at   TEXT DEFAULT (datetime('now'))
         )
         """
+    )
+    con.commit()
+    con.close()
+
+
+def _ensure_pyq_attempts_table() -> None:
+    con = get_conn()
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pyq_attempts (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id        TEXT    NOT NULL DEFAULT 'user_1',
+            question_id    INTEGER NOT NULL,
+            user_answer    TEXT,
+            is_correct     INTEGER,
+            time_taken_sec INTEGER,
+            attempted_at   TEXT    DEFAULT (datetime('now'))
+        )
+        """
+    )
+    con.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pyq_attempts_user ON pyq_attempts(user_id, question_id)"
     )
     con.commit()
     con.close()
@@ -109,6 +131,7 @@ def _ensure_question_notes_and_feedback_tables() -> None:
 async def _lifespan(_app: FastAPI):
     enable_wal(DB_PATH)
     _ensure_user_profiles_table()
+    _ensure_pyq_attempts_table()
     _ensure_session_user_notes_table()
     _ensure_question_notes_and_feedback_tables()
     yield
@@ -133,6 +156,7 @@ app.include_router(csat.router, prefix="/csat", tags=["csat"])
 app.include_router(config.router, prefix="/config", tags=["config"])
 app.include_router(library.router, prefix="/library", tags=["library"])
 app.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
+app.include_router(pyq.router, prefix="/pyq", tags=["pyq"])
 
 
 @app.get("/health")

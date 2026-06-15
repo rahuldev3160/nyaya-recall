@@ -173,6 +173,17 @@ export const api = {
     note_text?: string;
   }) => post("/feedback/content", body),
 
+  // ── PYQ Browser ───────────────────────────────────────────────────────────
+
+  getPYQYears: () => get("/pyq/years"),
+  getPYQSubjects: (year: number) => get(`/pyq/${year}/subjects`),
+  getPYQTopics: (year: number, subjectId: string) => get(`/pyq/${year}/${subjectId}/topics`),
+  getPYQQuestions: (year: number, subjectId: string, topicId: string) =>
+    get(`/pyq/${year}/${subjectId}/${topicId}/questions`),
+  recordPYQAttempt: (body: { question_id: number; answer: string; time_taken_sec?: number }) =>
+    post("/pyq/attempt", body),
+  getPYQStats: () => get("/pyq/stats/summary"),
+
   // ── Exam Simulation ────────────────────────────────────────────────────────
 
   /** Start an exam simulation session. Generates all questions upfront. */
