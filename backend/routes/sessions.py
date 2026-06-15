@@ -15,6 +15,7 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 from score_engine import record_answer, close_session
 from db import get_conn, DB_PATH
+from backend.services import streak as streak_svc
 
 router = APIRouter()
 
@@ -411,10 +412,14 @@ def get_revision_notes(session_id: str):
 
 
 @router.post("/{session_id}/close")
-def end_session(session_id: str):
+def end_session(session_id: str, user_id: str = Depends(_get_user_id)):
     summary = close_session(session_id)
     if not summary:
         raise HTTPException(status_code=404, detail="Session not found or already closed")
+    try:
+        streak_svc.record_activity(user_id)
+    except Exception:
+        pass  # streak update is non-critical, never block session close
     return summary
 
 

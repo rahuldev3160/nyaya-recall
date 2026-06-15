@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback, pyq
+from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback, pyq, questions
 from db import enable_wal, get_conn, DB_PATH
 
 
@@ -145,6 +145,103 @@ def _ensure_question_notes_and_feedback_tables() -> None:
     con.close()
 
 
+def _ensure_question_bank_tables() -> None:
+    """Create question bank, SRS log, streak config, and daily challenge tables."""
+    con = get_conn()
+    con.executescript("""
+        CREATE TABLE IF NOT EXISTS question_bank (
+            id                  TEXT PRIMARY KEY,
+            question_hash       TEXT UNIQUE NOT NULL,
+            question_text       TEXT NOT NULL,
+            option_a            TEXT NOT NULL,
+            option_b            TEXT NOT NULL,
+            option_c            TEXT NOT NULL,
+            option_d            TEXT NOT NULL,
+            correct_answer      TEXT NOT NULL,
+            explanation_short   TEXT,
+            explanation_full    TEXT,
+            exam_source         TEXT NOT NULL,
+            year                INTEGER,
+            paper               TEXT,
+            q_number            INTEGER,
+            answer_source       TEXT NOT NULL DEFAULT 'ai_inferred',
+            answer_disputed     INTEGER DEFAULT 0,
+            dispute_note        TEXT,
+            cancelled           INTEGER DEFAULT 0,
+            subject_id          TEXT NOT NULL,
+            topic_id            TEXT NOT NULL,
+            subtopic_id         TEXT NOT NULL,
+            dimension_id        TEXT,
+            question_type       TEXT,
+            upsc_relevance      REAL DEFAULT 1.0,
+            tags                TEXT,
+            is_evergreen        INTEGER DEFAULT 1,
+            expires_after_year  INTEGER,
+            times_served        INTEGER DEFAULT 0,
+            times_correct       INTEGER DEFAULT 0,
+            global_accuracy     REAL,
+            created_at          TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_qb_subtopic_serve
+            ON question_bank(subject_id, subtopic_id, times_served, cancelled);
+        CREATE INDEX IF NOT EXISTS idx_qb_subtopic_type
+            ON question_bank(subject_id, subtopic_id, question_type, upsc_relevance);
+        CREATE INDEX IF NOT EXISTS idx_qb_exam_year
+            ON question_bank(exam_source, year, subject_id);
+        CREATE INDEX IF NOT EXISTS idx_qb_topic
+            ON question_bank(subject_id, topic_id, subtopic_id);
+        CREATE INDEX IF NOT EXISTS idx_qb_relevance
+            ON question_bank(subject_id, upsc_relevance);
+
+        CREATE TABLE IF NOT EXISTS user_question_log (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id             TEXT NOT NULL,
+            question_id         TEXT NOT NULL,
+            session_id          TEXT,
+            exam_context        TEXT,
+            user_answer         TEXT,
+            is_correct          INTEGER,
+            confidence          TEXT,
+            time_taken_sec      INTEGER,
+            skipped             INTEGER DEFAULT 0,
+            interval_days       INTEGER DEFAULT 1,
+            ease_factor         REAL DEFAULT 2.5,
+            next_review_at      TEXT,
+            repetition_count    INTEGER DEFAULT 0,
+            answered_at         TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_uql_user_question
+            ON user_question_log(user_id, question_id);
+        CREATE INDEX IF NOT EXISTS idx_uql_due_review
+            ON user_question_log(user_id, next_review_at);
+        CREATE INDEX IF NOT EXISTS idx_uql_wrong_confidence
+            ON user_question_log(user_id, is_correct, confidence);
+
+        CREATE TABLE IF NOT EXISTS streak_config (
+            user_id             TEXT PRIMARY KEY,
+            shield_enabled      INTEGER DEFAULT 1,
+            max_grace_per_week  INTEGER DEFAULT 1,
+            grace_used_this_week INTEGER DEFAULT 0,
+            week_start_date     TEXT,
+            current_streak      INTEGER DEFAULT 0,
+            longest_streak      INTEGER DEFAULT 0,
+            last_activity_date  TEXT,
+            updated_at          TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS daily_challenge (
+            challenge_date  TEXT PRIMARY KEY,
+            question_ids    TEXT NOT NULL,
+            subject_focus   TEXT,
+            generated_at    TEXT DEFAULT (datetime('now'))
+        );
+    """)
+    con.commit()
+    con.close()
+
+
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
     enable_wal(DB_PATH)
@@ -153,6 +250,7 @@ async def _lifespan(_app: FastAPI):
     _ensure_pyq_attempts_table()
     _ensure_session_user_notes_table()
     _ensure_question_notes_and_feedback_tables()
+    _ensure_question_bank_tables()
     yield
 
 
@@ -181,6 +279,7 @@ app.include_router(config.router, prefix="/config", tags=["config"])
 app.include_router(library.router, prefix="/library", tags=["library"])
 app.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
 app.include_router(pyq.router, prefix="/pyq", tags=["pyq"])
+app.include_router(questions.router, prefix="/questions", tags=["questions"])
 
 
 @app.get("/health")
