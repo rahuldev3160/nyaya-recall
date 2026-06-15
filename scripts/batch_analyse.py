@@ -27,10 +27,19 @@ sys.path.insert(0, str(Path(__file__).parent))
 from priority_scorer import compute_all_priorities
 
 from db_helper import get_conn, DB_PATH
-PROFILE_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
-CONFIG_PATH   = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
-SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
-PROMPT_PATH   = Path(__file__).parent.parent / "prompts" / "batch_analysis.txt"
+_PROJECT_PATH   = Path(os.getenv("PROJECT_PATH", "."))
+_LEGACY_PROFILE = _PROJECT_PATH / "data" / "prep_profile.json"
+_LEGACY_CONFIG  = _PROJECT_PATH / "data" / "prep_config.json"
+SYLLABUS_PATH   = _PROJECT_PATH / "data" / "syllabus.json"
+PROMPT_PATH     = Path(__file__).parent.parent / "prompts" / "batch_analysis.txt"
+
+
+def _profile_path(user_id: str = "user_1") -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "prep_profile.json"
+
+
+def _config_path(user_id: str = "user_1") -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "prep_config.json"
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
@@ -43,20 +52,26 @@ SUBJECT_ALIASES: dict[str, str] = {
 }
 
 
-def load_profile() -> dict:
-    if PROFILE_PATH.exists():
+def load_profile(user_id: str = "user_1") -> dict:
+    path = _profile_path(user_id)
+    if not path.exists() and user_id == "user_1" and _LEGACY_PROFILE.exists():
+        import shutil
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(_LEGACY_PROFILE, path)
+    if path.exists():
         try:
-            return json.loads(PROFILE_PATH.read_text())
+            return json.loads(path.read_text())
         except Exception:
             pass
     return {"subjects": {}, "overall_readiness": 0, "phase": "diagnostic",
             "last_updated": None, "day_number": 1}
 
 
-def save_profile(profile: dict):
-    PROFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+def save_profile(profile: dict, user_id: str = "user_1"):
+    path = _profile_path(user_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
     profile["last_updated"] = datetime.now(timezone.utc).isoformat()
-    PROFILE_PATH.write_text(json.dumps(profile, indent=2))
+    path.write_text(json.dumps(profile, indent=2))
 
 
 # ---------------------------------------------------------------------------
@@ -266,6 +281,7 @@ def _compute_topic_coverage(
 def compute_weighted_readiness(
     dim_scores_by_subject: dict[str, dict[str, list[dict]]] | None = None,
     syllabus_dims_map: dict[str, list[dict]] | None = None,
+    user_id: str = "user_1",
 ) -> dict:
     """
     Pre-computes authoritative readiness scores before the LLM call.
@@ -287,7 +303,7 @@ def compute_weighted_readiness(
         return {}
 
     pyq_weights = compute_all_priorities()
-    tested = _get_tested_subtopics()
+    tested = _get_tested_subtopics(user_id)
 
     # Defaults so callers that don't pass these args still get a valid (empty) dict
     if dim_scores_by_subject is None:
@@ -428,11 +444,12 @@ def _expand_multi_subject_summary(
     return expanded
 
 
-def get_unsynced_summaries() -> tuple[list[dict], list[str]]:
+def get_unsynced_summaries(user_id: str = "user_1") -> tuple[list[dict], list[str]]:
     con = get_conn()
     con.row_factory = sqlite3.Row
     sessions = con.execute(
-        "SELECT * FROM quiz_sessions WHERE synced=0 AND end_time IS NOT NULL"
+        "SELECT * FROM quiz_sessions WHERE synced=0 AND end_time IS NOT NULL AND user_id=?",
+        (user_id,),
     ).fetchall()
 
     summaries: list[dict] = []
@@ -546,14 +563,14 @@ def mark_synced(session_ids: list[str]):
 # Main analysis runner
 # ---------------------------------------------------------------------------
 
-def run_analysis(force: bool = False) -> dict:
-    summaries, session_ids = get_unsynced_summaries()
+def run_analysis(force: bool = False, user_id: str = "user_1") -> dict:
+    summaries, session_ids = get_unsynced_summaries(user_id)
     if not session_ids:
         print("No unsynced sessions found.")
         return {}
 
     print(f"Analysing {len(session_ids)} session(s) via summaries...")
-    profile = load_profile()
+    profile = load_profile(user_id)
 
     # Guard: Claude analysis costs ~$0.07/run — cap at once per day.
     # Unsynced sessions are left intact so they roll into the next run.
@@ -586,7 +603,7 @@ def run_analysis(force: bool = False) -> dict:
         _dim_con.row_factory = sqlite3.Row
         _syllabus_map_for_sids = _build_syllabus_map()
         for _sid in _syllabus_map_for_sids:
-            _dim_scores_by_subject[_sid] = _get_dimension_scores(_dim_con, _sid)
+            _dim_scores_by_subject[_sid] = _get_dimension_scores(_dim_con, _sid, user_id)
         _dim_con.close()
         _total_dim_rows = sum(
             len(rows)
@@ -603,6 +620,7 @@ def run_analysis(force: bool = False) -> dict:
     coverage_report = compute_weighted_readiness(
         dim_scores_by_subject=_dim_scores_by_subject,
         syllabus_dims_map=_syllabus_dims_map,
+        user_id=user_id,
     )
     print(f"  Weighted overall readiness: {coverage_report.get('overall_readiness', '?')}%")
     for sid, s in coverage_report.get("subjects", {}).items():
@@ -694,7 +712,8 @@ def run_analysis(force: bool = False) -> dict:
     profile["priority_focus"]    = analysis.get("priority_focus", [])
     profile["time_estimates"]    = analysis.get("time_estimates", {})
     try:
-        config = json.loads(CONFIG_PATH.read_text()) if CONFIG_PATH.exists() else {}
+        cfg_p = _config_path(user_id)
+        config = json.loads(cfg_p.read_text()) if cfg_p.exists() else {}
         start = date.fromisoformat(config["start_date"])
         profile["day_number"] = (date.today() - start).days + 1
     except Exception:
@@ -706,7 +725,7 @@ def run_analysis(force: bool = False) -> dict:
     if all_expanded:
         profile["expanded_interests"] = list(dict.fromkeys(all_expanded))
 
-    save_profile(profile)
+    save_profile(profile, user_id)
     mark_synced(session_ids)
 
     print(f"✅ Analysis complete. Overall readiness: {profile['overall_readiness']}%")
