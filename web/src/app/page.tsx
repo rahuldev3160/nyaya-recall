@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [plan, setPlan] = useState<any>(null);
   const [config, setConfig] = useState<any>(null);
   const [syncing, setSyncing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   /** Strip CSAT sessions from any plan response — CSAT has its own separate flow at /csat */
   const filterPlan = (data: any): any => {
@@ -42,19 +43,36 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
-      try { setProfile(await api.getProfile()); } catch {}
-      try { setPlan(filterPlan(await api.getPlan())); } catch {}
-      try { setConfig(await api.getConfig()); } catch {}
+      try {
+        const [prof, pl, cfg] = await Promise.allSettled([
+          api.getProfile(),
+          api.getPlan(),
+          api.getConfig(),
+        ]);
+        if (prof.status === "fulfilled") setProfile(prof.value);
+        if (pl.status === "fulfilled")   setPlan(filterPlan(pl.value));
+        if (cfg.status === "fulfilled")  setConfig(cfg.value);
+        const failed = [prof, pl, cfg].filter((r) => r.status === "rejected").length;
+        if (failed > 0) setLoadError(`${failed} dashboard section${failed > 1 ? "s" : ""} failed to load — is the backend running?`);
+      } catch (e) {
+        setLoadError("Backend unreachable — start the server with: cd backend && uvicorn server:app --reload");
+      }
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSync = async () => {
     setSyncing(true);
+    setLoadError(null);
     try {
       await api.syncAnalysis();
-      try { setProfile(await api.getProfile()); } catch {}
-      try { setPlan(filterPlan(await api.getPlan())); } catch {}
-      try { setConfig(await api.getConfig()); } catch {}
+      const [prof, pl, cfg] = await Promise.allSettled([
+        api.getProfile(), api.getPlan(), api.getConfig(),
+      ]);
+      if (prof.status === "fulfilled") setProfile(prof.value);
+      if (pl.status === "fulfilled")   setPlan(filterPlan(pl.value));
+      if (cfg.status === "fulfilled")  setConfig(cfg.value);
+    } catch (e) {
+      setLoadError(String(e));
     } finally {
       setSyncing(false);
     }
@@ -72,6 +90,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {loadError && (
+        <div className="rounded-lg border border-red-700 bg-red-900/20 px-4 py-3 text-sm text-red-300 flex items-center gap-2">
+          <span className="text-red-500">⚠</span> {loadError}
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

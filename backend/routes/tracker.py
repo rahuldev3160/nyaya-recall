@@ -6,19 +6,29 @@ from fastapi import APIRouter, Depends
 from db import get_conn, DB_PATH
 
 router = APIRouter()
-PROFILE_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
-SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
+_PROJECT_PATH   = Path(os.getenv("PROJECT_PATH", "."))
+_LEGACY_PROFILE = _PROJECT_PATH / "data" / "prep_profile.json"
+SYLLABUS_PATH   = _PROJECT_PATH / "data" / "syllabus.json"
 
 
 def _get_user_id() -> str:
     return "user_1"
 
 
+def _profile_path(user_id: str) -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "prep_profile.json"
+
+
 @router.get("/profile")
-def get_profile():
-    if not PROFILE_PATH.exists():
-        return {"subjects": {}, "overall_readiness": 0, "phase": "diagnostic", "day_number": 1}
-    return json.loads(PROFILE_PATH.read_text())
+def get_profile(user_id: str = Depends(_get_user_id)):
+    path = _profile_path(user_id)
+    if not path.exists() and user_id == "user_1" and _LEGACY_PROFILE.exists():
+        import shutil
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(_LEGACY_PROFILE, path)
+    if path.exists():
+        return json.loads(path.read_text())
+    return {"subjects": {}, "overall_readiness": 0, "phase": "diagnostic", "day_number": 1}
 
 
 @router.get("/subjects")
