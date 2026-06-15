@@ -1,3 +1,31 @@
+### Multi-user retention UI + question bank backend — 2026-06-15 (PRs #51–52, both merged ✅)
+
+**PRs merged this block:**
+| PR | What |
+|----|------|
+| #51 | Question bank backend — SRS service (`services/srs.py`), streak service (`services/streak.py`), username generator (`services/username.py`), 12 query patterns (`services/question_server.py`), 10 endpoints (`routes/questions.py`), 4 new tables + 8 indexes wired into server.py lifespan, `scripts/generate_daily_challenge.py`, `scripts/audit_qb_coverage.py` |
+| #52 | Multi-user retention UI — 9 new components (StreakBadge, DueBadge, HeatmapGrid, TodaysFocus, ConfidenceSelector, AmbientTimer, SessionPauseScreen, GateCta, NavClient), redesigned homepage, new `/practice` page, session page additions (confidence selector + 90s ambient timer + 10-answer pause screen), `SubmitAnswerPayload` fix |
+
+**Architecture notes:**
+- SRS SM-2 implementation: sure+wrong gets harsher penalty (q=2) to surface overconfidence blind spots
+- Streak shield: user-configurable 0/1/2 grace days/week stored in `streak_config` table — not hardcoded
+- `serve_questions()` waterfall: SRS due → CS PYQs unseen → Cross-exam unseen → Repeat weak → AI fallback
+- All 12 query patterns are pure SQL named functions — no ad-hoc queries elsewhere
+- `getDueCount()` and `getStreakInfo()` gracefully return 0 if `/questions` endpoints not available
+
+**Watch-outs:**
+- `question_bank` table is empty until `scripts/ingest_cross_exam.py` is written and CDS/NDA/CAPF PDFs are sourced
+- Daily challenge cron (`scripts/generate_daily_challenge.py`) must be wired to a scheduler — not automatic
+- NavClient replaced inline nav in `layout.tsx` — if any custom nav items were added manually, they need to go into NavClient
+
+**Still blocked on Rahul:**
+- B-1: Supabase project keys → `.env`
+- B-2: Railway service creation
+- B-4: ALTER TABLE `sar_scores` — change PK to composite `(user_id, subject_id)` (approval gate)
+- Sprint 1 data: Official UPSC PDF answer keys 2013–2025
+
+---
+
 ### Scribe security lessons + missing indexes + community consensus — 2026-06-15 (PRs #46–49, all merged ✅)
 
 **PRs merged this block:**

@@ -96,6 +96,30 @@ def _ensure_pyq_attempts_table() -> None:
     con.close()
 
 
+def _ensure_question_explanations_table() -> None:
+    """Create question_explanations table if it does not exist. Safe to re-run."""
+    con = get_conn()
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS question_explanations (
+            question_id         INTEGER PRIMARY KEY REFERENCES pyq_questions(id),
+            concept_tested      TEXT NOT NULL,
+            correct_explanation TEXT NOT NULL,
+            option_a_note       TEXT,
+            option_b_note       TEXT,
+            option_c_note       TEXT,
+            option_d_note       TEXT,
+            memory_hook         TEXT,
+            model_used          TEXT NOT NULL DEFAULT 'claude-haiku-4-5-20251001',
+            generated_at        TEXT NOT NULL DEFAULT (datetime('now')),
+            version             INTEGER NOT NULL DEFAULT 1
+        )
+        """
+    )
+    con.commit()
+    con.close()
+
+
 def _ensure_question_notes_and_feedback_tables() -> None:
     """Create ISSUE-017 Phase 1 tables if they do not exist. Safe to re-run."""
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
@@ -250,6 +274,7 @@ async def _lifespan(_app: FastAPI):
     _ensure_pyq_attempts_table()
     _ensure_session_user_notes_table()
     _ensure_question_notes_and_feedback_tables()
+    _ensure_question_explanations_table()
     _ensure_question_bank_tables()
     yield
 
