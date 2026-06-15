@@ -6,18 +6,19 @@ pyq_questions rows, and updates correct_answer + answer_source where ≥2 source
 
 Sources used:
   S1 — Aquib-Nawaz/Questions   (topic-wise JSON with [YYYY] year tags)
-  S2 — iaseth/prelimspattern   (year-wise JSON, q_number + answer keyed)
+  S2 — iaseth/prelimspattern   (answer-only by q_number; requires q_number col in DB)
 
 Matching strategy (in priority order):
-  1. Exact question_hash match (SHA256 of year:text[:200], same formula as ingest_pyq.py)
-  2. Normalised text match (lowercase + collapse whitespace + strip punctuation, prefix 200 chars)
+  1. Exact question_hash (SHA256 of year:text[:200], same formula as ingest_pyq.py)
+  2. Normalised text (lowercase + strip punctuation, prefix 200 chars)
+  3. Alpha-only text (only a-z letters, prefix 150 chars) — catches OCR digit/punct errors
 
 answer_source values written:
   community_consensus  — ≥2 sources agree on the same answer
   community_single     — exactly 1 source has an answer (AI answer absent or differs)
-  community_validated  — our existing ai_inferred answer matched by ≥1 community source
+  community_validated  — our existing ai_inferred answer confirmed by ≥1 community source
   ai_inferred          — no community match found (unchanged)
-  unverified           — no answer anywhere (unchanged)
+  unverified           — no answer from any source (unchanged)
 
 Usage:
   cd scripts && python build_answer_consensus.py            # dry run (safe)
@@ -56,11 +57,19 @@ def _qhash(year: int, text: str) -> str:
 
 
 def _norm(text: str) -> str:
-    """Lowercase, strip non-alphanum, collapse whitespace. Used for fuzzy matching."""
+    """Lowercase, strip non-alphanum, collapse whitespace. Level-2 fuzzy match."""
     text = text.lower()
     text = re.sub(r"[^\w\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text[:200]
+
+
+def _alpha(text: str) -> str:
+    """Keep only a-z letters + spaces. Level-3 fuzzy: survives OCR digit/punct noise."""
+    text = text.lower()
+    text = re.sub(r"[^a-z\s]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:150]
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +123,7 @@ def _load_aquib() -> list[dict]:
             clean = re.sub(r"\s*\[\d{4}[^\]]*\]\s*", " ", raw).strip()
             records.append({
                 "year":     year,
+                "raw_text": clean,
                 "norm_key": _norm(clean),
                 "qhash":    _qhash(year, clean),
                 "answer":   answer,
@@ -188,6 +198,7 @@ def _load_iaseth() -> list[dict]:
 
             records.append({
                 "year":     year,
+                "raw_text": text,
                 "norm_key": _norm(text),
                 "qhash":    _qhash(year, text),
                 "answer":   answer,
@@ -202,44 +213,56 @@ def _load_iaseth() -> list[dict]:
 # DB helpers
 # ---------------------------------------------------------------------------
 
-def _load_db(con: sqlite3.Connection) -> tuple[dict, dict]:
+def _load_db(con: sqlite3.Connection) -> tuple[dict, dict, dict]:
     """
     Returns:
       hash_idx  : {qhash: row_dict}
       norm_idx  : {(year, norm_key): row_dict}
+      alpha_idx : {(year, alpha_key): row_dict}  — level-3 fallback
     """
     rows = con.execute(
         "SELECT id, year, question_text, correct_answer, answer_source, question_hash "
         "FROM pyq_questions WHERE year > 0"
     ).fetchall()
-    hash_idx: dict[str, dict] = {}
-    norm_idx: dict[tuple, dict] = {}
+    hash_idx:  dict[str,   dict] = {}
+    norm_idx:  dict[tuple, dict] = {}
+    alpha_idx: dict[tuple, dict] = {}
     for r in rows:
-        row = dict(zip(["id", "year", "question_text", "correct_answer", "answer_source", "question_hash"], r))
+        row = dict(zip(["id", "year", "question_text", "correct_answer",
+                        "answer_source", "question_hash"], r))
         if row["question_hash"]:
             hash_idx[row["question_hash"]] = row
-        key = (row["year"], _norm(row["question_text"]))
-        norm_idx[key] = row
-    return hash_idx, norm_idx
+        norm_key  = (row["year"], _norm(row["question_text"]))
+        alpha_key = (row["year"], _alpha(row["question_text"]))
+        norm_idx[norm_key]   = row
+        # Only store in alpha_idx if the key isn't ambiguous (≥20 chars)
+        if len(alpha_key[1]) >= 20:
+            alpha_idx.setdefault(alpha_key, row)
+    return hash_idx, norm_idx, alpha_idx
 
 
 # ---------------------------------------------------------------------------
 # Consensus engine
 # ---------------------------------------------------------------------------
 
-def _match_row(rec: dict, hash_idx: dict, norm_idx: dict) -> dict | None:
-    """Find the best DB row for a source record."""
+def _match_row(rec: dict, hash_idx: dict, norm_idx: dict, alpha_idx: dict) -> dict | None:
+    """Find the best DB row for a source record (3-level fallback)."""
     # 1. Exact hash
     r = hash_idx.get(rec["qhash"])
     if r:
         return r
-    # 2. Normalised text
-    key = (rec["year"], rec["norm_key"])
-    return norm_idx.get(key)
+    # 2. Normalised text (strips punctuation/symbols)
+    r = norm_idx.get((rec["year"], rec["norm_key"]))
+    if r:
+        return r
+    # 3. Alpha-only (survives OCR digit/punctuation substitution errors)
+    alpha_key = _alpha(rec.get("raw_text", ""))
+    if len(alpha_key) >= 20:
+        return alpha_idx.get((rec["year"], alpha_key))
 
 
 def build_consensus(sources: list[list[dict]], hash_idx: dict, norm_idx: dict,
-                    verbose: bool = False) -> dict[int, dict]:
+                    alpha_idx: dict, verbose: bool = False) -> dict[int, dict]:
     """
     Returns {db_id: {answer, source_label, votes, db_row}}
     Only rows where we're confident enough to update.
@@ -250,7 +273,7 @@ def build_consensus(sources: list[list[dict]], hash_idx: dict, norm_idx: dict,
 
     for source_records in sources:
         for rec in source_records:
-            db_row = _match_row(rec, hash_idx, norm_idx)
+            db_row = _match_row(rec, hash_idx, norm_idx, alpha_idx)
             if db_row is None:
                 continue
             db_id = db_row["id"]
@@ -331,14 +354,14 @@ def main() -> None:
     # 3. Load DB
     print("\n▶ Loading DB index…")
     con = sqlite3.connect(DB_PATH)
-    hash_idx, norm_idx = _load_db(con)
-    print(f"  DB rows indexed: {len(hash_idx)} (by hash), {len(norm_idx)} (by norm text)")
+    hash_idx, norm_idx, alpha_idx = _load_db(con)
+    print(f"  DB rows indexed: {len(hash_idx)} (hash) | {len(norm_idx)} (norm) | {len(alpha_idx)} (alpha)")
 
     # 4. Consensus
     print("\n▶ Computing consensus…")
     if args.verbose:
         print()
-    updates = build_consensus(all_sources, hash_idx, norm_idx, verbose=args.verbose)
+    updates = build_consensus(all_sources, hash_idx, norm_idx, alpha_idx, verbose=args.verbose)
 
     # 5. Stats breakdown
     by_new_source: dict[str, int] = defaultdict(int)

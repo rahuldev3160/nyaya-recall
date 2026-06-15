@@ -29,11 +29,6 @@ def _get_user_id() -> str:
     return "user_1"
 
 
-def _has_column(con, table: str, column: str) -> bool:
-    rows = con.execute(f"PRAGMA table_info({table})").fetchall()
-    return any(r["name"] == column for r in rows)
-
-
 @router.get("/years")
 def get_years(user_id: str = Depends(_get_user_id)):
     """List all years with question counts and user attempt stats."""
@@ -179,23 +174,15 @@ def get_questions(year: int, subject_id: str, topic_id: str, user_id: str = Depe
     """Return questions for a year/subject/topic with user attempt status."""
     con = get_conn()
 
-    has_source    = _has_column(con, "pyq_questions", "answer_source")
-    has_disputed  = _has_column(con, "pyq_questions", "answer_disputed")
-
-    extra_cols = ""
-    if has_source:
-        extra_cols += ", answer_source"
-    if has_disputed:
-        extra_cols += ", answer_disputed"
-
     rows = con.execute(
-        f"""
+        """
         SELECT id, question_text,
                option_a, option_b, option_c, option_d,
-               correct_answer, subtopic_id{extra_cols}
+               correct_answer, subtopic_id,
+               answer_source, answer_disputed, q_number
         FROM pyq_questions
         WHERE year=? AND subject_id=? AND topic_id=?
-        ORDER BY id
+        ORDER BY COALESCE(q_number, id)
         """,
         (year, subject_id, topic_id),
     ).fetchall()
@@ -229,8 +216,9 @@ def get_questions(year: int, subject_id: str, topic_id: str, user_id: str = Depe
             "option_d":        r["option_d"],
             "correct_answer":  r["correct_answer"],
             "subtopic_id":     r["subtopic_id"],
-            "answer_source":   r["answer_source"] if has_source else "ai_inferred",
-            "answer_disputed": bool(r["answer_disputed"]) if has_disputed else False,
+            "q_number":        r["q_number"],
+            "answer_source":   r["answer_source"] or "ai_inferred",
+            "answer_disputed": bool(r["answer_disputed"]),
             "user_answer":     attempts.get(r["id"], {}).get("user_answer"),
             "user_correct":    attempts.get(r["id"], {}).get("is_correct"),
         }
