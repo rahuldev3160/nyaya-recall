@@ -1,3 +1,44 @@
+### Sprint 2 auth prep — get_conn, user_id threading, auth stubs — 2026-06-15 (PR #43, open)
+
+**What changed:**
+- `backend/db.py` — `get_conn()` already existed; all 7 route files + `server.py` now import and use it (WAL mode + 5s busy_timeout everywhere, zero raw `sqlite3.connect` calls remaining in routes)
+- `scripts/db_helper.py` (NEW) — mirrors `backend/db.py` for standalone scripts; used by `score_engine.py`, `batch_analyse.py`, `plan_generator.py`
+- `user_id: str = "user_1"` threaded through all 41 hardcoded SQL literal sites across all route files and 3 core scripts — swap to real auth is 1-line per file
+- `_get_user_id()` stub in each route file returns `"user_1"` via `Depends()` — replace `Depends(_get_user_id)` with `Depends(get_current_user)` from `backend/auth.py` once Supabase keys are in `.env`
+- `backend/auth.py` (NEW) — PyJWT Supabase middleware; raises 503 if `SUPABASE_JWT_SECRET` not set; raises 401 on bad/expired token
+- `web/src/lib/supabase.ts`, `web/src/lib/auth.ts` (NEW) — Supabase client + auth helpers; structural only until `NEXT_PUBLIC_SUPABASE_*` env vars are added
+- `web/src/app/login/page.tsx`, `web/src/app/auth/callback/page.tsx` (NEW) — magic link + Google OAuth login flow
+- `web/src/components/AuthGuard.tsx` (NEW) — redirects to `/login` if no session
+- `web/src/lib/api.ts` — `authFetch()` added: injects `Authorization: Bearer <token>` when session exists
+- Sprint 1 scripts (NEW): `audit_pyq_completeness.py`, `fix_year_zero.py`, `import_answer_keys.py` — all handle missing `answer_source` column gracefully (blocked on ALTER TABLE approval)
+- `scripts/ingest_pyq.py` — updated to capture `q_number` when column exists
+- `scripts/requirements.txt` — added `PyJWT>=2.8.0`
+- `.env` — added `SUPABASE_JWT_SECRET=`, `SUPABASE_URL=`, `SUPABASE_ANON_KEY=` placeholders
+- `web/.env.local.example` (NEW) — documents `NEXT_PUBLIC_SUPABASE_*` vars needed for frontend auth
+
+**Watch-outs:**
+- PR #43 is open, not merged — do not start next Sprint 2 task until Rahul merges this
+- All single-user behaviour is 100% preserved — every new param defaults to `"user_1"` and every `_get_user_id()` stub returns `"user_1"`
+- Frontend auth pages will silently fail (no redirect, no session) until env vars are added — no crash, just a no-op supabase client
+- `server.py` DDL: `user_id TEXT NOT NULL` on `session_user_notes`, `question_notes`, `content_feedback` — existing DB rows have `user_1` so NOT NULL is safe; new installs work correctly
+- Fixed pre-existing bug in `batch_analyse._get_dimension_scores`: SQL had 2 params (`user_id=? AND subject_id=?`) but only 1 was passed — now correctly passes `(user_id, subject_id)`
+
+**Blocked on Rahul:**
+- B-1: Create Supabase project → copy 3 keys to `.env` and `NEXT_PUBLIC_*` to `web/.env.local`
+- B-2: Create Railway service for Recall + PostgreSQL addon
+- B-3: Approve `ALTER TABLE pyq_questions` (4 columns: `answer_source`, `answer_disputed`, `dispute_note`, `q_number`) — unblocks Sprint 1 scripts
+- B-4: Decide `subtopic_difficulty` global vs per-user (recommend: keep global)
+
+**Remaining Sprint 2 work (not in PR #43):**
+- `scripts/migrate_to_postgres.py` — PostgreSQL DDL skeleton
+- Cluster D: JSON files → per-user DB namespacing (`prep_profile`, `study_plan`, `prep_config`)
+- Wire `Depends(get_current_user)` into all routes (replaces stubs) — needs Supabase keys first
+- Deploy Railway + Vercel
+
+**Branch:** `feature/sprint2-auth-multitenancy-prep` — PR #43 (open, awaiting Rahul review)
+
+---
+
 ### Sprint 2 architecture locked + 3-agent audit complete — 2026-06-15 (evening)
 
 **What was done:**

@@ -12,6 +12,12 @@ Before any audit, bug investigation, or architecture review:
 After any audit, multi-agent task, significant fix, or architecture decision — write synthesized
 records to `.knowledge/` and update `INDEX.md` before finishing the response.
 
+## Brand
+- Umbrella: **NYAYA** (`nyaya.app` — primary domain)
+- This product: **Nyaya Recall** — the memory faculty (adaptive MCQ, spaced repetition, PYQ-anchored)
+- Tagline: *"The logic of getting in."*
+- Sibling product: Nyaya Scribe (descriptive answer writing) → Descriptive-exams project
+
 ## Project
 
 A local-only, AI-powered 10-day UPSC Prelims adaptive preparation system.
