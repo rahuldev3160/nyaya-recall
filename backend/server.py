@@ -56,6 +56,21 @@ def _ensure_user_profiles_table() -> None:
     con.close()
 
 
+def _ensure_pyq_indexes() -> None:
+    """Add query indexes to pyq_questions. Safe to re-run (IF NOT EXISTS)."""
+    con = get_conn()
+    for ddl in [
+        "CREATE INDEX IF NOT EXISTS idx_pyq_year_subj_topic ON pyq_questions(year, subject_id, topic_id)",
+        "CREATE INDEX IF NOT EXISTS idx_pyq_subject          ON pyq_questions(subject_id)",
+        "CREATE INDEX IF NOT EXISTS idx_pyq_year             ON pyq_questions(year)",
+        "CREATE INDEX IF NOT EXISTS idx_pyq_q_number         ON pyq_questions(year, q_number)",
+        "CREATE INDEX IF NOT EXISTS idx_pyq_answer_source    ON pyq_questions(answer_source)",
+    ]:
+        con.execute(ddl)
+    con.commit()
+    con.close()
+
+
 def _ensure_pyq_attempts_table() -> None:
     con = get_conn()
     con.execute(
@@ -72,7 +87,10 @@ def _ensure_pyq_attempts_table() -> None:
         """
     )
     con.execute(
-        "CREATE INDEX IF NOT EXISTS idx_pyq_attempts_user ON pyq_attempts(user_id, question_id)"
+        "CREATE INDEX IF NOT EXISTS idx_pyq_attempts_user     ON pyq_attempts(user_id, question_id)"
+    )
+    con.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pyq_attempts_question ON pyq_attempts(question_id)"
     )
     con.commit()
     con.close()
@@ -131,6 +149,7 @@ def _ensure_question_notes_and_feedback_tables() -> None:
 async def _lifespan(_app: FastAPI):
     enable_wal(DB_PATH)
     _ensure_user_profiles_table()
+    _ensure_pyq_indexes()
     _ensure_pyq_attempts_table()
     _ensure_session_user_notes_table()
     _ensure_question_notes_and_feedback_tables()
