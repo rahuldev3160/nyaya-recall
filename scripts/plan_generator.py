@@ -16,12 +16,29 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent))
 
-PROFILE_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
-PLAN_PATH     = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
-CONFIG_PATH   = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
-SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
-PROMPT_PATH   = Path(__file__).parent.parent / "prompts" / "plan_generation.txt"
+_PROJECT_PATH   = Path(os.getenv("PROJECT_PATH", "."))
+_LEGACY_PROFILE = _PROJECT_PATH / "data" / "prep_profile.json"
+_LEGACY_PLAN    = _PROJECT_PATH / "data" / "study_plan.json"
+_LEGACY_CONFIG  = _PROJECT_PATH / "data" / "prep_config.json"
+SYLLABUS_PATH   = _PROJECT_PATH / "data" / "syllabus.json"
+PROMPT_PATH     = Path(__file__).parent.parent / "prompts" / "plan_generation.txt"
 from db_helper import get_conn, DB_PATH
+
+
+def _profile_path(user_id: str = "user_1") -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "prep_profile.json"
+
+
+def _plan_path(user_id: str = "user_1") -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "study_plan.json"
+
+
+def _user_plan_path(user_id: str = "user_1") -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "study_plan_user.json"
+
+
+def _config_path(user_id: str = "user_1") -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "prep_config.json"
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
@@ -250,17 +267,22 @@ def fetch_user_notes_signals(user_id: str = "user_1") -> list[dict]:
     return out
 
 
-def load_config() -> dict:
-    if CONFIG_PATH.exists():
+def load_config(user_id: str = "user_1") -> dict:
+    path = _config_path(user_id)
+    if not path.exists() and user_id == "user_1" and _LEGACY_CONFIG.exists():
+        import shutil
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(_LEGACY_CONFIG, path)
+    if path.exists():
         try:
-            return json.loads(CONFIG_PATH.read_text())
+            return json.loads(path.read_text())
         except Exception:
             pass
     return {"total_days": 10, "daily_hours": 6, "start_date": date.today().isoformat()}
 
 
-def days_remaining() -> int:
-    config = load_config()
+def days_remaining(user_id: str = "user_1") -> int:
+    config = load_config(user_id)
     start_str = config.get("start_date") or date.today().isoformat()
     total = int(config.get("total_days", 10))
     start = date.fromisoformat(start_str)
@@ -268,21 +290,27 @@ def days_remaining() -> int:
     return max(1, total - elapsed)
 
 
-def current_day_number() -> int:
-    config = load_config()
+def current_day_number(user_id: str = "user_1") -> int:
+    config = load_config(user_id)
     start_str = config.get("start_date") or date.today().isoformat()
     start = date.fromisoformat(start_str)
     elapsed = max(0, (date.today() - start).days)
     return elapsed + 1
 
 
-def generate_plan(available_hours: float | None = None) -> dict:
-    if not PROFILE_PATH.exists():
+def generate_plan(available_hours: float | None = None, user_id: str = "user_1") -> dict:
+    profile_path = _profile_path(user_id)
+    if not profile_path.exists() and user_id == "user_1" and _LEGACY_PROFILE.exists():
+        import shutil
+        profile_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(_LEGACY_PROFILE, profile_path)
+
+    if not profile_path.exists():
         print("No prep profile found. Run batch_analyse.py first.")
         return {"message": "No prep profile yet. Complete a diagnostic session and run batch analysis first."}
 
     try:
-        profile = json.loads(PROFILE_PATH.read_text())
+        profile = json.loads(profile_path.read_text())
     except Exception:
         return {"message": "Prep profile is corrupted. Run batch analysis again to rebuild it."}
 
@@ -295,16 +323,16 @@ def generate_plan(available_hours: float | None = None) -> dict:
         except Exception:
             pass
 
-    config = load_config()
+    config = load_config(user_id)
     if available_hours is None:
         available_hours = float(config.get("daily_hours", 6))
 
-    day_number = current_day_number()
-    remaining = days_remaining()
+    day_number = current_day_number(user_id)
+    remaining = days_remaining(user_id)
     total_days = int(config.get("total_days", 10))
 
-    subtopic_coverage = compute_subtopic_coverage()
-    user_notes_signals = fetch_user_notes_signals()
+    subtopic_coverage = compute_subtopic_coverage(user_id)
+    user_notes_signals = fetch_user_notes_signals(user_id)
 
     # Strip topics[] from profile — planner gets topic data via subtopic_coverage instead,
     # and sending both doubles the token cost for no benefit.
@@ -373,12 +401,13 @@ def generate_plan(available_hours: float | None = None) -> dict:
         print(f"  ⚠ Stripped {removed} CSAT session(s) from plan — CSAT is a separate system.")
         plan["sessions"] = sessions_after
 
-    PLAN_PATH.parent.mkdir(parents=True, exist_ok=True)
-    PLAN_PATH.write_text(json.dumps(plan, indent=2))
+    plan_p = _plan_path(user_id)
+    plan_p.parent.mkdir(parents=True, exist_ok=True)
+    plan_p.write_text(json.dumps(plan, indent=2))
     # Clear any user-edited plan so the fresh AI plan takes over
-    user_plan_path = PLAN_PATH.parent / "study_plan_user.json"
-    if user_plan_path.exists():
-        user_plan_path.unlink()
+    user_plan_p = _user_plan_path(user_id)
+    if user_plan_p.exists():
+        user_plan_p.unlink()
         print("🗑️  Cleared user-edited plan — fresh AI plan is now active.")
     print(f"✅ Plan generated for Day {day_number}/{total_days}. Sessions: {len(plan.get('sessions', []))}")
     return plan

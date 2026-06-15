@@ -4,17 +4,39 @@ import math
 import sqlite3
 import datetime
 from pathlib import Path
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 from plan_generator import generate_plan
 
 router = APIRouter()
-PLAN_PATH      = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan.json"
-USER_PLAN_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "study_plan_user.json"
-SYLLABUS_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "syllabus.json"
+_PROJECT_PATH   = Path(os.getenv("PROJECT_PATH", "."))
+_LEGACY_PLAN    = _PROJECT_PATH / "data" / "study_plan.json"
+_LEGACY_PROFILE = _PROJECT_PATH / "data" / "prep_profile.json"
+_LEGACY_CONFIG  = _PROJECT_PATH / "data" / "prep_config.json"
+SYLLABUS_PATH   = _PROJECT_PATH / "data" / "syllabus.json"
 from db import get_conn, DB_PATH
+
+
+def _plan_path(user_id: str) -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "study_plan.json"
+
+
+def _user_plan_path(user_id: str) -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "study_plan_user.json"
+
+
+def _profile_path(user_id: str) -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "prep_profile.json"
+
+
+def _config_path(user_id: str) -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "prep_config.json"
+
+
+def _get_user_id() -> str:
+    return "user_1"
 
 _GS1_SUBJECTS = {"polity", "economy", "history_amac", "modern_history", "geography",
                   "environment", "science_tech", "current_affairs", "ir_governance"}
@@ -37,21 +59,27 @@ def _ensure_edit_log_table():
     con.close()
 
 
-def _load_active_plan() -> dict:
+def _load_active_plan(user_id: str = "user_1") -> dict:
     """Return user-edited plan for today if it exists, else the AI-generated plan."""
     today = datetime.date.today().isoformat()
-    if USER_PLAN_PATH.exists():
+    plan_p = _plan_path(user_id)
+    user_plan_p = _user_plan_path(user_id)
+    # Legacy fallback for user_1
+    if not plan_p.exists() and user_id == "user_1" and _LEGACY_PLAN.exists():
+        import shutil
+        plan_p.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(_LEGACY_PLAN, plan_p)
+    if user_plan_p.exists():
         try:
-            user_plan = json.loads(USER_PLAN_PATH.read_text())
+            user_plan = json.loads(user_plan_p.read_text())
             if user_plan.get("session_date") == today:
                 return {**user_plan, "is_user_edited": True}
         except Exception:
             pass
-    if not PLAN_PATH.exists():
+    if not plan_p.exists():
         return {"message": "No plan yet. Click 'Plan Today' to generate."}
     try:
-        plan = json.loads(PLAN_PATH.read_text())
-        # Strip CSAT sessions from GS1 plan view
+        plan = json.loads(plan_p.read_text())
         plan["sessions"] = [s for s in plan.get("sessions", []) if s.get("subject_id") != "csat"]
         return {**plan, "is_user_edited": False}
     except Exception:
@@ -72,8 +100,8 @@ def _filter_csat_sessions(plan: dict) -> dict:
 
 
 @router.get("/today")
-def get_plan():
-    return _load_active_plan()
+def get_plan(user_id: str = Depends(_get_user_id)):
+    return _load_active_plan(user_id)
 
 
 @router.get("/syllabus-tree")
@@ -113,7 +141,7 @@ def get_syllabus_tree():
 
 
 @router.patch("/user-sessions")
-def patch_user_sessions(body: dict):
+def patch_user_sessions(body: dict, user_id: str = Depends(_get_user_id)):
     """Save user-edited plan. Log delta against model's original for every changed session."""
     edited_sessions = body.get("sessions")
     if not edited_sessions:
@@ -124,9 +152,10 @@ def patch_user_sessions(body: dict):
 
     # Load model's original for delta comparison
     original_sessions: list = []
-    if PLAN_PATH.exists():
+    plan_p = _plan_path(user_id)
+    if plan_p.exists():
         try:
-            original_sessions = json.loads(PLAN_PATH.read_text()).get("sessions", [])
+            original_sessions = json.loads(plan_p.read_text()).get("sessions", [])
         except Exception:
             pass
 
@@ -156,23 +185,26 @@ def patch_user_sessions(body: dict):
         "user_edited": True,
         "edited_at": datetime.datetime.utcnow().isoformat(),
     }
-    USER_PLAN_PATH.write_text(json.dumps(user_plan, indent=2))
+    user_plan_p = _user_plan_path(user_id)
+    user_plan_p.parent.mkdir(parents=True, exist_ok=True)
+    user_plan_p.write_text(json.dumps(user_plan, indent=2))
     return {"ok": True, "sessions_saved": len(edited_sessions)}
 
 
 @router.delete("/user-overrides")
-def delete_user_overrides():
+def delete_user_overrides(user_id: str = Depends(_get_user_id)):
     """Discard user edits — revert to AI-generated plan."""
-    if USER_PLAN_PATH.exists():
-        USER_PLAN_PATH.unlink()
+    user_plan_p = _user_plan_path(user_id)
+    if user_plan_p.exists():
+        user_plan_p.unlink()
     return {"ok": True, "reset": True}
 
 
 @router.get("/today-status")
-def get_plan_status():
+def get_plan_status(user_id: str = Depends(_get_user_id)):
     """Return which plan session subtopics have been completed in quiz sessions today."""
     try:
-        plan = _load_active_plan()
+        plan = _load_active_plan(user_id)
     except Exception:
         return {"completed_subtopics": []}
     if "message" in plan:
@@ -204,20 +236,19 @@ def get_plan_status():
 
 
 @router.post("/generate")
-def create_plan(body: dict = {}):
+def create_plan(body: dict = {}, user_id: str = Depends(_get_user_id)):
     hours = body.get("available_hours", 8.0)
-    plan = generate_plan(hours)
+    plan = generate_plan(hours, user_id=user_id)
     return plan
 
 
-PREP_PROFILE_PATH = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_profile.json"
-PREP_CONFIG_PATH  = Path(os.getenv("PROJECT_PATH", ".")) / "data" / "prep_config.json"
-
-
-def _get_exam_date() -> datetime.date:
+def _get_exam_date(user_id: str = "user_1") -> datetime.date:
     """Read exam date from prep_config.json; fall back to start_date+total_days, then today+30."""
     try:
-        cfg = json.loads(PREP_CONFIG_PATH.read_text())
+        cfg_p = _config_path(user_id)
+        if not cfg_p.exists() and user_id == "user_1" and _LEGACY_CONFIG.exists():
+            cfg_p = _LEGACY_CONFIG
+        cfg = json.loads(cfg_p.read_text())
         if cfg.get("target_date"):
             return datetime.date.fromisoformat(cfg["target_date"])
         if cfg.get("start_date") and cfg.get("total_days"):
@@ -241,15 +272,18 @@ _SUBJECT_NAMES = {
 
 
 @router.get("/trajectory")
-def get_trajectory():
+def get_trajectory(user_id: str = Depends(_get_user_id)):
     today = datetime.date.today()
-    days_remaining = max((_get_exam_date() - today).days, 0)
+    days_remaining = max((_get_exam_date(user_id) - today).days, 0)
 
-    if not PREP_PROFILE_PATH.exists():
+    profile_p = _profile_path(user_id)
+    if not profile_p.exists() and user_id == "user_1" and _LEGACY_PROFILE.exists():
+        profile_p = _LEGACY_PROFILE
+    if not profile_p.exists():
         return {"error": "No prep profile found. Run batch_analyse.py first."}
 
     try:
-        profile = json.loads(PREP_PROFILE_PATH.read_text())
+        profile = json.loads(profile_p.read_text())
     except Exception:
         return {"error": "Prep profile is corrupted."}
 
@@ -307,9 +341,12 @@ def get_trajectory():
         })
 
     today_sessions_count = 0
-    if PLAN_PATH.exists():
+    plan_p = _plan_path(user_id)
+    if not plan_p.exists() and user_id == "user_1" and _LEGACY_PLAN.exists():
+        plan_p = _LEGACY_PLAN
+    if plan_p.exists():
         try:
-            plan = _filter_csat_sessions(json.loads(PLAN_PATH.read_text()))
+            plan = _filter_csat_sessions(json.loads(plan_p.read_text()))
             today_sessions_count = len(plan.get("sessions", []))
         except Exception:
             pass

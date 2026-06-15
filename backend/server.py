@@ -36,6 +36,26 @@ def _ensure_session_user_notes_table() -> None:
     con.close()
 
 
+def _ensure_user_profiles_table() -> None:
+    con = get_conn()
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_profiles (
+            user_id      TEXT PRIMARY KEY,
+            display_name TEXT,
+            email        TEXT,
+            exam_type    TEXT DEFAULT 'upsc_prelims',
+            target_date  TEXT,
+            daily_hours  REAL DEFAULT 2.0,
+            tier         TEXT DEFAULT 'free',
+            created_at   TEXT DEFAULT (datetime('now'))
+        )
+        """
+    )
+    con.commit()
+    con.close()
+
+
 def _ensure_question_notes_and_feedback_tables() -> None:
     """Create ISSUE-017 Phase 1 tables if they do not exist. Safe to re-run."""
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
@@ -88,6 +108,7 @@ def _ensure_question_notes_and_feedback_tables() -> None:
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
     enable_wal(DB_PATH)
+    _ensure_user_profiles_table()
     _ensure_session_user_notes_table()
     _ensure_question_notes_and_feedback_tables()
     yield

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AuthGuard from "@/components/AuthGuard";
 
 export const metadata: Metadata = {
   title: "UPSC 10-Day Prep",
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
           ))}
         </nav>
-        <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
+        <AuthGuard>
+          <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
+        </AuthGuard>
       </body>
     </html>
   );
