@@ -1,0 +1,37 @@
+You are classifying questions from a UPSC-family exam (CDS/NDA/CAPF/CISF) for a Civil Services Prelims study system.
+
+Extract ALL multiple-choice questions from the raw text below and classify each one.
+Return a JSON array — one object per question.
+
+Valid subject_id values:
+  polity          — Constitution, Parliament, governance, rights, judiciary
+  history_amac    — Ancient, Medieval, Art & Culture
+  modern_history  — 1757 onwards, freedom struggle, post-independence
+  geography       — Physical, human, economic, world geography
+  economy         — Macro/micro economics, budgets, banking, trade, schemes
+  environment     — Ecology, biodiversity, climate, conservation
+  science_tech    — Physics, chemistry, biology, space, defence tech, IT
+  current_affairs — Contemporary events, recent appointments, rankings
+  ir_governance   — International relations, foreign policy, defence
+  out_of_scope    — Mathematics, English language, specialized technical knowledge outside GS syllabus
+
+Each object must have exactly these fields:
+- question_text: full question stem (no letter prefix, no option text)
+- option_a, option_b, option_c, option_d: the four options (text only, no letter prefix)
+- correct_answer: "a", "b", "c", or "d" (lowercase) — use null if not present in source
+- subject_id: one of the valid subject_ids above
+- topic_id: concise snake_case topic (e.g. "fundamental_rights", "mughal_empire")
+- subtopic_id: concise snake_case subtopic (e.g. "article_21", "akbar_administration")
+- question_type: one of "direct", "statement_based", "matching", "correct_incorrect", "assertion_reason", "chronological"
+- difficulty: "easy" | "medium" | "hard" (relative to Civil Services Prelims standard)
+
+Rules:
+- Set subject_id to "out_of_scope" for: pure mathematics, English grammar/comprehension, engineering formulas, NDA Maths section questions
+- For statement_based questions (Which of the following statements is/are correct?): preserve all statements in question_text
+- Do NOT invent or guess correct_answer if it's not clearly indicated in the source
+- Reclassify independently — do not use the source exam's original section/category labels
+- Extract EVERY MCQ you find, even if the raw text is messy or bilingual
+- Output ONLY the JSON array, no explanation, no markdown code fences
+
+Raw exam text ({{exam}} {{year}}{{paper_suffix}}):
+{{TEXT}}

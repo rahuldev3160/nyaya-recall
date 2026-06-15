@@ -338,7 +338,7 @@ def _update_subtopic_difficulties(answers) -> None:
         grouped.setdefault(a["subtopic_id"], []).append(a)
 
     for subtopic_id, ans in grouped.items():
-        if len(ans) < 3:
+        if not ans:
             continue
         correct = sum(1 for a in ans if a["is_correct"])
         accuracy = (correct / len(ans)) * 100
