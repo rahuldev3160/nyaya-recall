@@ -1,0 +1,326 @@
+{
+  "2021_Art_and_Culture.json": {
+    "inserted": 15,
+    "dupes": 0,
+    "subject": "history_amac",
+    "year": 2021
+  },
+  "2021_Economy.json": {
+    "inserted": 15,
+    "dupes": 0,
+    "subject": "economy",
+    "year": 2021
+  },
+  "2021_Environment.json": {
+    "inserted": 105,
+    "dupes": 0,
+    "subject": "environment",
+    "year": 2021
+  },
+  "2021_Geography.json": {
+    "inserted": 235,
+    "dupes": 0,
+    "subject": "geography",
+    "year": 2021
+  },
+  "2021_History.json": {
+    "inserted": 150,
+    "dupes": 0,
+    "subject": "modern_history",
+    "year": 2021
+  },
+  "2021_Polity.json": {
+    "inserted": 55,
+    "dupes": 0,
+    "subject": "polity",
+    "year": 2021
+  },
+  "2022_Ancient_&_Medieval_India.json": {
+    "inserted": 55,
+    "dupes": 0,
+    "subject": "history_amac",
+    "year": 2022
+  },
+  "2022_Ancient_&_Medieval_India_+_Art_&_Culture.json": {
+    "inserted": 98,
+    "dupes": 2,
+    "subject": "history_amac",
+    "year": 2022
+  },
+  "2022_Ancient_and_Medieval.json": {
+    "inserted": 30,
+    "dupes": 0,
+    "subject": "history_amac",
+    "year": 2022
+  },
+  "2022_Art_and_Culture.json": {
+    "inserted": 82,
+    "dupes": 3,
+    "subject": "history_amac",
+    "year": 2022
+  },
+  "2022_Economy.json": {
+    "inserted": 341,
+    "dupes": 14,
+    "subject": "economy",
+    "year": 2022
+  },
+  "2022_Environment.json": {
+    "inserted": 155,
+    "dupes": 15,
+    "subject": "environment",
+    "year": 2022
+  },
+  "2022_Geography.json": {
+    "inserted": 160,
+    "dupes": 15,
+    "subject": "geography",
+    "year": 2022
+  },
+  "2022_Governance.json": {
+    "inserted": 15,
+    "dupes": 0,
+    "subject": "polity",
+    "year": 2022
+  },
+  "2022_History.json": {
+    "inserted": 132,
+    "dupes": 13,
+    "subject": "modern_history",
+    "year": 2022
+  },
+  "2022_Polity.json": {
+    "inserted": 294,
+    "dupes": 11,
+    "subject": "polity",
+    "year": 2022
+  },
+  "2022_Science_&_Technology_and_IR.json": {
+    "inserted": 79,
+    "dupes": 1,
+    "subject": "science_tech",
+    "year": 2022
+  },
+  "2022_Science_and_Technology.json": {
+    "inserted": 22,
+    "dupes": 3,
+    "subject": "science_tech",
+    "year": 2022
+  },
+  "2023_Ancient_and_Medieval_India.json": {
+    "inserted": 43,
+    "dupes": 7,
+    "subject": "history_amac",
+    "year": 2023
+  },
+  "2023_Art_and_Culture.json": {
+    "inserted": 137,
+    "dupes": 18,
+    "subject": "history_amac",
+    "year": 2023
+  },
+  "2023_Economy.json": {
+    "inserted": 202,
+    "dupes": 53,
+    "subject": "economy",
+    "year": 2023
+  },
+  "2023_Environment.json": {
+    "inserted": 220,
+    "dupes": 70,
+    "subject": "environment",
+    "year": 2023
+  },
+  "2023_GEOGRAPHY.json": {
+    "inserted": 5,
+    "dupes": 0,
+    "subject": "geography",
+    "year": 2023
+  },
+  "2023_Governance.json": {
+    "inserted": 5,
+    "dupes": 0,
+    "subject": "polity",
+    "year": 2023
+  },
+  "2023_History.json": {
+    "inserted": 118,
+    "dupes": 42,
+    "subject": "modern_history",
+    "year": 2023
+  },
+  "2023_Modern_India.json": {
+    "inserted": 31,
+    "dupes": 14,
+    "subject": "modern_history",
+    "year": 2023
+  },
+  "2023_Polity.json": {
+    "inserted": 168,
+    "dupes": 52,
+    "subject": "polity",
+    "year": 2023
+  },
+  "2023_Science_and_Technology.json": {
+    "inserted": 72,
+    "dupes": 7,
+    "subject": "science_tech",
+    "year": 2023
+  },
+  "2023_Unknown.json": {
+    "inserted": 10,
+    "dupes": 0,
+    "subject": "current_affairs",
+    "year": 2023
+  },
+  "2024_Ancient_&_Medieval_India.json": {
+    "inserted": 49,
+    "dupes": 31,
+    "subject": "history_amac",
+    "year": 2024
+  },
+  "2024_Ancient_and_Medieval_India.json": {
+    "inserted": 13,
+    "dupes": 2,
+    "subject": "history_amac",
+    "year": 2024
+  },
+  "2024_Art_&_Culture.json": {
+    "inserted": 40,
+    "dupes": 0,
+    "subject": "history_amac",
+    "year": 2024
+  },
+  "2024_Art_and_Culture.json": {
+    "inserted": 120,
+    "dupes": 35,
+    "subject": "history_amac",
+    "year": 2024
+  },
+  "2024_Economy.json": {
+    "inserted": 141,
+    "dupes": 74,
+    "subject": "economy",
+    "year": 2024
+  },
+  "2024_Environment.json": {
+    "inserted": 150,
+    "dupes": 105,
+    "subject": "environment",
+    "year": 2024
+  },
+  "2024_Geography.json": {
+    "inserted": 212,
+    "dupes": 68,
+    "subject": "geography",
+    "year": 2024
+  },
+  "2024_History.json": {
+    "inserted": 85,
+    "dupes": 80,
+    "subject": "modern_history",
+    "year": 2024
+  },
+  "2024_Modern_India.json": {
+    "inserted": 100,
+    "dupes": 10,
+    "subject": "modern_history",
+    "year": 2024
+  },
+  "2024_POLITY.json": {
+    "inserted": 4,
+    "dupes": 1,
+    "subject": "polity",
+    "year": 2024
+  },
+  "2024_Polity_22.json": {
+    "inserted": 5,
+    "dupes": 0,
+    "subject": "polity",
+    "year": 2024
+  },
+  "2024_Unknown.json": {
+    "inserted": 8,
+    "dupes": 2,
+    "subject": "current_affairs",
+    "year": 2024
+  },
+  "2025_Ancient_&_Medieval_India.json": {
+    "inserted": 55,
+    "dupes": 5,
+    "subject": "history_amac",
+    "year": 2025
+  },
+  "2025_Art_and_Culture.json": {
+    "inserted": 103,
+    "dupes": 32,
+    "subject": "history_amac",
+    "year": 2025
+  },
+  "2025_Economy.json": {
+    "inserted": 151,
+    "dupes": 9,
+    "subject": "economy",
+    "year": 2025
+  },
+  "2025_Environment.json": {
+    "inserted": 129,
+    "dupes": 46,
+    "subject": "environment",
+    "year": 2025
+  },
+  "2025_Geography.json": {
+    "inserted": 178,
+    "dupes": 27,
+    "subject": "geography",
+    "year": 2025
+  },
+  "2025_History.json": {
+    "inserted": 134,
+    "dupes": 26,
+    "subject": "modern_history",
+    "year": 2025
+  },
+  "2025_Polity.json": {
+    "inserted": 153,
+    "dupes": 17,
+    "subject": "polity",
+    "year": 2025
+  },
+  "2026_Art_and_Culture.json": {
+    "inserted": 43,
+    "dupes": 17,
+    "subject": "history_amac",
+    "year": 2026
+  },
+  "2026_Economy.json": {
+    "inserted": 53,
+    "dupes": 2,
+    "subject": "economy",
+    "year": 2026
+  },
+  "2026_Environment.json": {
+    "inserted": 39,
+    "dupes": 26,
+    "subject": "environment",
+    "year": 2026
+  },
+  "2026_Geography.json": {
+    "inserted": 60,
+    "dupes": 20,
+    "subject": "geography",
+    "year": 2026
+  },
+  "2026_History.json": {
+    "inserted": 37,
+    "dupes": 18,
+    "subject": "modern_history",
+    "year": 2026
+  },
+  "2026_Polity.json": {
+    "inserted": 70,
+    "dupes": 15,
+    "subject": "polity",
+    "year": 2026
+  }
+}
