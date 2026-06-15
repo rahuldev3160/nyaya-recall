@@ -65,6 +65,9 @@
 | **Scribe security lessons** | P0 | `PRAGMA foreign_keys=ON`; per-user path functions in tracker.py + quiz.py (cross-user data leak fix); CORS locked to `CORS_ORIGINS` env var; pyq.py try/except + NULL answer guard; dashboard `Promise.allSettled` + visible error banner | Shipped Jun 15, 2026 (PR #49) |
 | **Question bank backend** | P1 | SRS SM-2 engine, streak service (user-configurable shield), username generator, 12 pre-planned query patterns, 4 new tables, serving waterfall, daily challenge cron script, coverage audit script | Shipped Jun 15, 2026 (PR #51) |
 | **Multi-user retention UI** | P1 | 9 new components (StreakBadge, DueBadge, HeatmapGrid, TodaysFocus, ConfidenceSelector, AmbientTimer, SessionPauseScreen, GateCta, NavClient); redesigned homepage; /practice page; confidence selector + ambient timer + pause screen in session; SubmitAnswerPayload type fix | Shipped Jun 15, 2026 (PR #52) |
+| **PYQ Explanation cards (Feature #19)** | P1 | `generate_pyq_explanations.py` (Haiku Batch submit/poll/apply); `question_explanations` table; `GET /pyq/explanation/{question_id}`; `ExplanationCard.tsx` component; wired into `PYQQuizRunner` — generation batch not yet triggered (~₹85 one-time run pending) | Shipped Jun 16, 2026 (PR #53) |
+| **Cross-exam ingestion + AI gap-fill + difficulty fix** | P2 | `ingest_cross_exam.py` (CDS/NDA/CAPF PDF pipeline, awaiting PDFs from Rahul); `generate_questions.py` (Haiku batch gap-fill for underrepresented subtopics); score_engine difficulty threshold `len(ans) < 3` → `not ans` — fixes Feature #9 (1-question update now works) | Shipped Jun 16, 2026 (PR #54) |
+| **Vision IAS import + platform pages** | P1 | `import_vision_ias_quiz.py` — 5,181 Vision IAS MCQs into `question_bank` (1,008 dupes dropped); `/pricing`, `/profile`, `/leaderboard` pages; total question bank now 7,166 questions (5,181 Vision IAS + 1,985 CS PYQs) | Shipped Jun 16, 2026 (PR #55) |
 
 ---
 
@@ -92,7 +95,7 @@ These are ordered by impact. Pick from the top.
 |---|---------------|----------|-------------|--------|
 | 17 | **PYQ Data Foundation** | **P0** | Official UPSC answer keys for 2013–2025 (scope: 2013 onwards for PYQ Browser). Fix incomplete years (2018 lowest at 72 of 100), fix 2014 duplication (132 rows), tag cancelled + disputed answers. Blocker for PYQ Browser + Explanations. | [`plans/pyq_data_foundation.md`](plans/pyq_data_foundation.md) |
 | 18 | ~~**PYQ Browser**~~ | ~~P1~~ | ~~SHIPPED PR #45~~ | ~~[`plans/pyq_browser.md`](plans/pyq_browser.md)~~ |
-| 19 | **PYQ Explanations (Paid Content)** | P1 | Pre-generate concept explanation per PYQ via Haiku Batch (~₹85 one-time). Covers: concept tested, why each wrong option is wrong, memory hook. Pro-gated explanation card in PYQ Browser. | [`plans/pyq_explanations.md`](plans/pyq_explanations.md) |
+| 19 | ~~**PYQ Explanations (Paid Content)**~~ | ~~P1~~ | ~~SHIPPED PR #53 — infrastructure complete; run `python scripts/generate_pyq_explanations.py --limit 50` to test batch generation~~ | ~~[`plans/pyq_explanations.md`](plans/pyq_explanations.md)~~ |
 | 20 | **Multi-Exam Question Bank** | P1 | Harvest CDS/NDA/CAPF/CISF PYQs (~6,500–7,000 questions, official UPSC answer keys, zero AI cost) into `question_bank` table. AI gap-fill only for underrepresented subtopics (~₹75). Feeds all diagnostics, simulations, adaptive engine. | [`plans/multi_exam_bank.md`](plans/multi_exam_bank.md) |
 | 1 | ~~PYQ subtopic ID normalisation~~ | ~~P1~~ | ~~SHIPPED~~ | ~~`HANDOFF.md → P1`~~ |
 | 2 | ~~ChromaDB content audit + re-ingestion~~ | ~~P1~~ | ~~AUDITED May 16: 11,146 chunks across 9 GS subjects — all healthy. ir_governance lowest at 320 chunks (above threshold). CSAT has 0 chunks (intentional — separate system). No re-ingestion needed.~~ | ~~Resolved May 16~~ |
@@ -101,9 +104,9 @@ These are ordered by impact. Pick from the top.
 | 4 | ~~Open-ended quiz mode~~ | ~~P1~~ | ~~SHIPPED~~ | ~~PR #29~~ |
 | 5 | ~~Session summaries backfill~~ | ~~P2~~ | ~~SHIPPED~~ | ~~PR #7 — executed May 16~~ |
 | 6 | Question deduplication | P2 | No mechanism to prevent same question appearing in two sessions. `question_hash` column exists but unused for filtering. | `HANDOFF.md → P4` |
-| 7 | Streak + daily time dashboard widget | P2 | Dashboard widget showing: consecutive days studied (streak), today's session count, and total study minutes today and this week. Derivable from session timestamps — no new DB columns needed. | [`plans/streak_tracker.md`](plans/streak_tracker.md) |
+| 7 | ~~Streak + daily time dashboard widget~~ | ~~P2~~ | ~~SHIPPED PR #51 + #52 — streak backend (streak_config table, /questions/streak endpoint); StreakBadge + DueBadge in NavClient; TodaysFocus on homepage~~ | ~~[`plans/streak_tracker.md`](plans/streak_tracker.md)~~ |
 | 8 | Quiz mode UX rename | P2 | Rename `fixed_set` → "Practice Set", `time_boxed` → "Timed Quiz", add "Open Practice" for the open-ended mode. Restructure the mode selector to be self-explanatory. ~1 hr UI only. | Session planning May 12 |
-| 9 | Difficulty engine — 1-question threshold | P2 | Difficulty never updates in multi-subtopic diagnostic mode (requires 3+ answers per subtopic, but allocation gives 1 each). | `HANDOFF.md → P5` |
+| 9 | ~~Difficulty engine — 1-question threshold~~ | ~~P2~~ | ~~FIXED PR #54 — `score_engine.py`: removed `len(ans) < 3` guard, replaced with `not ans`. Difficulty now updates after a single-answer subtopic session.~~ | ~~`HANDOFF.md → P5`~~ |
 | 10 | Plan validation layer | P2 | Plan scheduling is LLM-decided with no post-generation validation. Claude can ignore rules. Add deterministic Python checks: time budget, subject spread, re-test rules. | `HANDOFF.md → P6` |
 | 11 | CSAT activation | P2 | CSAT routes and pages exist but have never been run. Profile doesn't exist. Needs a first-run setup and its own diagnostic flow. | `HANDOFF.md → P8` |
 | 12 | Onboarding redesign | P3 | First-run experience is rough. User needs guided setup for API key, study material ingestion, and first diagnostic. | [`plans/onboarding_redesign.md`](plans/onboarding_redesign.md) |

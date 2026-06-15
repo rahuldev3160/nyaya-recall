@@ -1,3 +1,31 @@
+### PYQ Explanations + cross-exam pipeline + Vision IAS import — 2026-06-16 (PRs #53–55, all merged ✅)
+
+**PRs merged this block:**
+| PR | What |
+|----|------|
+| #53 | PYQ Explanation cards (Feature #19) — `question_explanations` table, `generate_pyq_explanations.py` (Haiku Batch submit/poll/apply), `GET /pyq/explanation/{question_id}`, `ExplanationCard.tsx`, wired into `PYQQuizRunner.tsx` |
+| #54 | Cross-exam ingestion pipeline — `ingest_cross_exam.py` (CDS/NDA/CAPF PDFs), `generate_questions.py` (Haiku batch gap-fill), `prompts/cross_exam_classify.txt`; difficulty threshold fix in `score_engine.py` (`len(ans) < 3` → `not ans`) |
+| #55 | Vision IAS import — `import_vision_ias_quiz.py` ran: 5,181 MCQs inserted, 1,008 dupes dropped; `/pricing`, `/profile`, `/leaderboard` pages (3 new Next.js routes) |
+
+**Total question bank after this block:**
+- `question_bank`: 5,181 Vision IAS questions (polity, economy, history, geography, environment, science_tech, current_affairs, ir_governance; years 2021–2026)
+- `pyq_questions`: 1,985 Civil Services Prelims PYQs
+- **Total: 7,166 questions**
+
+**Watch-outs:**
+- PYQ Explanation **generation batch not yet triggered** — run `python scripts/generate_pyq_explanations.py --limit 50` first (~₹4 test), then full run for ~1,000 community_validated Qs (~₹81). ExplanationCard shows "not available" until batch completes.
+- `ingest_cross_exam.py` is ready but **blocked on PDFs** — Rahul downloads CDS/NDA/CAPF PDFs from upsc.gov.in, then runs `python scripts/ingest_cross_exam.py --exam cds --year 2024 --pdf /path/to/file.pdf`
+- `question_bank` subtopics are currently `topic_id = subtopic_id = subject_id` (8 broad categories). Retag via Haiku is planned once CDS/NDA data arrives to get granular subtopic coverage.
+- Daily challenge cron (`scripts/generate_daily_challenge.py`) still not wired to a scheduler — run manually or set up launchd/cron.
+
+**Still blocked on Rahul:**
+- B-1: Supabase project keys → `.env`
+- B-2: Railway service creation
+- B-4: ALTER TABLE `sar_scores` — change PK to composite `(user_id, subject_id)` (approval gate)
+- Sprint 1 data: Official UPSC PDF answer keys 2013–2025
+
+---
+
 ### Multi-user retention UI + question bank backend — 2026-06-15 (PRs #51–52, both merged ✅)
 
 **PRs merged this block:**
@@ -109,7 +137,7 @@
 - `web/.env.local.example` (NEW) — documents `NEXT_PUBLIC_SUPABASE_*` vars needed for frontend auth
 
 **Watch-outs:**
-- PR #43 is open, not merged — do not start next Sprint 2 task until Rahul merges this
+- ~~PR #43 is open~~ ✅ Merged Jun 15 — Sprint 2 auth prep is on main
 - All single-user behaviour is 100% preserved — every new param defaults to `"user_1"` and every `_get_user_id()` stub returns `"user_1"`
 - Frontend auth pages will silently fail (no redirect, no session) until env vars are added — no crash, just a no-op supabase client
 - `server.py` DDL: `user_id TEXT NOT NULL` on `session_user_notes`, `question_notes`, `content_feedback` — existing DB rows have `user_1` so NOT NULL is safe; new installs work correctly
