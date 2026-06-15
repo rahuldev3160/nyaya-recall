@@ -21,7 +21,12 @@ CHROMA_PATH = os.getenv("CHROMA_PATH", "vector_store")
 PROMPT_DIR = Path(__file__).parent.parent.parent / "prompts"
 _SYLLABUS_PATH = Path(__file__).parent.parent.parent / "data" / "syllabus.json"
 _NOTES_CACHE_PATH = Path(__file__).parent.parent.parent / "cache" / "explanations.json"
-_PLAN_PATH = Path(os.getenv("PLAN_PATH", "data/study_plan.json"))
+_PROJECT_PATH   = Path(os.getenv("PROJECT_PATH", "."))
+_LEGACY_PLAN    = _PROJECT_PATH / "data" / "study_plan.json"
+
+
+def _plan_path(user_id: str = "user_1") -> Path:
+    return _PROJECT_PATH / "data" / "profiles" / user_id / "study_plan.json"
 _SUBJECT_ALIAS = {"history": "history_amac"}
 
 # How many Chroma chunks to retrieve for notes synthesis.
@@ -253,9 +258,9 @@ def _get_spillover_subtopics(subject_id: str, primary_subtopic: str, n: int = 2)
     or "" if none found or plan doesn't exist.
     """
     try:
-        plan_path = _PLAN_PATH
-        if not plan_path.is_absolute():
-            plan_path = Path(__file__).parent.parent.parent / plan_path
+        plan_path = _plan_path()
+        if not plan_path.exists() and _LEGACY_PLAN.exists():
+            plan_path = _LEGACY_PLAN
         if not plan_path.exists():
             return ""
 

@@ -158,9 +158,14 @@ async def _lifespan(_app: FastAPI):
 
 app = FastAPI(title="UPSC 10-Day Prep API", version="1.0.0", lifespan=_lifespan)
 
+_CORS_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:3001"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # local only; restrict for production
+    allow_origins=_CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

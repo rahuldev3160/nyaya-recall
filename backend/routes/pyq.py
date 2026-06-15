@@ -236,17 +236,23 @@ def record_attempt(body: dict, user_id: str = Depends(_get_user_id)):
     if not question_id or not user_answer:
         raise HTTPException(status_code=400, detail="question_id and answer are required")
 
-    con = get_conn()
-    row = con.execute(
-        "SELECT correct_answer FROM pyq_questions WHERE id=?", (question_id,)
-    ).fetchone()
-    if not row:
-        con.close()
-        raise HTTPException(status_code=404, detail="Question not found")
-
-    is_correct = int(str(user_answer).strip().lower() == str(row["correct_answer"]).strip().lower())
-
     try:
+        con = get_conn()
+        row = con.execute(
+            "SELECT correct_answer, answer_source FROM pyq_questions WHERE id=?", (question_id,)
+        ).fetchone()
+        if not row:
+            con.close()
+            raise HTTPException(status_code=404, detail="Question not found")
+
+        correct_answer = row["correct_answer"]
+        if not correct_answer:
+            con.close()
+            return {"correct": None, "correct_answer": None, "unverified": True}
+
+        is_correct = int(
+            str(user_answer).strip().lower() == str(correct_answer).strip().lower()
+        )
         con.execute(
             """
             INSERT INTO pyq_attempts (user_id, question_id, user_answer, is_correct, time_taken_sec)
@@ -255,12 +261,12 @@ def record_attempt(body: dict, user_id: str = Depends(_get_user_id)):
             (user_id, question_id, user_answer, is_correct, time_taken_sec),
         )
         con.commit()
-    except Exception as e:
         con.close()
+        return {"correct": bool(is_correct), "correct_answer": correct_answer}
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-    con.close()
-    return {"correct": bool(is_correct), "correct_answer": row["correct_answer"]}
 
 
 @router.get("/stats/summary")
