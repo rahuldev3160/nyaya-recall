@@ -1,3 +1,42 @@
+### Scribe security lessons + missing indexes + community consensus — 2026-06-15 (PRs #46–49, all merged ✅)
+
+**PRs merged this block:**
+| PR | What |
+|----|------|
+| #46 | `answer_source` column + `build_answer_consensus.py` (Aquib-Nawaz cross-validation) |
+| #47 | `q_number`, `answer_disputed`, `dispute_note` columns; `pyq.py` SELECT/ORDER cleanup |
+| #48 | 5 missing indexes on `pyq_questions` + 2 on `pyq_attempts` (added via `_ensure_pyq_indexes()` in `server.py`) |
+| #49 | 6 Scribe-learned security quick wins (see below) |
+
+**Community consensus results (`scripts/build_answer_consensus.py`):**
+- Source: Aquib-Nawaz/Questions (GitHub, 1,403 questions + correct answers, 1995–2025)
+- iaseth/prelimspattern: loaded 0 questions — `data/answers.json` is gitignored in that repo; usable only after `q_number` backfill
+- Matching: 3-level — SHA256 hash → normalized text → alpha-only (a-z, 150 chars)
+- Results applied: 999 `community_validated`, 1 `community_consensus`, 459 `ai_inferred`, 496 `unverified`
+- 9 AI-inferred answers were corrected by community data
+- Run with `python scripts/build_answer_consensus.py --apply` to apply; default is dry-run
+
+**6 Scribe lessons applied (PR #49):**
+1. `backend/db.py` — `PRAGMA foreign_keys=ON` added
+2. `backend/routes/tracker.py` — `PROFILE_PATH` global → `_profile_path(user_id)` per-user + legacy fallback
+3. `backend/routes/quiz.py` — `_PLAN_PATH` global → `_plan_path(user_id)` per-user + legacy fallback
+4. `backend/server.py` — CORS `["*"]` → `CORS_ORIGINS` env var (default `localhost:3000,3001`)
+5. `backend/routes/pyq.py` — full try/except + `{unverified: true}` for NULL `correct_answer`
+6. `web/src/app/page.tsx` — `Promise.allSettled` + visible red error banner replacing silent `catch {}`
+
+**Watch-outs:**
+- Add `CORS_ORIGINS=http://localhost:3000,http://localhost:3001` to `.env` — not committed (gitignored); if not added, CORS defaults to the same values so no breakage
+- 496 rows still `unverified` — these are questions where Aquib-Nawaz had no match (OCR drift). Unblocked by `q_number` backfill (requires re-parsing PDFs to extract leading question numbers) — then iaseth's `q_number→answer` data resolves most of these
+- `sar_scores` PK = `user_id` — still a bug; second user INSERT will fail. Approval gate (ALTER TABLE) still pending
+
+**Still blocked on Rahul:**
+- B-1: Supabase project keys → `.env`
+- B-2: Railway service creation
+- B-4 (renamed): ALTER TABLE `sar_scores` — change PK to composite `(user_id, subject_id)` so multiple users can have SAR scores
+- Sprint 1 data: Rahul downloads official UPSC PDF answer keys 2013–2025 from upsc.gov.in → run `scripts/import_answer_keys.py`
+
+---
+
 ### Sprint 3 — PYQ Browser — 2026-06-15 (PR #45, merged ✅)
 
 **What changed:**
