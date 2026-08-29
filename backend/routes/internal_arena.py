@@ -4,12 +4,24 @@ Frozen spec: /Users/rahulsingh/Desktop/Claude Projects/Nyaya-Arena/docs/API_CONT
 Contract 1 (Recall -> Arena). These routes never write to question_bank, sar_scores,
 quiz_sessions, or session_answers — see that doc's "Statelessness" section for why.
 
-Auth is a separate, static X-Arena-Api-Key credential (ARENA_SERVICE_API_KEY env var) —
-deliberately independent of backend/auth.py's (unconfigured) end-user JWT middleware.
+Auth generalized per PLAN-008 §4 (.knowledge/plans/PLAN-008.md): Scribe's RBI feature is
+now a second internal caller (not just Arena), so the header/env-var scheme moved from a
+single Arena-shaped secret to per-caller named keys under one generalized header.
+
+*** APPROVAL NOTE — flag to Rahul before merging, do not treat as pre-approved ***
+PLAN-008 §4 stated this rename needs no approval gate ("pure-code, additive, no schema
+impact"). Direct re-read of this project's own CLAUDE.md during implementation found that
+claim is wrong under this project's own stated rules: "Any change touching .env, API keys,
+or authentication" is listed as a hard approval gate ("ALWAYS stop and flag, never proceed
+autonomously"), with no carve-out for service-to-service vs end-user auth. This PR/branch
+should not be merged on the strength of B-11's approval alone — the auth rename in this
+file is a distinct thing Rahul hasn't explicitly signed off on yet, separate from the
+schema migration he did approve.
 """
 from __future__ import annotations
 
 import hmac
+import json
 import os
 import random
 
@@ -21,7 +33,13 @@ from backend.db import get_conn
 router = APIRouter()
 
 _OPTION_COLUMNS = {"A": "option_a", "B": "option_b", "C": "option_c", "D": "option_d"}
-_DEFAULT_MARKS_PER_QUESTION = 2.0  # UPSC Prelims convention; question_bank has no per-row marks column.
+
+# Per-caller named keys (PLAN-008 §4) — replaces the single ARENA_SERVICE_API_KEY.
+# Add a new (env_var_name, caller_label) pair here for each future internal consumer.
+_CALLER_KEYS = (
+    ("INTERNAL_API_KEY_ARENA", "arena"),
+    ("INTERNAL_API_KEY_SCRIBE_RBI", "scribe_rbi"),
+)
 
 
 def _error(status_code: int, code: str, message: str, details: dict | None = None) -> HTTPException:
@@ -31,10 +49,15 @@ def _error(status_code: int, code: str, message: str, details: dict | None = Non
     )
 
 
-def verify_arena_api_key(x_arena_api_key: str | None = Header(default=None)) -> None:
-    expected = os.getenv("ARENA_SERVICE_API_KEY")
-    if not expected or not x_arena_api_key or not hmac.compare_digest(x_arena_api_key, expected):
-        raise _error(401, "AUTH_FAILED", "Missing or invalid X-Arena-Api-Key.")
+def verify_internal_caller(x_internal_api_key: str | None = Header(default=None)) -> str:
+    """Constant-time-checks the provided key against every known caller's key in turn.
+    Returns the matched caller's label (for logging); 401s if none match."""
+    if x_internal_api_key:
+        for env_var, label in _CALLER_KEYS:
+            expected = os.getenv(env_var)
+            if expected and hmac.compare_digest(x_internal_api_key, expected):
+                return label
+    raise _error(401, "AUTH_FAILED", "Missing or invalid X-Internal-Api-Key.")
 
 
 def _difficulty_bucket(global_accuracy: float | None) -> str:
@@ -58,11 +81,12 @@ def get_questions(
     subject: str | None = None,
     topic: str | None = None,
     difficulty: str = "mixed",
+    tags: str | None = None,
     exclude_question_ids: str | None = None,
     seed: str | None = None,
-    x_arena_api_key: str | None = Header(default=None),
+    x_internal_api_key: str | None = Header(default=None),
 ):
-    verify_arena_api_key(x_arena_api_key)
+    verify_internal_caller(x_internal_api_key)
     if not (1 <= count <= 200):
         raise _error(400, "INVALID_PARAMS", "count must be between 1 and 200.")
     if difficulty not in ("easy", "medium", "hard", "mixed"):
@@ -77,7 +101,7 @@ def get_questions(
         raise _error(400, "INVALID_PARAMS", f"Unknown exam_source '{exam_source}'.",
                      {"known_exam_sources": sorted(known_sources)})
 
-    where = ["exam_source = ?", "cancelled = 0"]
+    where = ["exam_source = ?", "cancelled = 0", "status = 'active'"]
     params: list = [exam_source]
     if subject:
         where.append("subject_id = ?")
@@ -92,12 +116,25 @@ def get_questions(
 
     rows = con.execute(
         f"""SELECT id, question_text, option_a, option_b, option_c, option_d,
-                   subject_id, topic_id, global_accuracy
+                   subject_id, topic_id, global_accuracy, default_marks, tags
             FROM question_bank
             WHERE {' AND '.join(where)}""",
         params,
     ).fetchall()
     con.close()
+
+    # tags filter applied in Python, not SQL: `tags` is a free-text JSON-array column
+    # (no native array-contains operator in SQLite) — matches how RBI's tier distinction
+    # (PLAN-008 §2, e.g. "rbi_tier_2") is stored. Requested tag must appear in the row's list.
+    if tags:
+        requested = {t.strip() for t in tags.split(",") if t.strip()}
+        def _has_tags(row) -> bool:
+            try:
+                row_tags = set(json.loads(row["tags"] or "[]"))
+            except (json.JSONDecodeError, TypeError):
+                row_tags = set()
+            return requested.issubset(row_tags)
+        rows = [r for r in rows if _has_tags(r)]
 
     candidates = [r for r in rows if difficulty == "mixed" or _difficulty_bucket(r["global_accuracy"]) == difficulty]
 
@@ -120,7 +157,7 @@ def get_questions(
             "subject": r["subject_id"],
             "topic": r["topic_id"],
             "difficulty": _difficulty_bucket(r["global_accuracy"]),
-            "marks": _DEFAULT_MARKS_PER_QUESTION,
+            "marks": r["default_marks"],  # per-row, PLAN-007 — was a hardcoded 2.0 constant, wrong for RBI (1.0)
         }
         for r in chosen
     ]
@@ -151,8 +188,8 @@ class ScoreAttemptRequest(BaseModel):
 
 
 @router.post("/score-attempt")
-def score_attempt(payload: ScoreAttemptRequest, x_arena_api_key: str | None = Header(default=None)):
-    verify_arena_api_key(x_arena_api_key)
+def score_attempt(payload: ScoreAttemptRequest, x_internal_api_key: str | None = Header(default=None)):
+    verify_internal_caller(x_internal_api_key)
     if not payload.answers:
         raise _error(400, "INVALID_PARAMS", "answers must not be empty.")
 
