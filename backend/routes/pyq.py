@@ -174,6 +174,17 @@ def get_questions(year: int, subject_id: str, topic_id: str, user_id: str = Depe
     """Return questions for a year/subject/topic with user attempt status."""
     con = get_conn()
 
+    # Full Mock reserves real PYQs it serves so they aren't also memorizable via casual
+    # browsing here before mock day (PLAN-011 Area 2). Table may not exist yet if no
+    # Full Mock has run this install -- degrade to unfiltered rather than error.
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS mock_reserved_questions (
+            question_id  INTEGER PRIMARY KEY,
+            reserved_at  TEXT DEFAULT (datetime('now')),
+            session_id   TEXT
+        )
+    """)
+    con.commit()
     rows = con.execute(
         """
         SELECT id, question_text,
@@ -182,6 +193,7 @@ def get_questions(year: int, subject_id: str, topic_id: str, user_id: str = Depe
                answer_source, answer_disputed, q_number
         FROM pyq_questions
         WHERE year=? AND subject_id=? AND topic_id=?
+          AND id NOT IN (SELECT question_id FROM mock_reserved_questions)
         ORDER BY COALESCE(q_number, id)
         """,
         (year, subject_id, topic_id),

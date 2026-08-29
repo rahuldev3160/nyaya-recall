@@ -204,12 +204,16 @@ export const api = {
   // ── Exam Simulation ────────────────────────────────────────────────────────
 
   /** Start an exam simulation session. Generates all questions upfront. */
-  startExamSimulation: (body: {
-    session_type: "exam_simulation";
-    subtopic_ids: string[];
-    n_questions: number;
-    timed_duration_minutes: number;
-  }) => post("/quiz/start", body),
+  startExamSimulation: (
+    body:
+      | {
+          session_type: "exam_simulation";
+          subtopic_ids: string[];
+          n_questions: number;
+          timed_duration_minutes: number;
+        }
+      | { session_type: "full_mock" }
+  ) => post("/quiz/start", body),
 
   /** Fetch subject/topic breakdown for a completed exam simulation. */
   getExamResults: (sessionId: string) =>
