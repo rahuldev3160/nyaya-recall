@@ -44,7 +44,7 @@ Last updated: 2026-06-05
 | [PLAN-007](plans/PLAN-007.md) | Generalized multi-exam/multi-source/multi-format `question_bank` schema | PROPOSED | plans/PLAN-007.md |
 | [PLAN-008](plans/PLAN-008.md) | RBI Grade B migration: Scribe → Recall, staged/reversible cutover | PROPOSED | plans/PLAN-008.md |
 | [PLAN-009](plans/PLAN-009.md) | Multi-source MCQ ingestion pipeline + personalization signal + build order | PROPOSED | plans/PLAN-009.md |
-| [PLAN-010](plans/PLAN-010.md) | Fix `sar_scores`' broken multi-user PK (B-4) — drafted+tested on branch, not merged | PENDING RAHUL APPROVAL | plans/PLAN-010.md |
+| [PLAN-010](plans/PLAN-010.md) | Fix `sar_scores`' broken multi-user PK (B-4) | **APPLIED 2026-08-29** — approved by Rahul, merged to main, run against real `data/upsc.db` (backup at `data/upsc.db.bak-pre-sar-scores-fix-*`), verified idempotent + 2nd-user persistence confirmed | plans/PLAN-010.md |
 
 ---
 

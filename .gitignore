@@ -4,6 +4,8 @@
 # Personal data — never commit
 data/upsc.db
 data/upsc.db.bak-*
+data/upsc.db-shm
+data/upsc.db-wal
 data/prep_profile.json
 data/prep_profile_csat.json
 data/study_plan.json
