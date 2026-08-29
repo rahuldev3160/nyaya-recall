@@ -1,3 +1,66 @@
+### RBI-out-of-Scribe / Recall multi-exam redesign — PLAN-007/008 (schema + data) IMPLEMENTED, PLAN-009 (ingestion pipelines) NOT STARTED — 2026-08-29
+
+**Merged to main (commit `20c73b6`):** `question_bank` schema generalized (source_type/source_ref/source_document_id/generation_batch_id/question_format/default_marks/retired_at/superseded_by/status + `source_documents`/`generation_batches`/`topic_weights` tables). RBI's 321 questions copied in for real (`exam_source='rbi_grade_b'`, verified against real `data/upsc.db`, not just tested on a copy). Internal auth generalized: `X-Arena-Api-Key` → `X-Internal-Api-Key` with per-caller keys (`INTERNAL_API_KEY_ARENA`, `INTERNAL_API_KEY_SCRIBE_RBI`). Arena's client updated to match.
+
+**Open:** `INTERNAL_API_KEY_SCRIBE_RBI` needs a real value generated and put in both this repo's and Descriptive-exams' `.env` — no value exists yet, Rahul's action. PLAN-009's ingestion pipelines (official PYQ / similar-exam PYQ / AI current-affairs / official documents) and the `user_topic_mastery` personalization view are designed but not built — next up if Rahul wants to continue this thread. B-13 (does RBI have an official PYQ+answer-key source) — checked via web search, found no evidence one exists; bucket A likely doesn't apply to RBI, lean on similar-exam PYQs + official documents instead.
+
+**Original planning entry, superseded by the above implementation status:**
+
+Rahul asked for RBI Grade B's MCQ data/architecture to move out of Scribe into Recall, Recall
+to become a general multi-exam/multi-format MCQ engine, a multi-source MCQ generation pipeline
+(official PYQ + similar-exam PYQ + evolving AI current-affairs + official documents), and a
+personalization signal Rahul can tune himself via SQL/Python.
+
+**New plans:** [PLAN-007](.knowledge/plans/PLAN-007.md) (generalized `question_bank` schema +
+provenance tracking), [PLAN-008](.knowledge/plans/PLAN-008.md) (RBI migration + Scribe cutover,
+staged/reversible), [PLAN-009](.knowledge/plans/PLAN-009.md) (ingestion pipeline +
+`user_topic_mastery` personalization signal + phased build order). All three read
+`internal_arena.py`, `internal_api_bp.py`, `rbi_prep_bp.py`/`rbi_dashboard_bp.py`,
+`difficulty_engine.py`, `services/srs.py`, and Nyaya-Arena's `docs/` before writing anything —
+no re-derivation of already-verified facts from this session's earlier scoping pass.
+
+**Key corrections made during this pass (verify-before-build, per DECIDE-13 precedent):**
+- The real per-user SM-2 mastery signal is `services/srs.py` + `user_question_log`, not
+  `difficulty_engine.py`'s `subtopic_difficulty` (which has no `user_id` column at all — it's a
+  global, crowd-sourced question-difficulty tier, orthogonal to personalization).
+- `rbi_key_data` (RBI reference facts) is not MCQ content and does not move to Recall — only
+  `rbi_questions`/`rbi_topic_weights` do; `rbi_attempts`/`rbi_topic_mastery` stay in Scribe under
+  Scribe's own real `user_id`.
+
+**New approval gates (see SPRINT_BOARD.md's Open Blockers table):**
+- B-11 — batched `question_bank` ALTER (8 columns + `status`) + 3 new tables (PLAN-007)
+- B-12 — Scribe's `rbi_attempts.source` ALTER on a live table with real attempt history (PLAN-008 §3)
+- B-13 — confirm RBI Grade B has any official-PYQ-with-answer-key source before building that ingestion bucket for it (PLAN-009 §1.A)
+
+**Confirmed: does not trigger B-4.** Neither the schema generalization nor the RBI cutover reads
+or writes `sar_scores` — same stateless-internal-API reasoning Arena's own DECIDE-09 already
+established, extended here to Scribe as a second internal caller of the same pattern.
+
+No code, schema, or config changed this session — documentation/plan entries only.
+
+---
+
+### Nyaya Arena scoping session (docs-only, no code) — 2026-08-29
+
+A new sibling project, **Nyaya Arena** (`/Users/rahulsingh/Desktop/Claude Projects/Nyaya-Arena`),
+is being scoped: a free DU UPSC mock-competition platform + a law-exam-prep variant (CLC DU,
+judiciary services, AIBE), built as an extension of Recall + Scribe rather than a standalone brand.
+
+**Decisions affecting this project:** see [PLAN-006](.knowledge/plans/PLAN-006.md) and
+[AUDIT-001](.knowledge/audits/AUDIT-001.md). Summary: Arena reuses Recall's daily-challenge/
+`/leaderboard`/`question_bank` mechanic (already ~70% built here) instead of a new quiz engine,
+but gets its own identity/leaderboard store rather than depending on this project's Supabase auth.
+
+**Still blocked on Rahul (carried forward + new cross-project note):**
+- B-1: Supabase project keys → `.env`
+- B-2: Railway service creation
+- B-4: `ALTER TABLE sar_scores` PK fix — **now also blocks Nyaya Arena**, not just this project's
+  own multi-user rollout (see SPRINT_BOARD.md)
+
+No code, schema, or config changed this session — documentation/audit-log entries only.
+
+---
+
 ### PYQ Explanations + cross-exam pipeline + Vision IAS import — 2026-06-16 (PRs #53–55, all merged ✅)
 
 **PRs merged this block:**
