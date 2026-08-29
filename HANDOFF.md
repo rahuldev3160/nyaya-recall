@@ -1,3 +1,33 @@
+### Full Mock exam-simulation mode — PLAN-011 Area 2 IMPLEMENTED, PR open — 2026-08-30
+
+**Branch `feature/full-mock-mode`, not yet merged.** Built a fixed 100-question/120-minute
+"Full Mock" mode inside exam-sim, separate from the existing flexible practice mode (kept
+as-is). Sources real `pyq_questions` first (proportional to a new `topic_weights` seed for
+`exam_source='upsc_prelims'`, matching the real 2026 UPSC paper's subject split), reserves
+them in a new `mock_reserved_questions` table so they're excluded from the PYQ browser and
+won't be memorized before mock day, and fills any remaining gap via AI generation — tagging
+every question's `source_type` so results honestly report "N% real PYQ vs AI-approximated."
+`prompts/exam_simulation.txt` also got the calibration fix from the same plan: an explicit
+scenario/administrative-dilemma question type, and qualitative UPSC-trickiness instructions
+(statement-elimination traps, close distractors, applied-not-recall framing) replacing the
+old flat 35/45/20 difficulty label.
+
+**Found and fixed along the way (ISSUE-028):** exam-sim's AI generation call was using
+`client.messages.create(..., betas=[...])`, which the installed SDK rejects — needs
+`client.beta.messages`. This was silently breaking every real exam-sim AI generation
+attempt, old flexible mode included, not just the new Full Mock path.
+
+**Verified via a real end-to-end run** (not just unit-level): 100 questions, 87 real PYQ +
+13 AI-gap-fill, `pyq_pct` correctly surfaced end-to-end through to `/exam-results`, PYQ
+browser correctly excludes a reserved question. Test session/reservations cleaned up
+afterward so Rahul's actual first Full Mock gets a fresh pull, not leftover test artifacts.
+`npx tsc --noEmit` and `npm run lint` both pass clean.
+
+**Not done:** answer-key verification for `ai_inferred` `pyq_questions` rows (PLAN-011 Area
+6 part 2) — separate, larger task, left for a future session.
+
+---
+
 ### RBI-out-of-Scribe / Recall multi-exam redesign — PLAN-007/008 (schema + data) IMPLEMENTED, PLAN-009 (ingestion pipelines) NOT STARTED — 2026-08-29
 
 **Merged to main (commit `20c73b6`):** `question_bank` schema generalized (source_type/source_ref/source_document_id/generation_batch_id/question_format/default_marks/retired_at/superseded_by/status + `source_documents`/`generation_batches`/`topic_weights` tables). RBI's 321 questions copied in for real (`exam_source='rbi_grade_b'`, verified against real `data/upsc.db`, not just tested on a copy). Internal auth generalized: `X-Arena-Api-Key` → `X-Internal-Api-Key` with per-caller keys (`INTERNAL_API_KEY_ARENA`, `INTERNAL_API_KEY_SCRIBE_RBI`). Arena's client updated to match.

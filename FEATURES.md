@@ -73,7 +73,9 @@
 
 ## 🔵 Planned — spec written, ready to build
 
-_Nothing currently planned — all P1 specs shipped._
+| Feature | Priority | What it does | Notes |
+|---------|----------|--------------|-------|
+| **Full Mock exam simulation** | P1 | Fixed 100Q/120min UPSC-proportional mock, PYQ-first sourcing (reserved from regular practice), honest PYQ-vs-AI reporting, calibrated question generation | `.knowledge/plans/PLAN-011.md` Area 2; PR open on `feature/full-mock-mode`, not yet merged |
 
 ---
 

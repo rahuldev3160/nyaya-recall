@@ -27,6 +27,8 @@ type ExamResults = {
   total_attempted: number;
   total_questions: number;
   accuracy_pct: number;
+  is_full_mock?: boolean;
+  pyq_pct?: number | null;
   by_subject: Array<{
     subject_id: string;
     subject_name: string;
@@ -384,11 +386,15 @@ export default function ExamSimPage() {
   const [startLoading, setStartLoading] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
+  const [fullMockLoading, setFullMockLoading] = useState(false);
+  const [fullMockError, setFullMockError] = useState<string | null>(null);
+
   // Running state
   const [quiz, setQuiz] = useState<{
     session_id: string;
     questions: Question[];
     timed_duration_minutes: number | null;
+    pyq_pct?: number | null;
   } | null>(null);
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -468,6 +474,26 @@ export default function ExamSimPage() {
       setStartError(msg);
     } finally {
       setStartLoading(false);
+    }
+  };
+
+  // ── Start Full Mock (fixed 100Q/120min, PYQ-first, PLAN-011 Area 2) ─────────
+  const startFullMock = async () => {
+    setFullMockLoading(true);
+    setFullMockError(null);
+    try {
+      const data = await api.startExamSimulation({ session_type: "full_mock" });
+      setQuiz(data);
+      setCurrentQ(0);
+      setAnswers({});
+      setRevealed({});
+      setPendingAnswer(null);
+      setView("running");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to generate the Full Mock. Please try again.";
+      setFullMockError(msg);
+    } finally {
+      setFullMockLoading(false);
     }
   };
 
@@ -570,6 +596,33 @@ export default function ExamSimPage() {
             All questions are generated upfront before the timer starts.
           </p>
         </div>
+
+        {/* ── Full Mock ── */}
+        <div className="border border-amber-700/50 bg-amber-950/20 rounded-xl p-5 space-y-3">
+          <div>
+            <h2 className="text-base font-semibold text-amber-300">Full Mock — Real Prelims Structure</h2>
+            <p className="text-gray-400 text-sm mt-1">
+              Fixed 100 questions, 120 minutes, spans the full syllabus in the same proportions
+              as the real UPSC Prelims paper. Sources real PYQs first (held back from regular
+              practice so they aren&apos;t memorized in advance), with AI-generated questions
+              filling only the gap. Results show what fraction was real PYQ vs AI-approximated.
+            </p>
+          </div>
+          {fullMockError && (
+            <div className="bg-red-950 border border-red-800 rounded-lg px-4 py-3 text-red-300 text-sm">
+              {fullMockError}
+            </div>
+          )}
+          <button
+            onClick={startFullMock}
+            disabled={fullMockLoading || startLoading}
+            className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+          >
+            {fullMockLoading ? "Building your Full Mock — this may take 30–60 seconds..." : "Start Full Mock"}
+          </button>
+        </div>
+
+        <div className="text-center text-xs text-gray-600">— or, for targeted drilling on specific topics —</div>
 
         {/* Config strip */}
         <div className="flex flex-wrap gap-6 items-end">
@@ -684,6 +737,11 @@ export default function ExamSimPage() {
           {!resultsLoading && results && (
             <div className="text-gray-500 text-xs">
               {results.total_attempted} attempted · {results.total_questions - results.total_attempted} skipped
+            </div>
+          )}
+          {!resultsLoading && results?.is_full_mock && results.pyq_pct != null && (
+            <div className="text-amber-400/80 text-xs pt-1">
+              {results.pyq_pct}% real UPSC PYQs · {(100 - results.pyq_pct).toFixed(1)}% AI-approximated
             </div>
           )}
         </div>

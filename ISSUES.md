@@ -444,6 +444,36 @@ Add "← Previous" button that decrements `currentQ` when `currentQ > 0`. Answer
 
 ---
 
+### ISSUE-028 — Exam-sim AI generation fails outright on every real call (`betas=` kwarg rejected)
+**Noticed:** 2026-08-30
+**Reported by:** Claude (found while building Full Mock mode, feature/full-mock-mode)
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** Exam Simulation / Full Mock (PLAN-011 Area 2)
+
+**What happened:**
+While building and testing the new "Full Mock" feature, the AI-generation gap-fill call
+returned `500 AI generation failed: Messages.create() got an unexpected keyword argument
+'betas'` on the very first real end-to-end test.
+
+**The problem:**
+`backend/routes/quiz.py`'s exam-sim generation call used `client.messages.create(...,
+betas=["output-128k-2025-02-19"])`. The installed `anthropic` SDK (0.100.0) requires beta
+features to go through the `client.beta.messages` namespace, not the regular
+`client.messages` one. This is the ONLY call site among quiz.py's four `messages.create`
+calls that passes `betas=`, so this bug is isolated to exam-sim specifically — the
+adaptive/diagnostic paths (61/23 real sessions) were never affected. This plausibly
+explains part of why exam-sim has essentially never been used (3 sessions ever, per
+PLAN-011): every real attempt to generate AI questions for it would have failed outright.
+
+**What's needed to fix:** Change to `client.beta.messages.create(...)`.
+
+**Resolution:** Fixed 2026-08-30, `feature/full-mock-mode` branch, `backend/routes/quiz.py`
+line ~1391. Verified with a real end-to-end Full Mock run afterward (100 questions, 87 real
+PYQ + 13 AI-generated, all well-formed).
+
+---
+
 ### ISSUE-026 — Diagnostic and session questions repeat; no adaptive difficulty or note feedback
 **Noticed:** 2026-05-16
 **Reported by:** Rahul
