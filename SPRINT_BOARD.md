@@ -385,13 +385,16 @@ TRULY INDEPENDENT (start anytime):
 | B-1 | Create Supabase project → copy 3 keys to `.env` | Sprint 2 Cluster A | 10 min |
 | B-2 | Create Railway service for Recall + PostgreSQL addon | Sprint 2 deploy | 15 min |
 | B-3 | Approve: `subtopic_difficulty` global vs per-user | Sprint 2 schema | 2 min decision |
-| B-4 | Approve: `ALTER TABLE sar_scores` (PK change) | Sprint 2 schema | approval gate |
+| B-4 | Approve: `ALTER TABLE sar_scores` (PK change) | Sprint 2 schema; **also blocks Nyaya Arena** (sibling project) — any 2nd real user, competition or otherwise, hits this PK collision | approval gate |
 | B-5 | Download UPSC PYQ PDFs + Final Answer Keys 2013–2025 | Sprint 1 data | 1–2 hrs |
 | B-6 | Approve: `ALTER TABLE pyq_questions` (add 4 columns) | Sprint 1 import | approval gate |
 | B-7 | Approve: `DELETE FROM pyq_questions` (2014 dedup) | Sprint 1 clean | approval gate |
 | B-8 | Approve: `UPDATE ... SET user_id='<rahul_uuid>'` | Sprint 2 go-live | approval gate |
 | B-9 | Start Razorpay KYC (3–7 day external wait) | Sprint 4 revenue | 30 min + docs |
 | B-10 | Download CDS/NDA/CAPF/CISF PDFs (same session as B-5) | Sprint 6 | 2–3 hrs |
+| B-11 | Approve batched `question_bank` ALTER (8 new columns: source_type, source_ref, source_document_id, generation_batch_id, question_format, default_marks, retired_at, superseded_by) + `status` column + 3 new tables (`source_documents`, `generation_batches`, `topic_weights`) — see PLAN-007 | RBI-from-Scribe migration, multi-source ingestion | approval gate |
+| B-12 | Approve Scribe's `rbi_attempts.source` ALTER (adds a `'local'`/`'recall'` discriminator column to a live table with real RBI users' attempt history) — see PLAN-008 §3 | Scribe RBI cutover to Recall | approval gate |
+| B-13 | Confirm whether RBI Grade B publishes any official past papers with an official answer key (verify before building an "official_pyq" ingestion path for RBI) — see PLAN-009 §1.A | Multi-source ingestion, RBI official-PYQ bucket | research/2 min decision |
 
 **Critical path blocker:** B-5 (UPSC PDFs). If resolved by Jun 18, launch Jul 4 is achievable. If delayed past Jun 25, Sprint 3+4 shift right and Jul 31 ₹5-8k target is at risk.
 
@@ -408,6 +411,25 @@ TRULY INDEPENDENT (start anytime):
 | `subtopic_difficulty` | **PENDING RAHUL** — recommend: keep global | Crowd-sourced difficulty = better signal; no ALTER TABLE |
 | explanations cache | Shared PostgreSQL table (not per-user) | One PYQ explanation serves all users; ~95% cache hit rate from day 1 |
 | Payment soft launch | Manual UPI + credit top-up for soft launch | Decouples Razorpay KYC from critical path; Razorpay KYC runs in parallel from Sprint 4 |
+
+## INFRA DECISIONS LOCKED (Aug 29) — Nyaya Arena scoping
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Nyaya Arena quiz engine | Reuse Recall's `question_bank`/`exam_source` + daily-challenge/leaderboard mechanic, no new engine | Audit found this ~70% already built (see `.knowledge/audits/AUDIT-001.md`) |
+| Nyaya Arena identity | Separate lightweight identity/leaderboard store, NOT Recall's Supabase auth | Arena shouldn't block on B-1/B-2; Scribe's live 95-user auth stays untouched. See `.knowledge/plans/PLAN-006.md` |
+| Arena ↔ Recall data access | Internal API contract (to be designed), not direct DB access | Keeps Arena decoupled from Recall's schema/migration timeline |
+
+## INFRA DECISIONS LOCKED (Aug 29, cont'd) — RBI-out-of-Scribe / Recall generalization design (Fable 5)
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| RBI content ownership split | `rbi_questions`/`rbi_topic_weights` (content) move to Recall's `question_bank`/`topic_weights`; `rbi_attempts`/`rbi_topic_mastery` (user data) and `rbi_key_data` (reference facts, not MCQ) stay in Scribe | Content vs. per-user-identity split mirrors Arena's own stateless-upstream pattern; `rbi_key_data` has no MCQ shape and moving it would be scope creep. See PLAN-008 §1. |
+| Provenance model | New `source_type`/`source_ref`/`source_document_id`/`generation_batch_id` columns on `question_bank` + 2 new tables, not a parallel per-source-type content model | Every consumer already queries `question_bank` by (exam_source, subject, topic); splitting by source would force a UNION on every normal serving query for a distinction only research/QA cares about. See PLAN-007. |
+| Internal API auth | Generalized `X-Internal-Api-Key` + per-caller named env vars (`INTERNAL_API_KEY_ARENA`, `INTERNAL_API_KEY_SCRIBE_RBI`), not a second Arena-shaped special case | Scribe is now a genuine second internal caller (calling Recall for its own RBI feature, not on Arena's behalf) — a shared secret across 2+ callers can't be revoked independently. See PLAN-008 §4. |
+| Scribe's `internal_api_bp.py` (Arena-facing RBI endpoints) | Keep as-is externally; convert internals to a thin proxy calling Recall's `/internal/v1/questions`/`score-attempt` | Arena's Contract 2 is a frozen, already-implemented spec — changing it to point Arena at Recall directly would break IMPLEMENTATION_PLAN.md's own "don't redesign contracts while implementing" rule for zero end-user benefit. See PLAN-008 §6. |
+| `user_topic_mastery` personalization signal | A SQL view (`user_question_log` JOIN `question_bank`, aggregated to topic level) in each product's own DB, not application code and not one shared cross-product table | Matches Rahul's stated goal of tuning it via SQL himself (`CREATE OR REPLACE VIEW`, no deploy needed) and Arena's own precedent (leaderboard = computed query, not cached). A shared table doesn't work regardless — Recall/Scribe/Arena have disjoint user-identity spaces (DECIDE-02), so there's no valid cross-product join key. See PLAN-009 §3. |
+| RBI cutover mechanism | Feature flag (`RBI_CONTENT_SOURCE=local\|recall`) defaulting to `local`, dual-path code, no history rewrite | Smallest reversible mechanism for a live feature with real users; rejected backfilling historical `rbi_attempts.question_id` values, which would force an irreversible rewrite of live attempt history before cutover could even start. See PLAN-008 §3. |
 
 ---
 

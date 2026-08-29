@@ -40,6 +40,10 @@ Last updated: 2026-06-05
 | [PLAN-003](plans/PLAN-003.md) | PYQ Data Foundation — official answer keys | BLOCKED (needs Rahul download) | plans/pyq_data_foundation.md |
 | [PLAN-004](plans/PLAN-004.md) | PYQ Browser (FEATURE-18) | QUEUED (blocked on PLAN-003) | plans/pyq_browser.md |
 | [PLAN-005](plans/PLAN-005.md) | PYQ Explanations (FEATURE-19) | QUEUED (blocked on PLAN-003) | plans/pyq_explanations.md |
+| [PLAN-006](plans/PLAN-006.md) | Nyaya Arena reuses Recall's engine, own identity | DECIDED | plans/PLAN-006.md |
+| [PLAN-007](plans/PLAN-007.md) | Generalized multi-exam/multi-source/multi-format `question_bank` schema | PROPOSED | plans/PLAN-007.md |
+| [PLAN-008](plans/PLAN-008.md) | RBI Grade B migration: Scribe → Recall, staged/reversible cutover | PROPOSED | plans/PLAN-008.md |
+| [PLAN-009](plans/PLAN-009.md) | Multi-source MCQ ingestion pipeline + personalization signal + build order | PROPOSED | plans/PLAN-009.md |
 
 ---
 
@@ -57,7 +61,7 @@ Last updated: 2026-06-05
 
 | ID | Date | Scope | Findings |
 |----|------|-------|----------|
-| *(none yet)* | — | — | — |
+| [AUDIT-001](audits/AUDIT-001.md) | 2026-08-29 | Mock-competition reuse (Nyaya Arena scoping) | Daily-challenge/leaderboard mechanic already exists, ~70% built; blocked on B-1/B-2/B-4 |
 
 ---
 
@@ -66,6 +70,8 @@ These MUST be flagged to Rahul before executing:
 - `ALTER TABLE pyq_questions` (add answer_source, answer_disputed, dispute_note, q_number)
 - `DELETE FROM pyq_questions` — fix 2014 duplication
 - Any DB schema changes or score logic changes (per CLAUDE.md gating rules)
+- B-11 — batched `question_bank` ALTER (8 columns) + 3 new tables, PLAN-007
+- B-12 — Scribe's `rbi_attempts.source` ALTER (live-user table), PLAN-008
 
 ---
 

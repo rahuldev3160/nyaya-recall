@@ -3,9 +3,14 @@
 
 # Personal data — never commit
 data/upsc.db
+data/upsc.db.bak-*
 data/prep_profile.json
 data/prep_profile_csat.json
 data/study_plan.json
+
+# Claude Code runtime state
+.claude/projects/
+.claude/worktrees/
 
 # Large generated artifacts
 vector_store/
