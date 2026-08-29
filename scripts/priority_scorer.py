@@ -29,7 +29,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 DB_PATH = os.getenv("DB_PATH", "data/upsc.db")
 SYLLABUS_PATH = Path(os.getenv("PROJECT_PATH", str(Path(__file__).parent.parent))) / "data" / "syllabus.json"
-CURRENT_YEAR = 2026
+CURRENT_YEAR = 2027
 DECAY = 0.9
 FUZZY_THRESHOLD = 0.5   # minimum token-overlap score to accept a match
 

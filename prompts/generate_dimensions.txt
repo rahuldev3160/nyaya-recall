@@ -6,7 +6,7 @@ For each subtopic, return a JSON object with the subtopic_id and a "dimensions" 
 - "id": snake_case identifier (subtopic_id prefix + short descriptor, e.g. "rbi_establishment_structure")
 - "name": concise name of the testable angle (max 12 words)
 - "is_core_concept": true if this is a foundational/definitional angle that UPSC always tests; false if it is peripheral or optional
-- "has_current_affairs": true if this dimension is frequently linked to recent (2024-2026) policy, events, or developments; false otherwise
+- "has_current_affairs": true if this dimension is frequently linked to recent (2025-2027) policy, events, or developments; false otherwise
 
 Rules:
 - Generate exactly 4–8 dimensions per subtopic (aim for 5–6 for most; 7–8 for very broad subtopics)

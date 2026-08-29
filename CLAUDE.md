@@ -102,7 +102,8 @@ SAR managed by `scripts/self_attestation.py`. Stored in `upsc.db` sar_scores tab
 
 Subtopic priority = Σ(0.9^(current_year - year) × questions_on_topic_that_year)
 Computed by `scripts/priority_scorer.py`. Used to order diagnostic questions.
-2009–2025 coverage (17 years) from 3-tier ingestion (see PLAN.md).
+2014–2025 coverage (12 years) from 3-tier ingestion (see PLAN.md). (Corrected 2026-08-30 — actual
+`pyq_questions` table has no 2009–2013 rows; those years were never ingested despite the earlier claim here.)
 
 ## CSAT
 

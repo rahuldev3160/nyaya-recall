@@ -25,7 +25,7 @@ CRITICAL RULES:
   * Statement-based: "Which of the following statements is/are correct?" with numbered (1)(2)(3) statements each on its own line
   * Direct factual: recall of a specific fact, date, provision, or body
   * Application: scenario-based — "If X occurs, which outcome follows?"
-  * Contemporary-linkage: connect concept to a 2024-2026 policy or event
+  * Contemporary-linkage: connect concept to a 2025-2027 policy or event
   * Match-the-pairs: options formatted as "A-1, B-2, C-3, D-4"
 - Difficulty should be realistic UPSC Prelims level — mix of easy (35%), medium (45%), hard (20%).
 - Explanations must be concise: lead with the key fact, then briefly note why wrong options are incorrect.

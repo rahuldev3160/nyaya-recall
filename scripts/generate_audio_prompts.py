@@ -195,13 +195,13 @@ def haiku_dimensions(
             pyq_block += f"- [{p['year']}] {p['question_text'][:130].strip()}\n"
 
     ca_note = (
-        "\nNote: Current affairs sources (2024–25 updates) are uploaded in this notebook — "
+        "\nNote: Current affairs sources (2025–27 updates) are uploaded in this notebook — "
         "include one dimension about recent developments or policy updates relevant to this topic."
         if has_ca else ""
     )
 
     prompt = (
-        f"You are designing a revision podcast episode for a UPSC Prelims 2026 aspirant.\n\n"
+        f"You are designing a revision podcast episode for a UPSC Prelims 2027 aspirant.\n\n"
         f"Subject: {subject_name}\n"
         f"Topic area: {topic_name}\n"
         f"Subtopics to cover: {subtopic_names}\n"
@@ -258,7 +258,7 @@ TONE_INSTRUCTION = (
 
 def build_prompt_text(subtopic_names: str, dimensions: str) -> str:
     return (
-        f"Explore {subtopic_names} with your listeners preparing for UPSC Prelims 2026.\n\n"
+        f"Explore {subtopic_names} with your listeners preparing for UPSC Prelims 2027.\n\n"
         f"Cover these specific angles:\n{dimensions}\n\n"
         f"{TONE_INSTRUCTION}"
     )
@@ -360,7 +360,7 @@ def main() -> None:
     # ---------------------------------------------------------------------------
 
     lines: list[str] = [
-        f"# Audio Prompt Pipeline — UPSC Prelims 2026",
+        f"# Audio Prompt Pipeline — UPSC Prelims 2027",
         f"Generated: {today}  |  {total} prompts across {len(set(g['subject_id'] for g in groups))} subjects",
         f"",
         f"> **How to use:** Copy each prompt block → open the correct NotebookLM notebook",
