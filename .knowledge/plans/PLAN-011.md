@@ -232,6 +232,18 @@ existing enum already splits AI into `ai_current_affairs`/`ai_gap_fill` and PYQ 
 1. Run PLAN-009's already-designed backfill: convert `unclassified_legacy` (321 RBI rows) into
    real categories, and connect `ai_inferred` `pyq_questions` rows to an actual answer-key
    verification pass where possible.
+
+   **DONE 2026-08-30 (part 1 only).** Traced the 321 rows' real origin: `scripts/rbi/
+   02_generate_mcq_bank.py` (Haiku batch, from `data/notebooklm/rbi_theory_mcq_source.md`) —
+   confirmed 100% AI-generated from theory notes, consistent with B-13's earlier finding that no
+   official RBI Grade B PYQ+answer-key source exists. Reclassified all 321 from
+   `unclassified_legacy` to `ai_gap_fill` (the correct enum value — not `ai_current_affairs`,
+   since RBI monetary-policy theory facts aren't current-events-linked) with `source_ref` pointing
+   at the real source file, via a backed-up UPDATE against `data/upsc.db` (backup:
+   `data/upsc.db.bak-pre-provenance-backfill-20260830020711`). **Part 2 (answer-key verification
+   for `ai_inferred` `pyq_questions` rows) not done this pass** — that's real UPSC PYQs where the
+   answer itself needs checking against an official key where one exists, a different and larger
+   task than a metadata relabel; left for a future session.
 2. Add one thing PLAN-007/009 didn't quite cover: Recall has no `self_notes` equivalent at all
    (no user-authored-content table) — low priority, since Recall is a single-user local tool and
    Rahul's own notes largely live in `session_user_notes`/`question_notes` already, which are a
