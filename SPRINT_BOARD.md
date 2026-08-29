@@ -385,7 +385,7 @@ TRULY INDEPENDENT (start anytime):
 | B-1 | Create Supabase project → copy 3 keys to `.env` | Sprint 2 Cluster A | 10 min |
 | B-2 | Create Railway service for Recall + PostgreSQL addon | Sprint 2 deploy | 15 min |
 | B-3 | Approve: `subtopic_difficulty` global vs per-user | Sprint 2 schema | 2 min decision |
-| B-4 | Approve: `ALTER TABLE sar_scores` (PK change) | Sprint 2 schema; **also blocks Nyaya Arena** (sibling project) — any 2nd real user, competition or otherwise, hits this PK collision | approval gate |
+| B-4 | Approve: `ALTER TABLE sar_scores` (PK change) — fix drafted+tested on branch `fix/sar-scores-pk`, see PLAN-010, not yet merged/run | Sprint 2 schema; real bug is a silent no-write for any 2nd real user's SAR score (confirmed NOT an Arena blocker — Arena never touches this table, PLAN-010) | approval gate |
 | B-5 | Download UPSC PYQ PDFs + Final Answer Keys 2013–2025 | Sprint 1 data | 1–2 hrs |
 | B-6 | Approve: `ALTER TABLE pyq_questions` (add 4 columns) | Sprint 1 import | approval gate |
 | B-7 | Approve: `DELETE FROM pyq_questions` (2014 dedup) | Sprint 1 clean | approval gate |
