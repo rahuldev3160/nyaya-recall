@@ -70,8 +70,9 @@ These MUST be flagged to Rahul before executing:
 - `ALTER TABLE pyq_questions` (add answer_source, answer_disputed, dispute_note, q_number)
 - `DELETE FROM pyq_questions` — fix 2014 duplication
 - Any DB schema changes or score logic changes (per CLAUDE.md gating rules)
-- B-11 — batched `question_bank` ALTER (8 columns) + 3 new tables, PLAN-007
-- B-12 — Scribe's `rbi_attempts.source` ALTER (live-user table), PLAN-008
+- ~~B-11~~ — batched `question_bank` ALTER (8 columns) + 3 new tables, PLAN-007 — **approved by Rahul 2026-08-29**, already run (backup at `data/upsc.db.bak-pre-plan007-*`)
+- ~~B-12~~ — Scribe's `rbi_attempts.source` ALTER (live-user table), PLAN-008 — **approved by Rahul 2026-08-29**, already run (additive, non-destructive)
+- Internal-API auth key rename (`X-Arena-Api-Key` → `X-Internal-Api-Key`, PLAN-008 §4) — **approved by Rahul 2026-08-29**; real key values now set in `.env` (see HANDOFF.md)
 
 ---
 

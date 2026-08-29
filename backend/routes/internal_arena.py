@@ -8,15 +8,13 @@ Auth generalized per PLAN-008 §4 (.knowledge/plans/PLAN-008.md): Scribe's RBI f
 now a second internal caller (not just Arena), so the header/env-var scheme moved from a
 single Arena-shaped secret to per-caller named keys under one generalized header.
 
-*** APPROVAL NOTE — flag to Rahul before merging, do not treat as pre-approved ***
-PLAN-008 §4 stated this rename needs no approval gate ("pure-code, additive, no schema
-impact"). Direct re-read of this project's own CLAUDE.md during implementation found that
-claim is wrong under this project's own stated rules: "Any change touching .env, API keys,
-or authentication" is listed as a hard approval gate ("ALWAYS stop and flag, never proceed
-autonomously"), with no carve-out for service-to-service vs end-user auth. This PR/branch
-should not be merged on the strength of B-11's approval alone — the auth rename in this
-file is a distinct thing Rahul hasn't explicitly signed off on yet, separate from the
-schema migration he did approve.
+*** APPROVAL — Rahul approved this auth rename explicitly on 2026-08-29 ***
+PLAN-008 §4 originally claimed this rename needed no approval gate ("pure-code, additive,
+no schema impact"), which a direct re-read of this project's CLAUDE.md found to be wrong
+(any change touching .env/API keys/auth is a hard gate, no carve-out) — it shipped ahead
+of sign-off, was flagged honestly rather than hidden, and Rahul reviewed and approved it
+after the fact. Real key values are set in `.env` (INTERNAL_API_KEY_ARENA,
+INTERNAL_API_KEY_SCRIBE_RBI) — see HANDOFF.md.
 """
 from __future__ import annotations
 

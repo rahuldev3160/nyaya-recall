@@ -392,8 +392,8 @@ TRULY INDEPENDENT (start anytime):
 | B-8 | Approve: `UPDATE ... SET user_id='<rahul_uuid>'` | Sprint 2 go-live | approval gate |
 | B-9 | Start Razorpay KYC (3–7 day external wait) | Sprint 4 revenue | 30 min + docs |
 | B-10 | Download CDS/NDA/CAPF/CISF PDFs (same session as B-5) | Sprint 6 | 2–3 hrs |
-| B-11 | Approve batched `question_bank` ALTER (8 new columns: source_type, source_ref, source_document_id, generation_batch_id, question_format, default_marks, retired_at, superseded_by) + `status` column + 3 new tables (`source_documents`, `generation_batches`, `topic_weights`) — see PLAN-007 | RBI-from-Scribe migration, multi-source ingestion | approval gate |
-| B-12 | Approve Scribe's `rbi_attempts.source` ALTER (adds a `'local'`/`'recall'` discriminator column to a live table with real RBI users' attempt history) — see PLAN-008 §3 | Scribe RBI cutover to Recall | approval gate |
+| ~~B-11~~ | ~~Approve~~ **Approved by Rahul 2026-08-29** — batched `question_bank` ALTER (8 new columns: source_type, source_ref, source_document_id, generation_batch_id, question_format, default_marks, retired_at, superseded_by) + `status` column + 3 new tables (`source_documents`, `generation_batches`, `topic_weights`) — see PLAN-007 | RBI-from-Scribe migration, multi-source ingestion | resolved |
+| ~~B-12~~ | ~~Approve~~ **Approved by Rahul 2026-08-29** — Scribe's `rbi_attempts.source` ALTER (adds a `'local'`/`'recall'` discriminator column to a live table with real RBI users' attempt history) — see PLAN-008 §3 | Scribe RBI cutover to Recall | resolved |
 | B-13 | Confirm whether RBI Grade B publishes any official past papers with an official answer key (verify before building an "official_pyq" ingestion path for RBI) — see PLAN-009 §1.A | Multi-source ingestion, RBI official-PYQ bucket | research/2 min decision |
 
 **Critical path blocker:** B-5 (UPSC PDFs). If resolved by Jun 18, launch Jul 4 is achievable. If delayed past Jun 25, Sprint 3+4 shift right and Jul 31 ₹5-8k target is at risk.
