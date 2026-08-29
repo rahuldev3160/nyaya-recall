@@ -58,15 +58,23 @@ def record_attestation(subject_id: str, result: dict, user_id: str = "user_1") -
         VALUES (?,?,?,?,?,?)
     """, (user_id, subject_id, result["claimed_level"], result["validation_score"],
           result["effective_level"], result["sar_before"]))
-    con.execute("UPDATE sar_scores SET sar=?, total_claims=total_claims+1, updated_at=? WHERE user_id=?",
-                (result["sar_after"], datetime.now(timezone.utc).isoformat(), user_id))
+    con.execute("""
+        INSERT INTO sar_scores (user_id, sar, total_claims, updated_at) VALUES (?, ?, 1, ?)
+        ON CONFLICT(user_id) DO UPDATE SET
+            sar=excluded.sar, total_claims=sar_scores.total_claims+1, updated_at=excluded.updated_at
+    """, (user_id, result["sar_after"], datetime.now(timezone.utc).isoformat()))
     con.commit()
     con.close()
 
 
 def _update_sar(user_id: str, new_sar: float) -> None:
+    # Was a plain UPDATE ... WHERE user_id=?, which silently affects 0 rows for
+    # any user_id that has no existing sar_scores row (B-4: only 'user_1' is ever
+    # seeded) -- a second real user's SAR was computed but never persisted.
     con = sqlite3.connect(DB_PATH)
-    con.execute("UPDATE sar_scores SET sar=?, updated_at=? WHERE user_id=?",
-                (new_sar, datetime.now(timezone.utc).isoformat(), user_id))
+    con.execute("""
+        INSERT INTO sar_scores (user_id, sar, updated_at) VALUES (?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET sar=excluded.sar, updated_at=excluded.updated_at
+    """, (user_id, new_sar, datetime.now(timezone.utc).isoformat()))
     con.commit()
     con.close()

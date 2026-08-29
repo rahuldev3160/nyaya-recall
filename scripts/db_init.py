@@ -85,8 +85,12 @@ def init_db():
         UNIQUE(user_id, subject_id, topic_id, subtopic_id)
     );
 
+    -- B-4 fix: surrogate id PK, user_id UNIQUE (was bare user_id PRIMARY KEY --
+    -- broken for multi-user, see .knowledge/plans/PLAN-010.md). Only affects
+    -- fresh installs; scripts/fix_sar_scores_pk.py migrates an existing DB.
     CREATE TABLE IF NOT EXISTS sar_scores (
-        user_id          TEXT PRIMARY KEY DEFAULT 'user_1',
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id          TEXT NOT NULL UNIQUE DEFAULT 'user_1',
         sar              REAL DEFAULT 0.5,
         total_claims     INTEGER DEFAULT 0,
         updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
