@@ -1,3 +1,21 @@
+### Cross-project data-provenance audit (read-only) — 2026-08-30
+
+Audited as part of a 5-project data-sourcing audit (Recall/Scribe/Arena/law-model/content-pipeline)
+toward Rahul's "one vetted, indexed data source across all Nyaya products" goal. No code changed
+here. Full detail: `docs/audit/DATA_AUDIT_2026-08-30.md`. Cross-project synthesis + roadmap:
+memory `project_nyaya_universal_data_layer.md`.
+
+**Key confirmation:** this project's `backend/routes/internal_arena.py` (stateless, per-caller-keyed
+internal API) is already the working seed for the universal-data-layer pattern — Scribe consumes
+2 officially-sourced RBI/PIB documents through it today rather than touching this DB directly.
+Recommend extending this pattern rather than building a new access mechanism from scratch.
+
+**New finding:** BUG-005 (LOW) — `question_explanations.model_used` mislabeled for all 904 rows,
+undermines the provenance work in PLAN-011. Also confirms known: 503 unverified + 482 ai_inferred
+PYQ answers (49%) still pending the official-answer-key import (BUG-001/B-4/B-5, unchanged).
+
+---
+
 ### 2027 redesign — Full Mock exam-sim mode + provenance backfill — 2026-08-30
 
 **Full Mock mode shipped, PR #56 (open, not yet merged).** Fixed 100Q/120min mode inside exam-sim
