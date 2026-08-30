@@ -1,3 +1,41 @@
+### 2027 redesign — Full Mock exam-sim mode + provenance backfill — 2026-08-30
+
+**Full Mock mode shipped, PR #56 (open, not yet merged).** Fixed 100Q/120min mode inside exam-sim
+(`backend/routes/quiz.py`), real-PYQ-first via new `topic_weights` seed (real 2026 UPSC subject
+split) + new `mock_reserved_questions` table (excludes used PYQs from regular practice —
+additive-only, no ALTER), `source_type`-tagged results reporting real-PYQ-vs-AI %. Calibration
+fix in `prompts/exam_simulation.txt` (scenario/dilemma question type + qualitative
+UPSC-trickiness instructions, replacing the flat difficulty label). Full spec:
+`.knowledge/plans/PLAN-011.md`.
+
+**Bonus bug fix (ISSUE-028):** exam-sim's AI generation call used a betas kwarg the installed SDK
+rejects — silently broke every AI-generated question in exam-sim, old flexible mode included.
+Fixed (`client.beta.messages.create`), verified via a real 100-question end-to-end run.
+
+**Provenance backfill done:** 321 RBI `question_bank` rows reclassified from `unclassified_legacy`
+to `ai_gap_fill` (traced real origin: AI-generated from theory notes, no official RBI PYQ source
+exists — confirmed via `scripts/rbi/02_generate_mcq_bank.py`). Answer-key verification for
+`ai_inferred` `pyq_questions` rows (the other half of this plan item) is **not done** — deferred,
+bigger task than a metadata relabel.
+
+**2026→2027 hardcodes fixed:** `CURRENT_YEAR` in `priority_scorer.py`, six prompts' current-affairs
+window, `generate_audio_prompts.py`'s "Prelims 2026" strings, CLAUDE.md's stale PYQ-coverage claim.
+`prep_config.json` intentionally left untouched pending the real Jan 2027 UPSC notification.
+
+**Process note:** local `main` was 11 commits ahead of `origin` (accumulated over several
+sessions) — pushed for real this session so PR #56 could show a clean diff. Going forward:
+routine/additive work continues straight to `main` as this session has done; anything matching
+this repo's own approval-gate list (schema ALTER, auth, scoring-logic) or a genuinely new
+user-facing feature (like Full Mock) goes on a branch + PR instead.
+
+### Exact next step
+Merge PR #56 (or request changes) — https://github.com/rahuldev3160/nyaya-recall/pull/56. After
+that, next up per PLAN-011's build order: none of Recall's own items remain (Area 1/2/5/6-Recall
+all done) — remaining 2027-redesign work is all on the Scribe side (`Descriptive-exams` repo,
+see its own HANDOFF.md).
+
+---
+
 ### RBI-out-of-Scribe / Recall multi-exam redesign — PLAN-007/008 (schema + data) IMPLEMENTED, PLAN-009 (ingestion pipelines) NOT STARTED — 2026-08-29
 
 **Merged to main (commit `20c73b6`):** `question_bank` schema generalized (source_type/source_ref/source_document_id/generation_batch_id/question_format/default_marks/retired_at/superseded_by/status + `source_documents`/`generation_batches`/`topic_weights` tables). RBI's 321 questions copied in for real (`exam_source='rbi_grade_b'`, verified against real `data/upsc.db`, not just tested on a copy). Internal auth generalized: `X-Arena-Api-Key` → `X-Internal-Api-Key` with per-caller keys (`INTERNAL_API_KEY_ARENA`, `INTERNAL_API_KEY_SCRIBE_RBI`). Arena's client updated to match.

@@ -444,6 +444,19 @@ Add "← Previous" button that decrements `currentQ` when `currentQ > 0`. Answer
 
 ---
 
+### ISSUE-028 — Exam-sim's AI question generation silently broken at the SDK level
+**Noticed:** 2026-08-30 (during Full Mock mode build, PLAN-011 Area 2)
+**Reported by:** general-purpose subagent (fork), verified by Claude
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** PR #56 — Full Mock exam-simulation mode
+
+**Current state of the code (before fix):** `client.messages.create(..., betas=[...])` in the exam-sim AI generation path — the installed `anthropic` SDK version rejects `betas` as a kwarg on `.create()`, so every AI-generated question in exam-sim (both the old flexible mode and any future mode) silently failed. This plausibly explains exam-sim's near-zero historical usage (3 sessions ever, per PLAN-011 Area 2) independent of the structural/calibration gaps that plan documented — the feature may have been broken at a basic technical level the whole time, not just unused.
+
+**Resolution:** Fixed 2026-08-30. Changed to `client.beta.messages.create(...)`. Verified via a real end-to-end run generating 100 questions (87 real PYQ + 13 AI-gap-fill) with no errors. (Note: this is ISSUE-028 though ISSUE-027 was never assigned — skipped, available if needed.)
+
+---
+
 ### ISSUE-026 — Diagnostic and session questions repeat; no adaptive difficulty or note feedback
 **Noticed:** 2026-05-16
 **Reported by:** Rahul
@@ -691,4 +704,4 @@ Fixed. Backend was already complete.
 4. Add it under **Open**
 5. When resolved: move it to **Resolved**, fill in the Resolution field, commit
 
-Next issue number: ISSUE-027
+Next issue number: ISSUE-029
