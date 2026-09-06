@@ -251,7 +251,14 @@ Run `/close-task` (`.claude/commands/close-task.md`) — it handles the full clo
 The explicit steps it covers (do not skip any):
 
 1. **FEATURES.md** — strike through the completed Queued item; add to ✅ Shipped with date
-2. **ISSUES.md** — move fixed issue to Resolved; fill Resolution field (date + file + PR)
+2. **ISSUES.md** — move fixed issue to Resolved; fill Resolution field (date + file + PR).
+   Before marking Resolved: search for other prompts/scripts/code paths that do a similar
+   thing to what was just fixed (same bug *class*, e.g. "generates an explanation," not just
+   the one surface reported) and check whether they share the defect — a general-sounding
+   issue title marked Resolved reads as "this class of bug is gone," so verify that's true
+   before writing it (GL-06, `~/.claude/GLOBAL_LEARNINGS.md` — ISSUE-013 was fixed correctly
+   for 3 surfaces but a 4th with the identical defect sat broken for 4 months, unnoticed,
+   because this check wasn't done)
 3. **HANDOFF.md** — add a new entry at the TOP with what changed and watch-outs; mark any previously-open problem ✅ if resolved this session
 4. **Memory** — write a `memory/project_<slug>.md` entry for any factual finding or resolved open item so future sessions don't re-open it
 5. **Cross-check** — for every item still open in HANDOFF.md, verify it hasn't already been struck through in FEATURES.md or marked Resolved in ISSUES.md (this is the leak detector)

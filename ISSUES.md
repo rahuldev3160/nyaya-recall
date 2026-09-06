@@ -30,7 +30,47 @@
 
 ## Open
 
-_No open issues at this time._
+---
+
+### ISSUE-029 — PYQ-explanation-card feature: wrong-option fields empty in 100% of generated rows
+**Noticed:** 2026-09-06 (found by a fork agent while researching prior art for nyaya-core's
+new `pyq_explanations` design, prompted by Rahul recalling unsatisfactory MCQ explanations)
+**Reported by:** Claude (fork research), confirmed against live data
+**Status:** Open
+**Priority:** P1
+**Linked feature:** `plans/pyq_explanations.md` (Feature #19)
+
+**What happened:**
+Queried the live `question_explanations` table directly: all 904 rows have
+`option_a_note`/`option_b_note`/`option_c_note`/`option_d_note`/`memory_hook` empty. Only
+`concept_tested` and `correct_explanation` ever get populated — systematically, not
+occasionally. This is the same underlying complaint as ISSUE-013 ("wrong options not
+explained") but in a third surface that issue's fix never touched — see the follow-up note
+added to ISSUE-013.
+
+**The problem (root cause, not just "prompt needs improvement"):**
+`prompts/pyq_explanation.txt`'s schema (`option_a_note`...`option_d_note`) assumes four
+independently-meaningful factual options. Most real UPSC Prelims MCQs are **statement-based**
+("how many of the following statements are correct," options like "Only one"/"Only two"/
+"All three") — there is nothing coherent to say about why "Only two" is wrong as a
+standalone concept under that schema. The model is very likely omitting those keys for
+statement-format questions because the schema doesn't fit, and nothing in
+`generate_pyq_explanations.py`'s `apply_results()` detects or flags the omission — it's
+silently accepted and written to the DB as empty. Two secondary contributors: `MAX_TOKENS
+=600` split across 6 fields is tight for genuinely rich output, and the generation call
+sends only question text + options + the answer key — zero grounding/citation, zero
+verification.
+
+**What's needed to fix (not started — this repo isn't the build target right now,
+nyaya-core's `pyq_explanations` table is being designed to do this correctly from the
+start; revisit whether to backfill/fix this repo's own table separately):**
+1. Detect statement-based vs. standalone-option format before generating; branch the
+   schema — evaluate each statement's correctness, not four fake independent option notes.
+2. Validate the response has all required fields populated before writing a row; treat a
+   partial response as a generation failure to retry or flag, never a silent partial write.
+3. Widen the token budget to what 6 genuinely rich fields actually need.
+4. Ground the explanation in retrieved source content and cite it, rather than pure model
+   recall.
 
 ---
 
@@ -499,6 +539,16 @@ Update explanation instruction in all three quiz generation prompts.
 
 **Resolution:** Resolved 2026-05-14.
 - `prompts/diagnostic_quiz.txt`, `prompts/adaptive_session.txt`, `prompts/adaptive_quiz_only.txt` — explanation spec updated: lead with the core fact for the correct option, then one sentence per wrong option explaining what is incorrect or misleading about it.
+
+**Follow-up (2026-09-06, found while designing nyaya-core's PYQ explanation feature — see
+ISSUE-029):** this fix correctly covered the two surfaces it was reported against
+(diagnostic/adaptive live quiz generation, revision deck). It did NOT cover a third,
+separate surface with the identical underlying complaint — the PYQ-explanation-card
+feature (`prompts/pyq_explanation.txt` / `scripts/generate_pyq_explanations.py` /
+`question_explanations` table), never mentioned in this issue, never checked. That
+surface has had the same "wrong options not explained" defect the entire time this issue
+sat Resolved — 100% of its 904 generated rows are missing every wrong-option field. GL-06
+in `~/.claude/GLOBAL_LEARNINGS.md` covers the general lesson.
 
 ---
 
