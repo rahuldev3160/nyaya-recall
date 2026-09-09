@@ -444,33 +444,16 @@ Add "← Previous" button that decrements `currentQ` when `currentQ > 0`. Answer
 
 ---
 
-### ISSUE-028 — Exam-sim AI generation fails outright on every real call (`betas=` kwarg rejected)
-**Noticed:** 2026-08-30
-**Reported by:** Claude (found while building Full Mock mode, feature/full-mock-mode)
+### ISSUE-028 — Exam-sim's AI question generation silently broken at the SDK level
+**Noticed:** 2026-08-30 (during Full Mock mode build, PLAN-011 Area 2)
+**Reported by:** general-purpose subagent (fork), verified by Claude
 **Status:** Resolved
 **Priority:** P1
-**Linked feature:** Exam Simulation / Full Mock (PLAN-011 Area 2)
+**Linked feature:** PR #56 — Full Mock exam-simulation mode
 
-**What happened:**
-While building and testing the new "Full Mock" feature, the AI-generation gap-fill call
-returned `500 AI generation failed: Messages.create() got an unexpected keyword argument
-'betas'` on the very first real end-to-end test.
+**Current state of the code (before fix):** `client.messages.create(..., betas=[...])` in the exam-sim AI generation path — the installed `anthropic` SDK version rejects `betas` as a kwarg on `.create()`, so every AI-generated question in exam-sim (both the old flexible mode and any future mode) silently failed. This plausibly explains exam-sim's near-zero historical usage (3 sessions ever, per PLAN-011 Area 2) independent of the structural/calibration gaps that plan documented — the feature may have been broken at a basic technical level the whole time, not just unused.
 
-**The problem:**
-`backend/routes/quiz.py`'s exam-sim generation call used `client.messages.create(...,
-betas=["output-128k-2025-02-19"])`. The installed `anthropic` SDK (0.100.0) requires beta
-features to go through the `client.beta.messages` namespace, not the regular
-`client.messages` one. This is the ONLY call site among quiz.py's four `messages.create`
-calls that passes `betas=`, so this bug is isolated to exam-sim specifically — the
-adaptive/diagnostic paths (61/23 real sessions) were never affected. This plausibly
-explains part of why exam-sim has essentially never been used (3 sessions ever, per
-PLAN-011): every real attempt to generate AI questions for it would have failed outright.
-
-**What's needed to fix:** Change to `client.beta.messages.create(...)`.
-
-**Resolution:** Fixed 2026-08-30, `feature/full-mock-mode` branch, `backend/routes/quiz.py`
-line ~1391. Verified with a real end-to-end Full Mock run afterward (100 questions, 87 real
-PYQ + 13 AI-generated, all well-formed).
+**Resolution:** Fixed 2026-08-30. Changed to `client.beta.messages.create(...)`. Verified via a real end-to-end run generating 100 questions (87 real PYQ + 13 AI-gap-fill) with no errors. (Note: this is ISSUE-028 though ISSUE-027 was never assigned — skipped, available if needed.)
 
 ---
 
@@ -721,4 +704,4 @@ Fixed. Backend was already complete.
 4. Add it under **Open**
 5. When resolved: move it to **Resolved**, fill in the Resolution field, commit
 
-Next issue number: ISSUE-027
+Next issue number: ISSUE-029

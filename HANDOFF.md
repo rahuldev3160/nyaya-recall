@@ -1,30 +1,38 @@
-### Full Mock exam-simulation mode — PLAN-011 Area 2 IMPLEMENTED, PR open — 2026-08-30
+### 2027 redesign — Full Mock exam-sim mode + provenance backfill — 2026-08-30
 
-**Branch `feature/full-mock-mode`, not yet merged.** Built a fixed 100-question/120-minute
-"Full Mock" mode inside exam-sim, separate from the existing flexible practice mode (kept
-as-is). Sources real `pyq_questions` first (proportional to a new `topic_weights` seed for
-`exam_source='upsc_prelims'`, matching the real 2026 UPSC paper's subject split), reserves
-them in a new `mock_reserved_questions` table so they're excluded from the PYQ browser and
-won't be memorized before mock day, and fills any remaining gap via AI generation — tagging
-every question's `source_type` so results honestly report "N% real PYQ vs AI-approximated."
-`prompts/exam_simulation.txt` also got the calibration fix from the same plan: an explicit
-scenario/administrative-dilemma question type, and qualitative UPSC-trickiness instructions
-(statement-elimination traps, close distractors, applied-not-recall framing) replacing the
-old flat 35/45/20 difficulty label.
+**Full Mock mode shipped, PR #56 (open, not yet merged).** Fixed 100Q/120min mode inside exam-sim
+(`backend/routes/quiz.py`), real-PYQ-first via new `topic_weights` seed (real 2026 UPSC subject
+split) + new `mock_reserved_questions` table (excludes used PYQs from regular practice —
+additive-only, no ALTER), `source_type`-tagged results reporting real-PYQ-vs-AI %. Calibration
+fix in `prompts/exam_simulation.txt` (scenario/dilemma question type + qualitative
+UPSC-trickiness instructions, replacing the flat difficulty label). Full spec:
+`.knowledge/plans/PLAN-011.md`.
 
-**Found and fixed along the way (ISSUE-028):** exam-sim's AI generation call was using
-`client.messages.create(..., betas=[...])`, which the installed SDK rejects — needs
-`client.beta.messages`. This was silently breaking every real exam-sim AI generation
-attempt, old flexible mode included, not just the new Full Mock path.
+**Bonus bug fix (ISSUE-028):** exam-sim's AI generation call used a betas kwarg the installed SDK
+rejects — silently broke every AI-generated question in exam-sim, old flexible mode included.
+Fixed (`client.beta.messages.create`), verified via a real 100-question end-to-end run.
 
-**Verified via a real end-to-end run** (not just unit-level): 100 questions, 87 real PYQ +
-13 AI-gap-fill, `pyq_pct` correctly surfaced end-to-end through to `/exam-results`, PYQ
-browser correctly excludes a reserved question. Test session/reservations cleaned up
-afterward so Rahul's actual first Full Mock gets a fresh pull, not leftover test artifacts.
-`npx tsc --noEmit` and `npm run lint` both pass clean.
+**Provenance backfill done:** 321 RBI `question_bank` rows reclassified from `unclassified_legacy`
+to `ai_gap_fill` (traced real origin: AI-generated from theory notes, no official RBI PYQ source
+exists — confirmed via `scripts/rbi/02_generate_mcq_bank.py`). Answer-key verification for
+`ai_inferred` `pyq_questions` rows (the other half of this plan item) is **not done** — deferred,
+bigger task than a metadata relabel.
 
-**Not done:** answer-key verification for `ai_inferred` `pyq_questions` rows (PLAN-011 Area
-6 part 2) — separate, larger task, left for a future session.
+**2026→2027 hardcodes fixed:** `CURRENT_YEAR` in `priority_scorer.py`, six prompts' current-affairs
+window, `generate_audio_prompts.py`'s "Prelims 2026" strings, CLAUDE.md's stale PYQ-coverage claim.
+`prep_config.json` intentionally left untouched pending the real Jan 2027 UPSC notification.
+
+**Process note:** local `main` was 11 commits ahead of `origin` (accumulated over several
+sessions) — pushed for real this session so PR #56 could show a clean diff. Going forward:
+routine/additive work continues straight to `main` as this session has done; anything matching
+this repo's own approval-gate list (schema ALTER, auth, scoring-logic) or a genuinely new
+user-facing feature (like Full Mock) goes on a branch + PR instead.
+
+### Exact next step
+Merge PR #56 (or request changes) — https://github.com/rahuldev3160/nyaya-recall/pull/56. After
+that, next up per PLAN-011's build order: none of Recall's own items remain (Area 1/2/5/6-Recall
+all done) — remaining 2027-redesign work is all on the Scribe side (`Descriptive-exams` repo,
+see its own HANDOFF.md).
 
 ---
 
