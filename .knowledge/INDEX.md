@@ -17,6 +17,7 @@ Last updated: 2026-06-05
 **Data:** 9 SQLite tables, vector store for study material  
 **Status:** v1 active development. devthorium_beta = planning-only mode.  
 **Last PR merged:** #41 — exam sim score isolation + history panel
+**PR open (not yet merged):** `feature/full-mock-mode` — Full Mock exam simulation (PLAN-011 Area 2), see HANDOFF.md 2026-08-30 entry. Note: this file predates several other unmerged changes from 2026-08-29/30 (question_bank schema generalization, RBI migration, provenance backfill) — it is stale beyond just this PR; treat HANDOFF.md as more current for recent sessions.
 
 ---
 
