@@ -1,6 +1,7 @@
 from __future__ import annotations
 import hashlib
 import os
+import random
 import sys
 import json
 import uuid
@@ -1029,6 +1030,138 @@ def generate_quiz(config: dict):
     }
 
 
+def _ensure_mock_reserved_table(con: sqlite3.Connection) -> None:
+    """Real PYQs served in a Full Mock get reserved here so regular practice
+    (adaptive/diagnostic/PYQ browser) doesn't also serve them, which would let
+    them be memorized in advance of mock day. Additive-only new table."""
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS mock_reserved_questions (
+            question_id  INTEGER PRIMARY KEY,
+            reserved_at  TEXT DEFAULT (datetime('now')),
+            session_id   TEXT
+        )
+    """)
+    con.commit()
+
+
+def _build_full_mock_allocation(num_q: int = 100) -> list[dict]:
+    """
+    Fixed-structure allocation across the ENTIRE UPSC Prelims syllabus, proportional
+    to topic_weights(exam_source='upsc_prelims') -- see scripts/seed_topic_weights_upsc.py.
+    Unlike _build_exam_sim_allocation, this does not take user-picked subtopics; a
+    Full Mock always spans every subject in fixed proportion.
+    """
+    con = get_conn()
+    rows = con.execute(
+        "SELECT subject_id, topic_id, subtopic_id, base_weight FROM topic_weights WHERE exam_source='upsc_prelims'"
+    ).fetchall()
+    con.close()
+    if not rows:
+        return []
+
+    def _largest_remainder(weights: list[float], seats: int) -> list[int]:
+        """Standard Hamilton apportionment: floor each exact share, then hand out
+        the leftover seats to the largest fractional remainders first."""
+        total = sum(weights)
+        if total <= 0:
+            return [0] * len(weights)
+        exact = [seats * w / total for w in weights]
+        allocs = [int(x) for x in exact]
+        remainder = seats - sum(allocs)
+        order = sorted(range(len(weights)), key=lambda i: exact[i] - allocs[i], reverse=True)
+        for i in order[:remainder]:
+            allocs[i] += 1
+        return allocs
+
+    # Two-level apportionment. Subject subtopic counts range 12-41 (out of 194 total),
+    # so applying largest-remainder directly at the subtopic level dilutes subjects
+    # with many subtopics (e.g. polity's 12% split 41 ways is ~0.29 per subtopic) below
+    # subjects with few subtopics (e.g. ir_governance's 13% split 12 ways is ~1.08 per
+    # subtopic) -- polity/geography/current_affairs lost their seats entirely to
+    # science_tech/ir_governance/economy when tried directly. Fix: apportion the 100
+    # seats across the 9 SUBJECTS first (recovering each subject's total % by summing
+    # its subtopics' weights, since they were seeded as an even per-subtopic split of
+    # one subject-level %), then apportion each subject's own seat count evenly across
+    # its own subtopics -- no cross-subject dilution at that second level.
+    by_subject: dict[str, list] = {}
+    for r in rows:
+        by_subject.setdefault(r["subject_id"], []).append(r)
+
+    subject_ids = list(by_subject.keys())
+    subject_weights = [sum(r["base_weight"] for r in by_subject[sid]) for sid in subject_ids]
+    subject_seats = dict(zip(subject_ids, _largest_remainder(subject_weights, num_q)))
+
+    result = []
+    for sid in subject_ids:
+        srows = by_subject[sid]
+        seats = subject_seats[sid]
+        if seats <= 0:
+            continue
+        per_subtopic_seats = _largest_remainder([1.0] * len(srows), seats)
+        for r, n in zip(srows, per_subtopic_seats):
+            if n <= 0:
+                continue
+            result.append({
+                "subtopic_id": r["subtopic_id"],
+                "subject_id": r["subject_id"],
+                "topic_id": r["topic_id"],
+                "num_questions": n,
+                "weight": round(r["base_weight"], 3),
+            })
+    return result
+
+
+def _fill_allocation_from_real_pyqs(
+    con: sqlite3.Connection, allocation: list[dict]
+) -> tuple[list[dict], list[dict], list[int]]:
+    """
+    For a Full Mock allocation, pull as many real (unreserved) pyq_questions rows as
+    possible per subtopic before falling back to AI generation for the remainder.
+    Returns (real_questions_in_frontend_shape, updated_allocation_with_gap_counts, reserved_ids).
+    """
+    real_questions: list[dict] = []
+    reserved_ids: list[int] = []
+    gap_allocation: list[dict] = []
+
+    for item in allocation:
+        need = item["num_questions"]
+        rows = con.execute(
+            """
+            SELECT id, question_text, option_a, option_b, option_c, option_d,
+                   correct_answer, subject_id, subtopic_id, concepts, year
+            FROM pyq_questions
+            WHERE subtopic_id = ? AND correct_answer IS NOT NULL
+              AND id NOT IN (SELECT question_id FROM mock_reserved_questions)
+            ORDER BY RANDOM()
+            LIMIT ?
+            """,
+            (item["subtopic_id"], need),
+        ).fetchall()
+
+        for r in rows:
+            real_questions.append({
+                "question_text": r["question_text"],
+                "option_a": r["option_a"], "option_b": r["option_b"],
+                "option_c": r["option_c"], "option_d": r["option_d"],
+                "correct_answer": r["correct_answer"],
+                "explanation": f"Real UPSC PYQ ({r['year']}). " + (r["concepts"] or ""),
+                "difficulty": "pyq",
+                "subject_id": r["subject_id"] or item["subject_id"],
+                "subtopic_id": r["subtopic_id"] or item["subtopic_id"],
+                "question_hash": hashlib.sha256((r["question_text"] or "").encode()).hexdigest()[:16],
+                "source_type": "official_pyq",
+            })
+            reserved_ids.append(r["id"])
+
+        gap = need - len(rows)
+        if gap > 0:
+            gap_item = dict(item)
+            gap_item["num_questions"] = gap
+            gap_allocation.append(gap_item)
+
+    return real_questions, gap_allocation, reserved_ids
+
+
 def _build_exam_sim_allocation(
     subtopic_ids: list[str],
     num_q: int,
@@ -1131,32 +1264,64 @@ def start_exam_simulation(config: dict):
     """
     Start an exam simulation session.
     Accepts: session_type="exam_simulation", subtopic_ids=[...], n_questions=N,
-             timed_duration_minutes=M.
-    Generates all N questions upfront in a single Sonnet call.
+             timed_duration_minutes=M. Generates all N questions upfront.
+
+    session_type="full_mock" is a distinct fixed-structure mode (PLAN-011 Area 2):
+    always 100 questions / 120 minutes, always spans the full syllabus proportional
+    to topic_weights, sources real PYQs first (reserving them from regular practice)
+    with AI generation filling only the weight gap.
     """
     session_type = config.get("session_type", "exam_simulation")
-    if session_type != "exam_simulation":
+    if session_type not in ("exam_simulation", "full_mock"):
         raise HTTPException(
             status_code=400, detail="Use /quiz/generate for non-exam-sim sessions"
         )
 
-    subtopic_ids: list[str] = config.get("subtopic_ids", [])
-    if not subtopic_ids:
-        raise HTTPException(status_code=400, detail="subtopic_ids required for exam_simulation")
+    is_full_mock = session_type == "full_mock"
+    real_questions: list[dict] = []
+    reserved_ids: list[int] = []
 
-    num_q: int = int(config.get("n_questions", 50))
-    if not (1 <= num_q <= 100):
-        raise HTTPException(status_code=400, detail="n_questions must be between 1 and 100")
+    if is_full_mock:
+        num_q = 100
+        timed_minutes: int | None = 120
+        syllabus = _load_syllabus()
 
-    timed_minutes: int | None = config.get("timed_duration_minutes")
+        allocation = _build_full_mock_allocation(num_q)
+        if not allocation:
+            raise HTTPException(
+                status_code=500,
+                detail="No topic_weights seeded for upsc_prelims -- run scripts/seed_topic_weights_upsc.py",
+            )
 
-    # Load syllabus for subject/topic lookups
-    syllabus = _load_syllabus()
+        con = get_conn()
+        _ensure_mock_reserved_table(con)
+        real_questions, allocation, reserved_ids = _fill_allocation_from_real_pyqs(con, allocation)
+        con.close()
 
-    # Allocate questions across selected subtopics by PYQ weight
-    allocation = _build_exam_sim_allocation(subtopic_ids, num_q, syllabus)
-    if not allocation:
+        subtopic_ids = [item["subtopic_id"] for item in allocation]
+        # allocation now holds only the AI-generation gap per subtopic (may be empty
+        # if real PYQs alone covered every subtopic's need).
+    else:
+        subtopic_ids: list[str] = config.get("subtopic_ids", [])
+        if not subtopic_ids:
+            raise HTTPException(status_code=400, detail="subtopic_ids required for exam_simulation")
+
+        num_q = int(config.get("n_questions", 50))
+        if not (1 <= num_q <= 100):
+            raise HTTPException(status_code=400, detail="n_questions must be between 1 and 100")
+
+        timed_minutes = config.get("timed_duration_minutes")
+
+        # Load syllabus for subject/topic lookups
+        syllabus = _load_syllabus()
+
+        # Allocate questions across selected subtopics by PYQ weight
+        allocation = _build_exam_sim_allocation(subtopic_ids, num_q, syllabus)
+
+    if not is_full_mock and not allocation:
         raise HTTPException(status_code=400, detail="No valid subtopics found in syllabus")
+    # For full_mock, an empty `allocation` here is valid -- it means real PYQs alone
+    # covered every subtopic's need and no AI generation is required at all.
 
     # Gather quiz intelligence across all unique subjects selected
     unique_subjects = list({item["subject_id"] for item in allocation if item["subject_id"]})
@@ -1166,86 +1331,106 @@ def start_exam_simulation(config: dict):
         all_excluded_hashes.extend(intel.get("excluded_hashes", []))
     excluded_hashes_str = ", ".join(all_excluded_hashes[:60]) or "none"
 
-    # Build prompt parts
-    subtopic_allocation_str, content_chunks_str = _build_exam_sim_prompt_parts(allocation)
-
-    # Fetch CA chunks per subject and join (exam sim spans multiple subjects)
-    ca_sections: list[str] = []
-    for subj in unique_subjects:
-        ca = fetch_ca_chunks(subj.replace("_", " "), k=3)
-        if ca:
-            ca_sections.append(f"[{subj}]\n" + "\n\n---\n\n".join(ca))
-    ca_str = "\n\n".join(ca_sections) if ca_sections else "No current-affairs chunks available."
-
-    # Build dimensions block: one section per unique (subject, subtopic) in allocation
-    dim_sections: list[str] = []
-    seen_subtopics: set[str] = set()
-    for item in allocation:
-        st_id = item["subtopic_id"]
-        subj = item["subject_id"]
-        if st_id and st_id not in seen_subtopics:
-            seen_subtopics.add(st_id)
-            dims = _get_subtopic_dimensions(subj, st_id)
-            dim_sections.append(f"[{st_id}]\n{dims}")
-    available_dimensions_str = "\n\n".join(dim_sections) if dim_sections else "No dimensions available."
-
-    # Build recent questions block (aggregate across all subjects)
-    recent_blocks: list[str] = []
-    for subj in unique_subjects:
-        blk = _build_recent_questions_block(subj)
-        if blk:
-            recent_blocks.append(blk)
-    recent_questions_block = "\n\n".join(recent_blocks)
-
-    prompt_template = (PROMPT_DIR / "exam_simulation.txt").read_text()
-    prompt = (
-        prompt_template
-        .replace("{{num_questions}}", str(num_q))
-        .replace("{{subtopic_allocation}}", subtopic_allocation_str)
-        .replace("{{content_chunks}}", content_chunks_str)
-        .replace("{{current_affairs_chunks}}", ca_str)
-        .replace("{{available_dimensions}}", available_dimensions_str)
-        .replace("{{recent_questions_block}}", recent_questions_block)
-        .replace("{{excluded_question_hashes}}", excluded_hashes_str)
-    )
-
-    try:
-        response = client.messages.create(
-            model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
-            max_tokens=16000,
-            betas=["output-128k-2025-02-19"],
-            messages=[{"role": "user", "content": prompt}],
-        )
-        raw = response.content[0].text.strip()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
-
-    try:
-        first_brace = raw.find("{")
-        first_bracket = raw.find("[")
-        if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
-            start, end = first_brace, raw.rfind("}") + 1
-        else:
-            start, end = first_bracket, raw.rfind("]") + 1
-        parsed = json.loads(raw[start:end])
-        questions = parsed if isinstance(parsed, list) else parsed.get("questions", [])
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse exam sim JSON: {e}")
-
-    # Build authoritative subtopic → allocation lookup.
-    # Claude may drift on subject_id/topic_id in multi-subject sets — override with
-    # the allocation which was built from the syllabus and is always correct.
+    questions: list[dict] = []
     alloc_map: dict[str, dict] = {item["subtopic_id"]: item for item in allocation}
-    for q in questions:
-        # Content-based hash so excluded_hashes deduplication works across sessions.
-        q["question_hash"] = hashlib.sha256(
-            (q.get("question_text") or "").encode()
-        ).hexdigest()[:16]
-        # Fix subject_id/topic_id from allocation (source of truth).
-        st_id = q.get("subtopic_id")
-        if st_id and st_id in alloc_map:
-            q["subject_id"] = alloc_map[st_id]["subject_id"]
-            q["topic_id"]   = alloc_map[st_id]["topic_id"]
+
+    if allocation:
+        # gap_total is the AI-generation count -- for full_mock this is only the
+        # shortfall after real PYQs were pulled, NOT the overall 100-question total.
+        gap_total = sum(item["num_questions"] for item in allocation)
+
+        # Build prompt parts
+        subtopic_allocation_str, content_chunks_str = _build_exam_sim_prompt_parts(allocation)
+
+        # Fetch CA chunks per subject and join (exam sim spans multiple subjects)
+        ca_sections: list[str] = []
+        for subj in unique_subjects:
+            ca = fetch_ca_chunks(subj.replace("_", " "), k=3)
+            if ca:
+                ca_sections.append(f"[{subj}]\n" + "\n\n---\n\n".join(ca))
+        ca_str = "\n\n".join(ca_sections) if ca_sections else "No current-affairs chunks available."
+
+        # Build dimensions block: one section per unique (subject, subtopic) in allocation
+        dim_sections: list[str] = []
+        seen_subtopics: set[str] = set()
+        for item in allocation:
+            st_id = item["subtopic_id"]
+            subj = item["subject_id"]
+            if st_id and st_id not in seen_subtopics:
+                seen_subtopics.add(st_id)
+                dims = _get_subtopic_dimensions(subj, st_id)
+                dim_sections.append(f"[{st_id}]\n{dims}")
+        available_dimensions_str = "\n\n".join(dim_sections) if dim_sections else "No dimensions available."
+
+        # Build recent questions block (aggregate across all subjects)
+        recent_blocks: list[str] = []
+        for subj in unique_subjects:
+            blk = _build_recent_questions_block(subj)
+            if blk:
+                recent_blocks.append(blk)
+        recent_questions_block = "\n\n".join(recent_blocks)
+
+        prompt_template = (PROMPT_DIR / "exam_simulation.txt").read_text()
+        prompt = (
+            prompt_template
+            .replace("{{num_questions}}", str(gap_total if is_full_mock else num_q))
+            .replace("{{subtopic_allocation}}", subtopic_allocation_str)
+            .replace("{{content_chunks}}", content_chunks_str)
+            .replace("{{current_affairs_chunks}}", ca_str)
+            .replace("{{available_dimensions}}", available_dimensions_str)
+            .replace("{{recent_questions_block}}", recent_questions_block)
+            .replace("{{excluded_question_hashes}}", excluded_hashes_str)
+        )
+
+        try:
+            # PRE-EXISTING BUG fixed 2026-08-30: this was `client.messages.create(...,
+            # betas=[...])`, which the installed anthropic SDK (0.100.0) rejects with
+            # "unexpected keyword argument 'betas'" -- betas requires the `.beta`
+            # namespace. This means exam-sim's AI generation has been failing outright
+            # on every real call, which plausibly explains its near-zero real usage
+            # (3 sessions ever) independent of the calibration/structure gaps PLAN-011
+            # already documented. Found while testing the new Full Mock path.
+            response = client.beta.messages.create(
+                model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
+                max_tokens=16000,
+                betas=["output-128k-2025-02-19"],
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = response.content[0].text.strip()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+
+        try:
+            first_brace = raw.find("{")
+            first_bracket = raw.find("[")
+            if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
+                start, end = first_brace, raw.rfind("}") + 1
+            else:
+                start, end = first_bracket, raw.rfind("]") + 1
+            parsed = json.loads(raw[start:end])
+            questions = parsed if isinstance(parsed, list) else parsed.get("questions", [])
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to parse exam sim JSON: {e}")
+
+        # Build authoritative subtopic → allocation lookup.
+        # Claude may drift on subject_id/topic_id in multi-subject sets — override with
+        # the allocation which was built from the syllabus and is always correct.
+        for q in questions:
+            # Content-based hash so excluded_hashes deduplication works across sessions.
+            q["question_hash"] = hashlib.sha256(
+                (q.get("question_text") or "").encode()
+            ).hexdigest()[:16]
+            # Fix subject_id/topic_id from allocation (source of truth).
+            st_id = q.get("subtopic_id")
+            if st_id and st_id in alloc_map:
+                q["subject_id"] = alloc_map[st_id]["subject_id"]
+                q["topic_id"]   = alloc_map[st_id]["topic_id"]
+            if is_full_mock:
+                q["source_type"] = "ai_gap_fill"
+
+    if is_full_mock:
+        questions = real_questions + questions
+        random.shuffle(questions)
 
     # Create session record
     session_id = str(uuid.uuid4())
@@ -1259,10 +1444,15 @@ def start_exam_simulation(config: dict):
     if timed_minutes:
         stored_config["time_minutes"] = timed_minutes
 
+    if is_full_mock:
+        pyq_count = sum(1 for q in questions if q.get("source_type") == "official_pyq")
+        stored_config["pyq_pct"] = round(100 * pyq_count / len(questions), 1) if questions else 0.0
+        stored_config["pyq_count"] = pyq_count
+        stored_config["is_full_mock"] = True
+
     # subject_id stored as comma-joined list so existing columns are populated
-    combined_subject = ",".join(
-        sorted({a["subject_id"] for a in allocation if a["subject_id"]})
-    )
+    combined_subject = ",".join(sorted({q["subject_id"] for q in questions if q.get("subject_id")})) \
+        if is_full_mock else ",".join(sorted({a["subject_id"] for a in allocation if a["subject_id"]}))
 
     con = get_conn()
     con.execute(
@@ -1273,7 +1463,7 @@ def start_exam_simulation(config: dict):
         """,
         (
             session_id,
-            "exam_simulation",
+            "full_mock" if is_full_mock else "exam_simulation",
             combined_subject,
             "",
             mode,
@@ -1282,6 +1472,12 @@ def start_exam_simulation(config: dict):
             len(questions),
         ),
     )
+    if is_full_mock and reserved_ids:
+        _ensure_mock_reserved_table(con)
+        con.executemany(
+            "INSERT OR IGNORE INTO mock_reserved_questions (question_id, session_id) VALUES (?, ?)",
+            [(qid, session_id) for qid in reserved_ids],
+        )
     con.commit()
     con.close()
 
@@ -1290,6 +1486,7 @@ def start_exam_simulation(config: dict):
         "questions": questions,
         "notes_summary": None,
         "timed_duration_minutes": timed_minutes,
+        "pyq_pct": stored_config.get("pyq_pct") if is_full_mock else None,
     }
 
 

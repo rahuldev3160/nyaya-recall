@@ -25,9 +25,28 @@ CRITICAL RULES:
   * Statement-based: "Which of the following statements is/are correct?" with numbered (1)(2)(3) statements each on its own line
   * Direct factual: recall of a specific fact, date, provision, or body
   * Application: scenario-based — "If X occurs, which outcome follows?"
-  * Contemporary-linkage: connect concept to a 2025-2027 policy or event
+  * Contemporary-linkage: connect concept to a 2025-2027 policy or event — go for the *mechanics*
+    of the policy/event, not just its existence (e.g. how a settlement or approval process
+    actually works, not "what is X"). Recent UPSC papers have leaned toward applied
+    current-affairs questions over recall-level ones.
   * Match-the-pairs: options formatted as "A-1, B-2, C-3, D-4"
-- Difficulty should be realistic UPSC Prelims level — mix of easy (35%), medium (45%), hard (20%).
+  * Scenario/administrative-dilemma: describe a real-world governance or administrative
+    situation (e.g. a resource-allocation conflict, an environmental-clearance dispute, a
+    local-body jurisdiction question) and ask which principle, provision, or body correctly
+    applies or resolves it. Recent UPSC papers have leaned harder into this "ethics-ification"
+    of GS content — don't treat it as a rare type, use it regularly across subjects, not just
+    where an obvious ethics angle exists.
+- Difficulty should read like genuine UPSC ambiguity, not a flat easy/medium/hard label. Aim for:
+  * Statement-elimination traps: among 3-4 numbered statements, at least one should be a close,
+    plausible-sounding near-miss (e.g. right fact attached to the wrong provision/year/body) that
+    a careless reader would mark correct.
+  * Close distractors: wrong options should be genuinely tempting, not obviously wrong filler —
+    differ from the correct answer by one precise, checkable detail.
+  * Applied-not-recall framing wherever the underlying fact allows it (see contemporary-linkage
+    above) — prefer "which of these correctly describes how X works" over "what is X".
+  * Still vary genuine difficulty across the set overall (some should be gettable on first read,
+    most should require real elimination) — the goal is UPSC-realistic trickiness, not uniform
+    maximum difficulty on every question.
 - Explanations must be concise: lead with the key fact, then briefly note why wrong options are incorrect.
 
 Generate exactly {{num_questions}} questions spread across all the subtopics as allocated.

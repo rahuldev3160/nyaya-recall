@@ -673,12 +673,25 @@ def get_exam_results(session_id: str):
 
     overall_acc = round(total_correct / total_q * 100, 1) if total_q else 0.0
 
+    # Full Mock's honest PYQ-vs-AI split (PLAN-011 Area 2/6) was computed once at
+    # session-start time and stashed in quiz_sessions.config -- no new column needed.
+    is_full_mock = session_row["session_type"] == "full_mock"
+    pyq_pct = None
+    if is_full_mock:
+        try:
+            stored_config = json.loads(session_row["config"] or "{}")
+            pyq_pct = stored_config.get("pyq_pct")
+        except Exception:
+            pyq_pct = None
+
     return {
         "total_correct": total_correct,
         "total_attempted": total_attempted,
         "total_questions": total_q,
         "accuracy_pct": overall_acc,
         "by_subject": by_subject,
+        "is_full_mock": is_full_mock,
+        "pyq_pct": pyq_pct,
     }
 
 
