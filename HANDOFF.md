@@ -1,3 +1,20 @@
+### PR #56 (Full Mock exam-sim mode) merged — 2026-09-09
+
+**Merged, closing the loop from the "2027 redesign" entry below.** PR had been open since
+2026-08-29, blocked only by a doc conflict (`HANDOFF.md`/`ISSUES.md` both had entries for
+this same PR — one written on the branch, one written directly on `main` afterward by a
+later session). Code itself was clean/mergeable the whole time. Resolved by merging `main`
+into the branch, taking `main`'s (newer, fuller) doc versions, keeping all PR code; merged
+via `gh pr merge --merge`; local `main` reconciled and pushed. CI green
+(`Frontend — typecheck`, `Backend — Python syntax check`).
+
+**Exact next step:** Per the "2027 redesign" entry below, none of Recall's own PLAN-011 items
+remain (Area 1/2/5/6-Recall all done). Remaining 2027-redesign work is all on the Scribe side
+(`Descriptive-exams` repo — see its own HANDOFF.md). Otherwise: pick up from ISSUES.md/
+FEATURES.md per the standard "How to pick up work" section in CLAUDE.md.
+
+---
+
 ### Cross-project data-provenance audit (read-only) — 2026-08-30
 
 Audited as part of a 5-project data-sourcing audit (Recall/Scribe/Arena/law-model/content-pipeline)
