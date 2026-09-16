@@ -1,3 +1,23 @@
+### Data cleanup: 16 OCR-failure junk rows deleted, BUG-003 partially fixed — 2026-09-16
+
+Cross-project junk-data audit (triggered by Descriptive-exams' BUG-035 cleanup) found and
+Rahul approved two fixes, both backed up first via the new cross-project registry at
+`~/.claude/backups/backup_tool.py`:
+
+1. **16 rows in `pyq_questions`** contained OCR/extraction-failure status messages instead of
+   real question text (e.g. `"Unable to extract - source text appears corrupted..."`, options
+   like `"Option A in Hindi"`) — zero recoverable content, zero dependent rows. Deleted
+   (backup #4). Spread across 2014/2015/2019/2021.
+2. **BUG-003 (2014 duplication) partially fixed**: 17 of ~30 candidate duplicate rows deleted
+   (backup #5) after fuzzy-matching + manually verifying options/correct_answer for every
+   pair — this caught a case where blind text-matching would have deleted the only row with a
+   real answer. Full detail, including 2 new sub-findings **not** fixed this session (an
+   official-row-missing-answer pair, and a distinct extraction bug where 8 official rows lost
+   their numbered list items): `.knowledge/bugs/BUG-003.md`.
+
+`pyq_questions` total: 1969 → 1952 after both fixes. All backups queryable via
+`python3 ~/.claude/backups/backup_tool.py query --project Devthorium`.
+
 ### PR #56 (Full Mock exam-sim mode) merged — 2026-09-09
 
 **Merged, closing the loop from the "2027 redesign" entry below.** PR had been open since
