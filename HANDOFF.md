@@ -1,4 +1,4 @@
-### Data cleanup: 16 OCR-failure junk rows deleted, BUG-003 partially fixed — 2026-09-16
+### Data cleanup: 16 OCR-failure junk rows deleted, BUG-003 fully resolved — 2026-09-16 (updated)
 
 Cross-project junk-data audit (triggered by Descriptive-exams' BUG-035 cleanup) found and
 Rahul approved two fixes, both backed up first via the new cross-project registry at
@@ -8,14 +8,20 @@ Rahul approved two fixes, both backed up first via the new cross-project registr
    real question text (e.g. `"Unable to extract - source text appears corrupted..."`, options
    like `"Option A in Hindi"`) — zero recoverable content, zero dependent rows. Deleted
    (backup #4). Spread across 2014/2015/2019/2021.
-2. **BUG-003 (2014 duplication) partially fixed**: 17 of ~30 candidate duplicate rows deleted
+2. **BUG-003 (2014 duplication) resolved**: 17 of ~30 candidate duplicate rows deleted
    (backup #5) after fuzzy-matching + manually verifying options/correct_answer for every
    pair — this caught a case where blind text-matching would have deleted the only row with a
-   real answer. Full detail, including 2 new sub-findings **not** fixed this session (an
-   official-row-missing-answer pair, and a distinct extraction bug where 8 official rows lost
-   their numbered list items): `.knowledge/bugs/BUG-003.md`.
+   real answer. Then, on Rahul's explicit "repair by merging" instruction, 8 more pairs where
+   the official row was missing its numbered list items and/or its answer were repaired by
+   merging community's fuller text/options/answer into the official row (backup #6, both
+   pre-repair official state and deleted community rows preserved), rather than leaving them
+   as an unresolved gap. Each repaired row's `source_file` now records the merge inline. One
+   pair (community#2318/official#806) deliberately left unmerged — the two sources imply a
+   genuine 3-vs-4-item list conflict, not just a formatting gap; needs a real independent
+   source to resolve, not a guess. Full detail: `.knowledge/bugs/BUG-003.md`.
 
-`pyq_questions` total: 1969 → 1952 after both fixes. All backups queryable via
+`pyq_questions` total: 1969 → 1944 after all three passes (16 OCR-junk deleted, 17 exact
+duplicates deleted, 8 pairs repaired-then-deduped). All 6 backups queryable via
 `python3 ~/.claude/backups/backup_tool.py query --project Devthorium`.
 
 ### PR #56 (Full Mock exam-sim mode) merged — 2026-09-09

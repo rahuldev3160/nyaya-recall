@@ -27,7 +27,7 @@ Last updated: 2026-06-05
 |----|--------|----------|---------|---------------|
 | [BUG-001](bugs/BUG-001.md) | OPEN | P2 | PYQ correct_answers are AI-inferred, not validated against official keys | ISSUES.md note |
 | [BUG-002](bugs/BUG-002.md) | OPEN | P1 | ALTER TABLE pyq_questions pending — needs explicit Rahul approval before running | HANDOFF.md |
-| [BUG-003](bugs/BUG-003.md) | **PARTIALLY FIXED** | P1 | 2014 PYQ duplication. **Executed 2026-09-16**: 17 confirmed true-duplicate community rows deleted (backup #5), official-PDF version kept each time. 1 pair left untouched (official missing correct_answer). New separate extraction bug found (8 official rows missing list items) — not fixed, needs its own decision. | HANDOFF.md |
+| [BUG-003](bugs/BUG-003.md) | **FIXED** | P1 | 2014 PYQ duplication + extraction gaps. **2026-09-16**: 17 true duplicates deleted (backup #5); 8 official rows repaired by merging in community's fuller text/options/answers, then their now-redundant community twins deleted (backup #6). 1 pair (community#2318/official#806) left open — genuine 3-vs-4-item list conflict, needs a real independent source. | HANDOFF.md |
 | [BUG-004](bugs/BUG-004.md) | INFO | P2 | CSAT system exists (backend/routes/csat.py) but is untested | FEATURES.md |
 | [BUG-005](bugs/BUG-005.md) | OPEN | LOW | `question_explanations.model_used` mislabeled 'community_import' for all 904 AI-generated rows | docs/audit/DATA_AUDIT_2026-08-30.md |
 
