@@ -1,0 +1,42 @@
+# Docker build context for backend/Dockerfile is the repo root (server.py imports
+# ../scripts modules) -- this .dockerignore applies to that whole context, not just
+# backend/. Never bake local data, secrets, the Next.js app, or dev artifacts into the
+# backend image; data/ and vector_store/ are GCS FUSE mounts on Cloud Run instead.
+
+data/
+vector_store/
+backend/vector_store/
+cache/
+exports/
+logs/
+
+# Frontend -- Vercel builds web/ separately, it has no place in the backend image
+web/
+node_modules/
+
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+.git/
+.gitignore
+.github/
+
+.env
+.env.*
+!.env.example
+
+*.md
+docs/
+plans/
+.claude/
+.knowledge/
+memory/
+
+Dockerfile
+backend/Dockerfile
+.dockerignore
+
+.DS_Store

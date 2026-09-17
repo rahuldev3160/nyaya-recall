@@ -1,0 +1,23 @@
+# Minimal requirements for backend/server.py's FastAPI process, for the Docker image
+# (backend/Dockerfile) used to deploy to Cloud Run.
+#
+# There was no backend-specific requirements file before this. scripts/requirements.txt
+# is the ingestion pipeline's file (chromadb + sentence-transformers + torch + pdfplumber
+# + pytesseract + pdf2image + python-docx + beautifulsoup4 + lxml) and is NOT used here --
+# verified by grepping every import across backend/**/*.py plus the 5 scripts/ modules
+# the backend actually imports at runtime (batch_analyse, plan_generator,
+# priority_scorer, score_engine, self_attestation, db_helper): none of them import
+# torch/sentence_transformers/pdfplumber/pytesseract/pdf2image/docx/bs4. chromadb's
+# bundled default embedding function (onnxruntime-based) is what backend/routes/quiz.py
+# and attestation.py actually use at query time -- no separate sentence-transformers
+# install needed for that.
+#
+# Versions match the floors already pinned in scripts/requirements.txt for the packages
+# both files share, so behavior doesn't drift between the ingestion venv and this image.
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+chromadb>=0.5.0
+anthropic>=0.34.0
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+PyJWT>=2.8.0
