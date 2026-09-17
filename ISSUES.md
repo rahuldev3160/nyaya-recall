@@ -32,6 +32,48 @@
 
 ---
 
+### ISSUE-030 — Documented `cd backend && uvicorn server:app` command broken by an absolute `backend.*` import
+**Noticed:** 2026-09-18, incidentally, while starting the backend to verify the PFRDA/EPFO
+Mode 2 quiz-generation work (unrelated task) end-to-end.
+**Reported by:** Claude
+**Status:** Open
+**Priority:** P2 (blocks local dev startup via the documented command; not exam-blocking
+since a workaround exists)
+**Linked feature:** Question bank backend (PR #51, streak service)
+
+**What happened:**
+Running CLAUDE.md's documented command (`cd backend && uvicorn server:app --host 0.0.0.0
+--port 8000 --reload`) fails at import time with `ModuleNotFoundError: No module named
+'backend'`.
+
+**The problem:**
+`backend/routes/sessions.py` does `from backend.services import streak as streak_svc`
+(line 18), and `backend/services/streak.py` itself does `from backend.db import
+get_conn` — both absolute imports that require the repo root (parent of `backend/`) on
+`sys.path`. But `server.py` and every sibling route module (`routes/quiz.py`'s `from
+nyaya_core_client import ...`, `from db import get_conn` via its own `sys.path.insert`
+for `scripts/`, etc.) use bare imports that require `backend/` *itself* on `sys.path` —
+which is what actually happens when uvicorn is launched with cwd=`backend/` per the
+documented command. The two import styles are mutually inconsistent; no single cwd
+satisfies both.
+
+**Current state of the code:** Not fixed — out of scope for the session that found it
+(PFRDA/EPFO Mode 2 quiz generation, unrelated to the streak feature). Worked around for
+that session's own verification only, by running with cwd=repo root and
+`PYTHONPATH=backend` set explicitly (`env PYTHONPATH=backend python -m uvicorn
+backend.server:app ...` from the repo root) — not a real fix, not committed anywhere.
+
+**What's needed to fix:** Either (a) change `sessions.py`/`streak.py` to bare imports
+(`from services import streak`, `from db import get_conn`) matching every sibling route
+file's convention, or (b) make `server.py` explicitly add both the repo root and
+`backend/` to `sys.path` at the top (before the `routes` import) so either import style
+works regardless of launch cwd. (a) is more consistent with the rest of the codebase's
+existing convention; (b) is more robust to future mixed styles.
+
+**Resolution:** (unresolved)
+
+---
+
 ### ISSUE-029 — PYQ-explanation-card feature: wrong-option fields empty in 100% of generated rows
 **Noticed:** 2026-09-06 (found by a fork agent while researching prior art for nyaya-core's
 new `pyq_explanations` design, prompted by Rahul recalling unsatisfactory MCQ explanations)

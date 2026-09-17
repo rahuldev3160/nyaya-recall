@@ -16,6 +16,11 @@ from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 from db import get_conn, DB_PATH
+from nyaya_core_client import (
+    NyayaCoreClientError,
+    NyayaCoreUnavailableError,
+    get_topic_brief,
+)
 
 router = APIRouter()
 CHROMA_PATH = os.getenv("CHROMA_PATH", "vector_store")
@@ -24,6 +29,14 @@ _SYLLABUS_PATH = Path(__file__).parent.parent.parent / "data" / "syllabus.json"
 _NOTES_CACHE_PATH = Path(__file__).parent.parent.parent / "cache" / "explanations.json"
 _PROJECT_PATH   = Path(os.getenv("PROJECT_PATH", "."))
 _LEGACY_PLAN    = _PROJECT_PATH / "data" / "study_plan.json"
+
+# ── Mode 2: nyaya-core-backed exams (PFRDA Grade A / UPSC EPFO-APFC/EO-AO) ─────
+_NYAYA_CORE_EXAM_IDS = {"pfrda_gradea", "upsc_epfo_apfc_eo_ao"}
+_EXAM_DIMENSIONS_PATHS = {
+    "pfrda_gradea": Path(__file__).parent.parent.parent / "data" / "dimensions" / "pfrda_gradea.json",
+    "upsc_epfo_apfc_eo_ao": Path(__file__).parent.parent.parent / "data" / "dimensions" / "upsc_epfo_apfc_eo_ao.json",
+}
+_exam_dimensions_cache: dict[str, list] = {}
 
 
 def _plan_path(user_id: str = "user_1") -> Path:
@@ -792,8 +805,207 @@ def _build_multi_subtopic_prompt_parts(
     return subtopic_allocation, content_chunks_str
 
 
+# ── Mode 2: AI-generated quizzes for nyaya-core-backed exams (PFRDA/EPFO) ──────
+# Separate, additive code path — does NOT touch fetch_chunks/Chroma/syllabus.json, and
+# is not called at all unless config["exam_id"] is one of _NYAYA_CORE_EXAM_IDS. Every
+# existing caller of POST /quiz/generate today omits exam_id entirely, so this branch is
+# a no-op for the existing UPSC Prelims flow (verified via grep across web/src — no
+# caller sets exam_id).
+
+def _load_exam_dimensions(exam_id: str) -> list[dict]:
+    """Load data/dimensions/{exam_id}.json (flat list of {topic_id, dimensions, ...}) —
+    the PFRDA/EPFO equivalent of syllabus.json's embedded per-subtopic 'dimensions' key.
+    Different shape (flat topic_id-keyed list vs syllabus.json's nested subject/topic/
+    subtopic tree) so this is a new loader, not a reuse of _load_syllabus()."""
+    if exam_id not in _exam_dimensions_cache:
+        path = _EXAM_DIMENSIONS_PATHS.get(exam_id)
+        try:
+            _exam_dimensions_cache[exam_id] = json.loads(path.read_text()) if path else []
+        except Exception:
+            _exam_dimensions_cache[exam_id] = []
+    return _exam_dimensions_cache[exam_id]
+
+
+def _get_topic_dimensions_nyaya_core(exam_id: str, topic_id: str) -> str:
+    """Same output format as _get_subtopic_dimensions() (for {{available_dimensions}}
+    prompt injection) but reads the flat PFRDA/EPFO dimension files by topic_id."""
+    if not topic_id:
+        return "No dimensions available — topic not specified."
+    for topic in _load_exam_dimensions(exam_id):
+        if topic.get("topic_id") == topic_id:
+            dims = topic.get("dimensions", [])
+            if not dims:
+                return (
+                    f"Dimensions not yet generated for {topic_id}. "
+                    "Use your best judgment to identify the main testable angles."
+                )
+            return "\n".join(f"- {d['id']}: {d['name']}" for d in dims)
+    return "Topic not found in dimension file — use your best judgment for dimension_id."
+
+
+def _format_real_pyq_examples(mcq_pyqs: list[dict], limit: int = 8) -> str:
+    """Render nyaya-core PYQOut dicts as few-shot grounding text for the Mode 2 prompt."""
+    lines: list[str] = []
+    for i, q in enumerate(mcq_pyqs[:limit], 1):
+        opts = q.get("options") or {}
+        opt_str = "  ".join(f"{k}) {v}" for k, v in sorted(opts.items()))
+        year = f" ({q['year']})" if q.get("year") else ""
+        lines.append(f"{i}.{year} {q.get('question_text', '')}\n   {opt_str}")
+    return "\n\n".join(lines) if lines else "None available."
+
+
+def _generate_quiz_nyaya_core(config: dict, exam_id: str):
+    """Mode 2 for nyaya-core-backed exams (PFRDA Grade A / UPSC EPFO-APFC/EO-AO):
+    AI-generated practice questions grounded in nyaya-core's real content, matching the
+    UPSC Prelims experience (fresh questions, not just PYQ drill) without touching any of
+    the existing Chroma/syllabus.json machinery. Reuses _get_quiz_intelligence /
+    _build_recent_questions_block as-is — those only touch this repo's own
+    session_answers table by exact subject_id/subtopic_id string match, with no
+    UPSC-specific assumptions inside either function, so exam_id/topic_id slot into those
+    columns with zero code changes — and the existing quiz_sessions INSERT pattern.
+
+    Grounding rule: if nyaya-core has neither indexed explanation content NOR real PYQs
+    for this topic, raise an explicit error — never fall back to the old "Standard UPSC
+    Prelims content on {subject_id}..." stub, which is UPSC-specific and must never
+    silently serve PFRDA/EPFO content. As of 2026-09-18 (verified via nyaya-core's
+    scripts/inventory.py), zero chunks are indexed for either exam, so
+    /topic/{id}/brief's insufficient_grounding is True for every PFRDA/EPFO topic today —
+    real PYQs (read straight from pyq_bank, unaffected by the indexing gap) are the only
+    real grounding available and are used as the primary few-shot source. This is a
+    deliberate divergence from a literal "if search returns insufficient_grounding,
+    raise" rule: real verified PYQs ARE real grounding, just not narrative explanation
+    text — treating them as insufficient would make Mode 2 impossible to ship today even
+    though real, verified content exists. The hard-error path below still fires whenever
+    there is truly zero grounding of any kind (no chunks AND no real PYQs) for a topic.
+    """
+    topic_id = config.get("topic_id") or config.get("subtopic_id") or ""
+    if not topic_id:
+        raise HTTPException(status_code=400, detail="topic_id required for this exam_id")
+    paper_id = config.get("paper_id")
+    num_q = config.get("num_questions", 10)
+    difficulty = config.get("difficulty", "mixed")
+    session_type = config.get("session_type", "diagnostic")
+
+    try:
+        brief = get_topic_brief(topic_id, exam_id, paper_id=paper_id, chunk_k=5, pyq_limit=10)
+    except NyayaCoreUnavailableError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+    except NyayaCoreClientError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+    mcq_pyqs = brief.get("mcq_pyqs") or []
+    mains_pyqs = brief.get("mains_pyqs") or []
+    explanation_chunks = brief.get("explanation_chunks") or []
+    insufficient_grounding = bool(brief.get("insufficient_grounding"))
+
+    if insufficient_grounding and not mcq_pyqs and not mains_pyqs:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Insufficient grounding for {exam_id}/{topic_id}: nyaya-core has neither "
+                "indexed explanation content nor real PYQs for this topic. Cannot generate "
+                "a Mode 2 quiz without real grounding — run nyaya-core's ingestion for "
+                "this topic, or pick a different one."
+            ),
+        )
+
+    real_pyq_examples = _format_real_pyq_examples(mcq_pyqs)
+    if explanation_chunks:
+        chunk_texts = [c.get("text") or c.get("content") or "" for c in explanation_chunks]
+        explanation_chunks_block = (
+            "Indexed explanation content for this topic:\n" + "\n---\n".join(t for t in chunk_texts if t)
+        )
+    else:
+        explanation_chunks_block = (
+            "No indexed explanation content available yet for this topic — ground strictly "
+            "in the real PYQ examples above."
+        )
+
+    topic_name = topic_id.replace("_", " ")
+    exam_name = {
+        "pfrda_gradea": "PFRDA Grade A",
+        "upsc_epfo_apfc_eo_ao": "UPSC EPFO — APFC / EO-AO",
+    }.get(exam_id, exam_id)
+
+    # Reuse as-is — generic across any subject_id/subtopic_id string, see docstring above.
+    intel = _get_quiz_intelligence(exam_id, topic_id)
+    recent_questions_block = _build_recent_questions_block(exam_id)
+    available_dimensions = _get_topic_dimensions_nyaya_core(exam_id, topic_id)
+
+    prompt_template = (PROMPT_DIR / "pfrda_epfo_quiz.txt").read_text()
+    prompt = (
+        prompt_template
+        .replace("{{exam_name}}", exam_name)
+        .replace("{{topic_name}}", topic_name)
+        .replace("{{topic_id}}", topic_id)
+        .replace("{{difficulty}}", difficulty)
+        .replace("{{num_questions}}", str(num_q))
+        .replace("{{recent_questions_block}}", recent_questions_block)
+        .replace("{{real_pyq_examples}}", real_pyq_examples)
+        .replace("{{explanation_chunks_block}}", explanation_chunks_block)
+        .replace("{{excluded_question_hashes}}", ", ".join(intel["excluded_hashes"][:50]) or "none")
+        .replace("{{wrong_concepts_to_revisit}}", ", ".join(intel["wrong_concepts"]) or "none")
+        .replace("{{questions_seen_preview}}",
+                 "; ".join(t[:80] for t in intel["question_texts_seen"][:20]) or "none")
+        .replace("{{available_dimensions}}", available_dimensions)
+    )
+
+    response = client.messages.create(
+        model=os.getenv("AI_MODEL_SMART", "claude-sonnet-4-6"),
+        max_tokens=8192,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = response.content[0].text.strip()
+
+    try:
+        first_brace = raw.find("{")
+        first_bracket = raw.find("[")
+        if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
+            start, end = first_brace, raw.rfind("}") + 1
+        else:
+            start, end = first_bracket, raw.rfind("]") + 1
+        parsed = json.loads(raw[start:end])
+        questions = parsed if isinstance(parsed, list) else parsed.get("questions", [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse quiz JSON: {e}")
+
+    for q in questions:
+        q.setdefault("subtopic_id", q.get("topic_id", topic_id))
+        q["question_hash"] = hashlib.sha256((q.get("question_text") or "").encode()).hexdigest()[:16]
+        q["source_type"] = "ai_generated_nyaya_core"
+
+    session_id = str(uuid.uuid4())
+    stored_config = {**config, "exam_id": exam_id, "topic_id": topic_id}
+    con = get_conn()
+    con.execute(
+        """
+        INSERT INTO quiz_sessions (id, session_type, subject_id, topic_id, mode, config, start_time, total_questions)
+        VALUES (?,?,?,?,?,?,?,?)
+        """,
+        (
+            session_id, session_type, exam_id, topic_id, config.get("mode", "fixed_set"),
+            json.dumps(stored_config), datetime.now(timezone.utc).isoformat(), len(questions),
+        ),
+    )
+    con.commit()
+    con.close()
+
+    return {
+        "session_id": session_id,
+        "questions": questions,
+        "notes_summary": None,
+        "topic_id": topic_id,
+        "subtopic_ids": None,
+        "insufficient_grounding": insufficient_grounding,
+    }
+
+
 @router.post("/generate")
 def generate_quiz(config: dict):
+    exam_id = config.get("exam_id") or "upsc_prelims_gs"
+    if exam_id in _NYAYA_CORE_EXAM_IDS:
+        return _generate_quiz_nyaya_core(config, exam_id)
+
     subject_id = config.get("subject_id", "")
     subtopic_id = config.get("subtopic_id", "")
 

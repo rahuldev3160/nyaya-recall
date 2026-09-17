@@ -104,3 +104,30 @@ def search(query: str, exam_id: str, paper_id: Optional[str] = None, topic_id: O
 
 def post_attempt(question_id: str, chosen_option: str) -> dict:
     return _request("POST", "/attempt", json_body={"question_id": question_id, "chosen_option": chosen_option})
+
+
+def get_topic_brief(
+    topic_id: str,
+    exam_id: str,
+    paper_id: Optional[str] = None,
+    chunk_k: int = 5,
+    pyq_limit: int = 10,
+) -> dict:
+    """Composite 'explain X + give real PYQs on it' call -- GET /topic/{topic_id}/brief.
+
+    Returns {topic_id, exam_id, explanation_chunks, insufficient_grounding, mcq_pyqs,
+    mains_pyqs}. `insufficient_grounding=True` means nyaya-core's vector search found no
+    usable indexed explanation content for this topic (as of 2026-09-18, this is true for
+    ALL pfrda_gradea/upsc_epfo_apfc_eo_ao topics -- zero chunks are indexed for either exam,
+    confirmed via nyaya-core's `scripts/inventory.py`; only `mcq_pyqs`/`mains_pyqs` -- read
+    straight from `pyq_bank`, unaffected by the indexing gap -- carry real grounding today).
+    This client only forwards the flag; callers decide what "insufficient grounding" means
+    for their own use case (Mode 2 quiz generation treats real PYQs as valid grounding even
+    when insufficient_grounding is True -- see routes/quiz.py's `_generate_quiz_nyaya_core`).
+    """
+    encoded_topic_id = urllib.parse.quote(topic_id, safe="")
+    return _request(
+        "GET",
+        f"/topic/{encoded_topic_id}/brief",
+        {"exam_id": exam_id, "paper_id": paper_id, "chunk_k": chunk_k, "pyq_limit": pyq_limit},
+    )

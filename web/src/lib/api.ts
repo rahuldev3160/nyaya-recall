@@ -36,6 +36,11 @@ export interface QuizGenerateConfig {
   mode?: string;
   current_score?: number;
   topic_id?: string;
+  /** Mode 2 (AI-generated, nyaya-core-grounded): set to "pfrda_gradea" or
+   * "upsc_epfo_apfc_eo_ao" to route generation through nyaya-core instead of this
+   * repo's own Chroma/syllabus.json. Omit for the existing UPSC Prelims flow. */
+  exam_id?: string;
+  paper_id?: string;
 }
 
 export interface StudyPlan {

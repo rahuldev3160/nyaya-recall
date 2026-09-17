@@ -12,7 +12,24 @@ const EXAMS = [
   { exam_id: "upsc_epfo_apfc_eo_ao", label: "UPSC EPFO — APFC / EO-AO" },
 ];
 
-type View = "pick_exam" | "pick_topic" | "quiz" | "done";
+// AI-generated quiz question shape — same wire shape as the existing UPSC Prelims
+// /quiz/generate response (option_a..d + letter correct_answer), so the answer-check
+// logic below matches web/src/app/diagnostic/page.tsx's existing convention rather than
+// inventing a new one.
+interface AiQuizQuestion {
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_answer: string;
+  explanation: string;
+  topic_id: string;
+  dimension_id: string | null;
+  difficulty: string;
+}
+
+type View = "pick_exam" | "pick_topic" | "quiz" | "done" | "ai_quiz" | "ai_done";
 
 export default function NyayaPage() {
   const [view, setView] = useState<View>("pick_exam");
@@ -25,6 +42,14 @@ export default function NyayaPage() {
   const [chosen, setChosen] = useState<string | null>(null);
   const [result, setResult] = useState<NyayaAttemptResult | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+
+  // Mode 2 — AI-generated quiz state (kept separate from Mode 1's state above so neither
+  // flow's logic has to branch on the other).
+  const [aiQuestions, setAiQuestions] = useState<AiQuizQuestion[]>([]);
+  const [aiIdx, setAiIdx] = useState(0);
+  const [aiChosen, setAiChosen] = useState<string | null>(null);
+  const [aiScore, setAiScore] = useState({ correct: 0, total: 0 });
+  const [aiInsufficientGrounding, setAiInsufficientGrounding] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +101,43 @@ export default function NyayaPage() {
     [examId]
   );
 
+  // Mode 2 — AI-generated quiz, grounded in nyaya-core's real content (real PYQs +
+  // whatever indexed explanation chunks exist) via POST /quiz/generate with exam_id set.
+  // Unlike Mode 1, this always needs a specific topic (grounding is per-topic), so there
+  // is no "mixed" option here.
+  const startAiQuiz = useCallback(
+    async (topic: string) => {
+      if (!examId) return;
+      setTopicId(topic);
+      setError(null);
+      setLoading(true);
+      try {
+        const data = await api.generateQuiz({
+          exam_id: examId,
+          subject_id: examId,
+          topic_id: topic,
+          num_questions: 10,
+        });
+        setAiQuestions(data.questions ?? []);
+        setAiInsufficientGrounding(!!data.insufficient_grounding);
+        setAiIdx(0);
+        setAiChosen(null);
+        setAiScore({ correct: 0, total: 0 });
+        setView("ai_quiz");
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        setError(
+          msg.includes("422") || msg.toLowerCase().includes("insufficient")
+            ? "Insufficient grounding for this topic — nyaya-core has no indexed content or real PYQs to generate from. Try a different topic."
+            : "Could not generate an AI quiz — nyaya-core may be unreachable, or generation failed."
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [examId]
+  );
+
   const answer = useCallback(
     async (option: string) => {
       if (chosen || !questions[idx]) return;
@@ -101,14 +163,35 @@ export default function NyayaPage() {
     }
   }
 
+  // Mode 2 answers are checked client-side (correct_answer ships with the question) —
+  // same convention as diagnostic/page.tsx, safe here because a freshly AI-generated
+  // question carries no memorization risk the way a real, reusable PYQ would.
+  function answerAi(option: string) {
+    if (aiChosen || !aiQuestions[aiIdx]) return;
+    setAiChosen(option);
+    const isCorrect = aiQuestions[aiIdx].correct_answer === option;
+    setAiScore((s) => ({ correct: s.correct + (isCorrect ? 1 : 0), total: s.total + 1 }));
+  }
+
+  function nextAi() {
+    if (aiIdx + 1 < aiQuestions.length) {
+      setAiIdx(aiIdx + 1);
+      setAiChosen(null);
+    } else {
+      setView("ai_done");
+    }
+  }
+
   const current = questions[idx];
+  const aiCurrent = aiQuestions[aiIdx];
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
-        <h1 className="text-xl font-bold text-white">PFRDA / EPFO — Real PYQ Drill</h1>
+        <h1 className="text-xl font-bold text-white">PFRDA / EPFO Practice</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          Real, previously-asked questions only — no AI-generated content in this mode.
+          Drill real, previously-asked questions, or generate a fresh AI quiz grounded in
+          nyaya-core&apos;s real content for a topic.
         </p>
       </div>
 
@@ -140,18 +223,33 @@ export default function NyayaPage() {
             onClick={() => startQuiz(null)}
             className="text-left px-4 py-3 rounded-lg border border-amber-700 bg-amber-900/20 hover:bg-amber-900/30 text-amber-300 font-medium"
           >
-            Practice mixed — priority order across all topics
+            Practice mixed — real PYQs, priority order across all topics
           </button>
-          <div className="text-xs text-gray-500 uppercase tracking-wider mt-2">Or pick one topic</div>
+          <div className="text-xs text-gray-500 uppercase tracking-wider mt-2">
+            Or pick one topic — real PYQ drill or AI-generated quiz
+          </div>
           <div className="flex flex-col gap-1.5 max-h-96 overflow-y-auto">
             {topics.map((t) => (
-              <button
+              <div
                 key={t.topic_id}
-                onClick={() => startQuiz(t.topic_id)}
-                className="text-left px-3 py-2 rounded-lg border border-gray-800 bg-gray-900 hover:bg-gray-800 text-sm text-gray-200"
+                className="flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2"
               >
-                {t.name}
-              </button>
+                <span className="flex-1 text-sm text-gray-200">{t.name}</span>
+                <button
+                  onClick={() => startQuiz(t.topic_id)}
+                  className="text-xs px-2.5 py-1.5 rounded-md border border-gray-700 text-gray-300 hover:bg-gray-800"
+                  title="Drill real, previously-asked questions on this topic"
+                >
+                  Real PYQs
+                </button>
+                <button
+                  onClick={() => startAiQuiz(t.topic_id)}
+                  className="text-xs px-2.5 py-1.5 rounded-md border border-purple-700 bg-purple-900/20 text-purple-300 hover:bg-purple-900/30"
+                  title="Generate a fresh AI quiz grounded in nyaya-core's real content for this topic"
+                >
+                  AI Quiz
+                </button>
+              </div>
             ))}
           </div>
           <button onClick={() => setView("pick_exam")} className="text-sm text-gray-500 hover:text-gray-300 mt-2">
@@ -222,6 +320,106 @@ export default function NyayaPage() {
               className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium"
             >
               Practice again
+            </button>
+            <button
+              onClick={() => setView("pick_topic")}
+              className="px-4 py-2 rounded-lg border border-gray-800 text-gray-300 hover:bg-gray-800 text-sm"
+            >
+              Change topic
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!loading && view === "ai_quiz" && aiCurrent && (
+        <div className="flex flex-col gap-4">
+          <div className="text-xs text-gray-500 flex items-center gap-2">
+            <span className="px-1.5 py-0.5 rounded bg-purple-900/40 text-purple-300 border border-purple-700">
+              AI-generated
+            </span>
+            Question {aiIdx + 1} / {aiQuestions.length} · {aiScore.correct}/{aiScore.total} correct so far
+          </div>
+          {aiInsufficientGrounding && (
+            <div className="rounded-lg border border-yellow-700 bg-yellow-900/10 px-3 py-2 text-xs text-yellow-300">
+              No indexed explanation content for this topic yet — these questions are grounded
+              in real past questions only.
+            </div>
+          )}
+          <div className="rounded-lg border border-gray-800 bg-gray-900 p-4 text-white whitespace-pre-line">
+            {aiCurrent.question_text}
+          </div>
+          <div className="flex flex-col gap-2">
+            {([
+              { key: "a", text: aiCurrent.option_a },
+              { key: "b", text: aiCurrent.option_b },
+              { key: "c", text: aiCurrent.option_c },
+              { key: "d", text: aiCurrent.option_d },
+            ] as const).map((opt) => {
+              const isChosen = aiChosen === opt.key;
+              const isCorrect = aiChosen && aiCurrent.correct_answer === opt.key;
+              const isWrongChoice = aiChosen && isChosen && !isCorrect;
+              return (
+                <button
+                  key={opt.key}
+                  disabled={!!aiChosen}
+                  onClick={() => answerAi(opt.key)}
+                  className={`text-left px-4 py-2.5 rounded-lg border text-sm ${
+                    isCorrect
+                      ? "border-green-600 bg-green-900/30 text-green-300"
+                      : isWrongChoice
+                      ? "border-red-600 bg-red-900/30 text-red-300"
+                      : "border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800"
+                  } ${aiChosen ? "cursor-default" : "cursor-pointer"}`}
+                >
+                  <span className="font-semibold">{opt.key})</span> {opt.text}
+                </button>
+              );
+            })}
+          </div>
+          {aiChosen && (
+            <div className="flex flex-col gap-3">
+              <div className="rounded-lg border border-gray-800 bg-gray-900/60 p-3 text-xs text-gray-300">
+                {aiCurrent.explanation}
+              </div>
+              <div className="flex items-center justify-between">
+                <span
+                  className={`text-sm font-medium ${
+                    aiCurrent.correct_answer === aiChosen ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  {aiCurrent.correct_answer === aiChosen
+                    ? "Correct!"
+                    : `Wrong — correct answer was ${aiCurrent.correct_answer}.`}
+                </span>
+                <button
+                  onClick={nextAi}
+                  className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium"
+                >
+                  {aiIdx + 1 < aiQuestions.length ? "Next →" : "Finish"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!loading && view === "ai_done" && (
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-gray-800 bg-gray-900 p-6 text-center">
+            <div className="text-3xl font-bold text-purple-400">
+              {aiScore.correct}/{aiScore.total}
+            </div>
+            <div className="text-sm text-gray-400 mt-1">
+              {aiScore.total > 0 ? `${Math.round((aiScore.correct / aiScore.total) * 100)}% correct` : ""}
+              {" "}· AI-generated quiz
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => topicId && startAiQuiz(topicId)}
+              className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium"
+            >
+              Generate again
             </button>
             <button
               onClick={() => setView("pick_topic")}
