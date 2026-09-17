@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback, pyq, questions, internal_arena
+from routes import quiz, sessions, analysis, plan, tracker, attestation, csat, config, library, feedback, pyq, questions, internal_arena, nyaya_pyq_drill
 from db import enable_wal, get_conn, DB_PATH
 
 
@@ -306,6 +306,7 @@ app.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
 app.include_router(pyq.router, prefix="/pyq", tags=["pyq"])
 app.include_router(questions.router, prefix="/questions", tags=["questions"])
 app.include_router(internal_arena.router, prefix="/internal/v1", tags=["internal-arena"])
+app.include_router(nyaya_pyq_drill.router, prefix="/nyaya", tags=["nyaya-core"])
 
 
 @app.get("/health")

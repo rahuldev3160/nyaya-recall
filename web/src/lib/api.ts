@@ -100,6 +100,35 @@ export interface SubmitAnswerPayload {
   skipped?: boolean;
 }
 
+export interface NyayaTopic {
+  topic_id: string;
+  name: string;
+  parent_topic_id: string | null;
+  weight: number | null;
+  is_core: boolean | null;
+}
+
+export interface NyayaQuestion {
+  question_id: string;
+  exam_id: string;
+  paper_id: string | null;
+  topic_id: string | null;
+  question_format: string;
+  year: number | null;
+  question_text: string;
+  options: Record<string, string> | null;
+  status: string | null;
+  source_type: string;
+}
+
+export interface NyayaAttemptResult {
+  question_id: string;
+  chosen_option: string;
+  correct_option: string;
+  is_correct: boolean;
+  topic_coverage: { attempts_count: number; accuracy: number; coverage_depth: number } | null;
+}
+
 export const api = {
   generateQuiz: (config: object) => post("/quiz/generate", config),
   submitAnswer: (answer: SubmitAnswerPayload) => post("/sessions/answer", answer),
@@ -222,6 +251,26 @@ export const api = {
   /** Fetch past exam simulation history. */
   getExamSimHistory: () =>
     get("/sessions/exam-sim/history"),
+
+  // ── nyaya-core-backed real-PYQ drill (PFRDA / EPFO) ─────────────────────────
+  // All content lives in the sibling nyaya-core project's own DB, reached via
+  // this repo's /nyaya proxy (backend/routes/nyaya_pyq_drill.py). If nyaya-core's
+  // local API isn't running, these calls fail with a clear 502 — there's no local
+  // fallback content for these exams.
+
+  getNyayaTopics: (examId: string, paperId?: string) =>
+    get(`/nyaya/topics?exam_id=${encodeURIComponent(examId)}${paperId ? `&paper_id=${encodeURIComponent(paperId)}` : ""}`),
+
+  getNyayaQuiz: (examId: string, opts: { paperId?: string; topicId?: string; n?: number } = {}) => {
+    const params = new URLSearchParams({ exam_id: examId });
+    if (opts.paperId) params.set("paper_id", opts.paperId);
+    if (opts.topicId) params.set("topic_id", opts.topicId);
+    if (opts.n) params.set("n", String(opts.n));
+    return get(`/nyaya/quiz?${params.toString()}`);
+  },
+
+  recordNyayaAttempt: (questionId: string, chosenOption: string) =>
+    post("/nyaya/attempt", { question_id: questionId, chosen_option: chosenOption }),
 };
 
 // ── Multi-user UI helpers ──────────────────────────────────────────────────────

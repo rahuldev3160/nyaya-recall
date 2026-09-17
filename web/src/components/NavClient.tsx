@@ -6,6 +6,7 @@ const SIDEBAR_LINKS: { label: string; href: string; icon: string }[] = [
   { icon: "🏠", label: "Dashboard", href: "/" },
   { icon: "⚡", label: "Practice", href: "/practice" },
   { icon: "📚", label: "PYQ Browser", href: "/pyq" },
+  { icon: "🎯", label: "PFRDA/EPFO", href: "/nyaya" },
   { icon: "📊", label: "Progress", href: "/tracker" },
   { icon: "🏆", label: "Leaderboard", href: "/leaderboard" },
 ];
@@ -18,6 +19,7 @@ const MOBILE_LINKS: { label: string; href: string; icon: string; primary?: boole
   { icon: "🏠", label: "Home", href: "/" },
   { icon: "⚡", label: "Practice", href: "/practice", primary: true },
   { icon: "📚", label: "PYQs", href: "/pyq" },
+  { icon: "🎯", label: "PFRDA/EPFO", href: "/nyaya" },
   { icon: "📊", label: "Progress", href: "/tracker" },
   { icon: "👤", label: "Profile", href: "/profile" },
 ];
