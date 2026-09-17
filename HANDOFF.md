@@ -1,3 +1,59 @@
+### PFRDA/EPFO real-PYQ drill mode added — 2026-09-17
+
+**Branch:** `feature/pfrda-epfo-nyaya-core-integration` (not merged to main; needs Rahul's
+PR review per this repo's own workflow). Built as part of a larger, approved plan
+(`~/.claude/plans/functional-stirring-galaxy.md`) toward the target architecture where
+nyaya-core becomes the single indexed data platform and Recall is a thin consumer.
+
+**What's live (Mode 1 — real PYQ drill, zero LLM calls):**
+- `backend/nyaya_core_client.py` — new, thin stdlib-`urllib` HTTP client to nyaya-core's
+  local API (`127.0.0.1:8420`). Distinguishes real service-unavailability
+  (`NyayaCoreUnavailableError` → 502) from a legit client error nyaya-core itself
+  returned (`NyayaCoreClientError` → propagates the real status/detail, e.g. 404 for an
+  unknown question_id).
+- `backend/routes/nyaya_pyq_drill.py` — new, isolated router (`/nyaya/topics`,
+  `/nyaya/quiz`, `/nyaya/attempt`). Not a modification of `routes/pyq.py` (structurally
+  incompatible — that file is keyed by `year -> subject_id -> int question_id` against
+  this repo's own `upsc.db`; nyaya-core's schema is `exam_id/paper_id/topic_id` string
+  keys). Holds no local DB connection at all — every question/attempt/coverage number
+  lives in nyaya-core's own `core.db`, reached live over HTTP.
+- `web/src/app/nyaya/page.tsx` — new page: pick PFRDA or EPFO → pick a topic (or "mixed,
+  priority order") → answer real PYQs one at a time with immediate right/wrong feedback →
+  session score. Added to both the desktop sidebar and mobile tab bar in `NavClient.tsx`.
+- `server.py`/`api.ts` changes are purely additive (2-line diff in `server.py` registering
+  the new router; new entries appended to the `api` object in `api.ts`) — the existing
+  UPSC Prelims `quiz.py`/Chroma/`syllabus.json` path was **not touched at all**, verified
+  via `git diff`.
+- Verified end-to-end against real local data (nyaya-core running on `127.0.0.1:8420`):
+  topic listing, priority-ordered quiz selection, attempt recording + real
+  `topic_coverage` recompute, and the fail-loud 502 path when nyaya-core's API is down
+  (confirmed by killing it mid-test — no silent stub/fallback content). `npx tsc --noEmit`
+  and `npm run lint` both pass. Test attempt rows written during verification were
+  deleted from nyaya-core's `user_attempts`/`topic_coverage` afterward — real data is
+  clean, not polluted by this session's testing.
+
+**Not verified: the actual rendered page in a browser.** This sandbox has no
+`.env.local` (Supabase keys), so every page — including pre-existing, untouched ones like
+`/pyq` and `/practice` — 500s here (`supabaseUrl is required`, `AuthGuard`/`supabase.ts`).
+Confirmed this is a sandbox-only gap, not something introduced this session. Rahul should
+do a real browser check on his own machine before trusting the UI is pixel/flow-correct.
+
+**Deliberately NOT built this session — a real scope finding, not an oversight:**
+Mode 2 (AI-generated quiz questions styled on real PYQ patterns, matching what UPSC
+Prelims gets today) was originally planned for this session too. Reading `quiz.py` in
+full changed that call: `subject_id`/`subtopic_id` are threaded through many nested
+functions (`fetch_chunks_merged`, `_build_merged_content_chunks_str`,
+`_allocate_questions_for_subtopic_ids`, dimension lookups, etc.) with no single
+`exam_id`-branchable choke point — genuinely bigger and riskier than "add an `exam_id`
+branch to `fetch_chunks()`" implied. Rather than rush edits into a 1500-line file this
+session doesn't have full context on (real risk to the UPSC Prelims flow Rahul studies
+from daily), Mode 2 is deferred to its own, separately-scoped session. `quiz.py` itself
+has zero lines changed. Real-PYQ-grounded dimension generation for both exams IS built
+and tested (nyaya-core's `scripts/generate_dimensions_from_pyqs.py` + new prompt file) —
+it's the input Mode 2 will need, just not wired into a generation route yet. Running it
+at full scale (all ~195 PFRDA + ~27 EPFO topics) costs real (small) Haiku API money —
+not run at scale this session, only spot-verified on 2 individual topics.
+
 ### Data cleanup: 16 OCR-failure junk rows deleted, BUG-003 fully resolved — 2026-09-16 (updated)
 
 Cross-project junk-data audit (triggered by Descriptive-exams' BUG-035 cleanup) found and

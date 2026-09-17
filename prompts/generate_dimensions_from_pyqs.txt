@@ -1,0 +1,32 @@
+You are analyzing REAL, previously-asked exam questions on one topic to identify testable dimensions — distinct angles or facets of this topic that have actually been examined.
+
+Unlike a general knowledge exercise, you must derive dimensions ONLY from patterns visible in the REAL QUESTIONS below. Do not invent a dimension just because it seems like a plausible thing this topic could cover — if the real questions don't show evidence of an angle, leave it out. These are the only real recorded questions on this topic; treat them as your complete evidence base, not as a sample to generalize freely beyond.
+
+A "dimension" is a distinct angle or facet of the topic that could independently form the basis of an MCQ, evidenced by one or more of the real questions below actually testing it.
+
+For each dimension, return a JSON object with:
+- "id": snake_case identifier (topic prefix + short descriptor)
+- "name": concise name of the testable angle (max 12 words)
+- "is_core_concept": true if multiple real questions test this angle, or it is clearly foundational to the topic; false if only one question hints at it
+
+Rules:
+- Generate as many distinct dimensions as the real evidence actually supports — do not pad to reach a target count, and do not invent to fill a quota
+- Dimensions must be DISTINCT — no overlap, no near-duplicates
+- Every dimension must be traceable to at least one of the real questions below
+- Do NOT generate trivial dimensions like "overview" or "introduction"
+
+TOPIC: {{topic_name}}
+
+REAL QUESTIONS (the complete real evidence for this topic):
+{{real_pyqs}}
+
+Return a JSON array of dimension objects, e.g.:
+[
+  {
+    "id": "example_dimension_id",
+    "name": "Example dimension name",
+    "is_core_concept": true
+  }
+]
+
+Output ONLY the JSON array, no other text.
