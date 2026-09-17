@@ -1,9 +1,20 @@
-### PFRDA/EPFO real-PYQ drill mode added — 2026-09-17
+### PFRDA/EPFO real-PYQ drill mode added — 2026-09-17/18
 
-**Branch:** `feature/pfrda-epfo-nyaya-core-integration` (not merged to main; needs Rahul's
-PR review per this repo's own workflow). Built as part of a larger, approved plan
+**Merged to `main` as PR #57** (branch `feature/pfrda-epfo-nyaya-core-integration`,
+reviewed and merged by Rahul same session). Built as part of a larger, approved plan
 (`~/.claude/plans/functional-stirring-galaxy.md`) toward the target architecture where
 nyaya-core becomes the single indexed data platform and Recall is a thin consumer.
+
+**Update, same session, after PR #57 merged:** `scripts/generate_dimensions_from_pyqs.py`
+was run at full scale (also committed to `main`): PFRDA 121 topics → 383 real dimensions
+(57 flagged `insufficient_pyq_evidence`), EPFO 28 topics → 345 dimensions (1 flagged).
+Fixed a real cost bug found mid-run: nyaya-core's `/topics` returns one row per
+`(exam_id, paper_id, topic_id)`, so a topic linked under 2+ papers (74/195 of PFRDA's
+rows) was Haiku-called twice before being silently overwritten — deduped by `topic_id`
+before the loop now (verified live that the duplicate rows always carried the same real
+weight, so this was wasted spend, not a correctness bug). Output: `data/dimensions/
+{pfrda_gradea,upsc_epfo_apfc_eo_ao}.json` — this is the real, verified input Mode 2
+(AI-generated quizzes) will need whenever that gets built.
 
 **What's live (Mode 1 — real PYQ drill, zero LLM calls):**
 - `backend/nyaya_core_client.py` — new, thin stdlib-`urllib` HTTP client to nyaya-core's
