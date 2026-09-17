@@ -1,3 +1,94 @@
+### PFRDA/EPFO Mode 2 (AI-generated quizzes) built — 2026-09-18
+
+**Not yet merged, branch `feature/pfrda-epfo-mode2-ai-quiz`.** Picks up the item the
+2026-09-17/18 session (below) deliberately deferred: AI-generated practice questions for
+PFRDA Grade A / UPSC EPFO-APFC/EO-AO, matching the UPSC Prelims experience (fresh
+questions, not just the Mode 1 real-PYQ drill), grounded in nyaya-core's real content.
+
+**What was actually found in `quiz.py` (1517 lines, read in full):** it is a single FastAPI
+endpoint, `POST /quiz/generate` (`generate_quiz(config: dict)`) — subject_id/subtopic_id
+*are* threaded through many nested helpers (`fetch_chunks_merged`,
+`_build_merged_content_chunks_str`, `_allocate_questions_for_subtopic_ids`, dimension
+lookups...) exactly as the prior session found, but since the endpoint itself is the one
+and only entry point per request, a clean branch at the very top of `generate_quiz` —
+before any of that nested machinery runs — sends PFRDA/EPFO requests into a fully separate,
+self-contained function (`_generate_quiz_nyaya_core`) that never touches
+Chroma/syllabus.json/any of those nested helpers at all. This is lower-risk than it
+sounded: it's not "thread exam_id through the nested functions," it's "skip all of them
+entirely for the two new exam_ids." Existing callers (verified via grep across
+`web/src` — none send `exam_id` today) fall through to `exam_id = "upsc_prelims_gs"` and
+hit the exact pre-existing code, now merely indented 8 lines deeper — confirmed via a live
+side-by-side call (`polity`/`making_constitution`, no `exam_id`) returning real
+Chroma-grounded questions in the same shape as before.
+
+**Grounding — a real, load-bearing finding, not a guess:** nyaya-core's own
+`scripts/inventory.py` shows **zero indexed LanceDB chunks for every exam it knows about**,
+PFRDA/EPFO included — `/search` and `/topic/{id}/brief` return `insufficient_grounding=True`
+for literally every PFRDA/EPFO topic today. `/pyq` (reads `pyq_bank` directly, unaffected by
+the indexing gap) is the only real grounding source right now — 470 PFRDA + 660 EPFO real
+MCQs. Mode 2 therefore grounds primarily in real PYQs (as few-shot style/content anchors —
+the prompt explicitly forbids copying their wording/scenario) via nyaya-core's new
+`GET /topic/{id}/brief` composite endpoint (added `get_topic_brief()` to
+`nyaya_core_client.py`), and only raises the required hard error (`HTTP 422`, never the old
+`"Standard UPSC Prelims content on {subject_id}..."` stub) when a topic has **neither**
+indexed chunks **nor** real PYQs — verified live against `pfrda_english_language` (a
+paper-level rollup topic with 0 directly-tagged PYQs). `NyayaCoreUnavailableError` still maps
+to `HTTP 502` (verified live by killing nyaya-core mid-test).
+
+**Dimensions:** PFRDA/EPFO dimension files (`data/dimensions/{pfrda_gradea,
+upsc_epfo_apfc_eo_ao}.json`, built 2026-09-17) are a flat `topic_id`-keyed list — a
+genuinely different shape from `syllabus.json`'s nested subject→topic→subtopic tree that
+`_get_subtopic_dimensions()` reads — so a new loader (`_load_exam_dimensions` /
+`_get_topic_dimensions_nyaya_core`) was written, matching the existing function's output
+format exactly (`- {id}: {name}` lines) so the shared `{{available_dimensions}}` prompt
+placeholder behaves identically either way.
+
+**Reused, not rebuilt:** `_get_quiz_intelligence()` and `_build_recent_questions_block()`
+turned out to be already-generic — they query `session_answers` by exact
+subject_id/subtopic_id string match with zero UPSC-specific assumptions inside either
+function — so PFRDA/EPFO calls reuse both as-is (exam_id/topic_id just slot into those
+columns) rather than needing PFRDA/EPFO-specific dedup logic. Same for the
+`quiz_sessions` INSERT pattern.
+
+**UI:** `/nyaya/page.tsx`'s topic list (`pick_topic` view) now shows two buttons per topic —
+"Real PYQs" (existing Mode 1, untouched) and "AI Quiz" (new) — rather than a separate page,
+since the existing exam→topic picker already does everything Mode 2 needs. New `ai_quiz`/
+`ai_done` views render `option_a..d`/`correct_answer` client-side-checked questions, the
+same convention `diagnostic/page.tsx` already uses (not a new pattern). `npx tsc --noEmit`
+and `npm run lint` both pass.
+
+**Verified end-to-end, live (not just unit-level):** started nyaya-core
+(`.venv/bin/python -m src.api.main`, confirmed indexed content via `inventory.py`) and this
+repo's backend, then called `POST /quiz/generate` for real: (1) `pfrda_gradea` /
+`pfrda_eng_cloze_test` (5 real PYQs) → 3 genuinely PFRDA-styled cloze questions, correctly
+`insufficient_grounding: true`, zero UPSC stub text anywhere; (2) `upsc_epfo_apfc_eo_ao` /
+`epfo_governance_constitution` (67 real PYQs) → same, real EPFO-styled output; (3)
+`pfrda_gradea` / `pfrda_english_language` (0 real PYQs, 0 chunks) → clean `422`, no
+fallback; (4) nyaya-core killed mid-test → clean `502`; (5) existing UPSC flow
+(`polity`/`making_constitution`, no `exam_id`) → unchanged real Chroma-grounded output,
+same response shape as before. All 3 test `quiz_sessions` rows from (1)/(2)/(5) deleted
+after verification — no test data left in `data/upsc.db`. Both local servers stopped after
+testing. **Not verified:** the actual rendered `/nyaya` page in a real browser (same sandbox
+gap as the 2026-09-17/18 session below — no `.env.local`/Supabase keys here); Rahul should
+do a real browser check before trusting the UI is pixel/flow-correct.
+
+**New, out-of-scope bug found while starting the backend (logged as ISSUE-030, not
+fixed):** the documented `cd backend && uvicorn server:app ...` command is currently broken
+— `sessions.py`'s `from backend.services import streak as streak_svc` (added with the
+streak feature, PR #51) needs the repo root on `sys.path`, but every sibling route file's
+bare imports (including this session's own `nyaya_core_client` import) need `backend/`
+itself on `sys.path` — no single launch cwd satisfies both. Worked around for this
+session's own testing only (`PYTHONPATH=backend` from repo root); not fixed, since it's
+unrelated to the PFRDA/EPFO work. See ISSUE-030 for the real fix.
+
+**Exact next step:** Rahul review + merge `feature/pfrda-epfo-mode2-ai-quiz` (was not pushed
+or PR'd — environment this session ran in could not perform git operations against this
+repo at all; branch was never created or committed either, see the note this session leaves
+for its coordinator). Separately, ISSUE-030 needs a real fix before local dev is reliably
+startable via the documented command.
+
+---
+
 ### PFRDA/EPFO real-PYQ drill mode added — 2026-09-17/18
 
 **Merged to `main` as PR #57** (branch `feature/pfrda-epfo-nyaya-core-integration`,

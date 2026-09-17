@@ -31,6 +31,7 @@ Last updated: 2026-06-05
 | [BUG-004](bugs/BUG-004.md) | INFO | P2 | CSAT system exists (backend/routes/csat.py) but is untested | FEATURES.md |
 | [BUG-005](bugs/BUG-005.md) | OPEN | LOW | `question_explanations.model_used` mislabeled 'community_import' for all 904 AI-generated rows | docs/audit/DATA_AUDIT_2026-08-30.md |
 | BUG-006 | **FIXED** | LOW | 16 rows in `pyq_questions` contained OCR/extraction-failure status messages ("Unable to extract...") instead of real questions, across 2014/2015/2019/2021. **2026-09-16**: deleted, backed up first (registry #4), zero dependents. | HANDOFF.md |
+| BUG-007 (ISSUE-030) | OPEN | P2 | Documented `cd backend && uvicorn server:app` startup command broken — `sessions.py`'s `from backend.services import streak` needs repo root on `sys.path`, but sibling route files' bare imports need `backend/` itself on `sys.path`. No single cwd satisfies both. Found 2026-09-18, unrelated to the session that found it (PFRDA/EPFO Mode 2). | ISSUES.md |
 
 ---
 
