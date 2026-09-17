@@ -1,0 +1,3432 @@
+[
+  {
+    "topic_id": "pfrda_eng_cloze_test",
+    "name": "Cloze Test / Word Replacement",
+    "weight": 3.2805,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_english_language_16",
+      "pfrda_2022_phase1_p1_english_language_17",
+      "pfrda_2022_phase1_p1_english_language_18",
+      "pfrda_2022_phase1_p1_english_language_19",
+      "pfrda_2022_phase1_p1_english_language_20"
+    ],
+    "dimensions": [
+      {
+        "id": "cloze_word_choice_synonymy",
+        "name": "Selecting synonyms or semantically appropriate words",
+        "is_core_concept": true
+      },
+      {
+        "id": "cloze_phonetic_confusion",
+        "name": "Distinguishing between phonetically similar words",
+        "is_core_concept": true
+      },
+      {
+        "id": "cloze_adjective_selection",
+        "name": "Choosing correct adjective forms and meanings",
+        "is_core_concept": true
+      },
+      {
+        "id": "cloze_word_form_variation",
+        "name": "Identifying correct word forms (noun, verb, adjective)",
+        "is_core_concept": true
+      },
+      {
+        "id": "cloze_no_improvement_option",
+        "name": "Recognizing when no replacement is needed",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eng_error_spotting",
+    "name": "Error Spotting",
+    "weight": 6.8805,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_english_language_7",
+      "pfrda_2022_phase1_p1_english_language_8",
+      "pfrda_2022_phase1_p1_english_language_9",
+      "pfrda_2022_phase1_p1_english_language_10",
+      "pfrda_2022_phase1_p1_english_language_11",
+      "pfrda_2025_phase1_p1_english_language_7",
+      "pfrda_2025_phase1_p1_english_language_8",
+      "pfrda_2025_phase1_p1_english_language_9",
+      "pfrda_2025_phase1_p1_english_language_10"
+    ],
+    "dimensions": [
+      {
+        "id": "error_spotting_subject_verb_agreement",
+        "name": "Subject-verb agreement errors",
+        "is_core_concept": true
+      },
+      {
+        "id": "error_spotting_article_usage",
+        "name": "Incorrect or missing article usage",
+        "is_core_concept": true
+      },
+      {
+        "id": "error_spotting_verb_form",
+        "name": "Incorrect verb form or tense",
+        "is_core_concept": true
+      },
+      {
+        "id": "error_spotting_preposition_usage",
+        "name": "Incorrect or redundant preposition usage",
+        "is_core_concept": true
+      },
+      {
+        "id": "error_spotting_quantifier_agreement",
+        "name": "Quantifier-noun agreement or misuse",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eng_fill_blanks",
+    "name": "Fill in the Blanks (Double)",
+    "weight": 3.6,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "pfrda_2025_phase1_p1_english_language_17",
+      "pfrda_2025_phase1_p1_english_language_18",
+      "pfrda_2025_phase1_p1_english_language_19",
+      "pfrda_2025_phase1_p1_english_language_20"
+    ],
+    "dimensions": [
+      {
+        "id": "fitb_double_contrasting_pairs",
+        "name": "Selecting contrasting or opposing word pairs",
+        "is_core_concept": true
+      },
+      {
+        "id": "fitb_double_surface_vs_depth",
+        "name": "Distinguishing surface-level from deeper meaning",
+        "is_core_concept": true
+      },
+      {
+        "id": "fitb_double_contextual_attributes",
+        "name": "Identifying paired attributes describing single entity",
+        "is_core_concept": true
+      },
+      {
+        "id": "fitb_double_comparative_states",
+        "name": "Completing paired comparisons or relational changes",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eng_para_jumble",
+    "name": "Para Jumbles / Sentence Rearrangement",
+    "weight": 2.4561,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_english_language_6",
+      "pfrda_2025_phase1_p1_english_language_11",
+      "pfrda_2025_phase1_p1_english_language_12"
+    ],
+    "dimensions": [
+      {
+        "id": "pj_sentence_ordering",
+        "name": "Identifying correct sequence of sentences in jumbled paragraph",
+        "is_core_concept": true
+      },
+      {
+        "id": "pj_first_sentence_identification",
+        "name": "Determining the opening sentence of a para-jumble",
+        "is_core_concept": false
+      },
+      {
+        "id": "pj_specific_position_placement",
+        "name": "Placing a sentence in a specific numbered position",
+        "is_core_concept": false
+      },
+      {
+        "id": "pj_word_pair_replacement",
+        "name": "Selecting correct word pair replacements within sentences",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eng_reading_comprehension",
+    "name": "Reading Comprehension (incl. Vocabulary-in-Context)",
+    "weight": 7.3683,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_english_language_1",
+      "pfrda_2022_phase1_p1_english_language_2",
+      "pfrda_2022_phase1_p1_english_language_3",
+      "pfrda_2025_phase1_p1_english_language_1",
+      "pfrda_2025_phase1_p1_english_language_2",
+      "pfrda_2025_phase1_p1_english_language_3",
+      "pfrda_2025_phase1_p1_english_language_4",
+      "pfrda_2025_phase1_p1_english_language_5",
+      "pfrda_2025_phase1_p1_english_language_6"
+    ],
+    "dimensions": [
+      {
+        "id": "rc_explicit_statement_identification",
+        "name": "Identifying explicitly stated claims in passage",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_inference_beyond_explicit",
+        "name": "Drawing inferences not explicitly stated in text",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_vocabulary_in_context",
+        "name": "Determining word meaning from surrounding context",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_antonym_identification",
+        "name": "Finding antonyms of words in passage",
+        "is_core_concept": false
+      },
+      {
+        "id": "rc_main_idea_or_paradox",
+        "name": "Identifying central paradoxes or contradictions",
+        "is_core_concept": false
+      },
+      {
+        "id": "rc_supporting_details",
+        "name": "Identifying what examples or details illustrate or highlight",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eng_synonyms_vocab",
+    "name": "Synonyms & Word Usage (Vocabulary)",
+    "weight": 3.9366,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_english_language_4",
+      "pfrda_2022_phase1_p1_english_language_5",
+      "pfrda_2022_phase1_p1_english_language_12",
+      "pfrda_2022_phase1_p1_english_language_13",
+      "pfrda_2022_phase1_p1_english_language_14",
+      "pfrda_2022_phase1_p1_english_language_15"
+    ],
+    "dimensions": [
+      {
+        "id": "syn_wvu_synonym_identification",
+        "name": "Identifying synonyms for given words",
+        "is_core_concept": true
+      },
+      {
+        "id": "syn_wvu_contextual_appropriateness",
+        "name": "Evaluating word usage appropriateness in context",
+        "is_core_concept": true
+      },
+      {
+        "id": "syn_wvu_valid_usage_contexts",
+        "name": "Distinguishing valid from invalid usage contexts",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eng_word_interchange",
+    "name": "Word / Phrase Interchange",
+    "weight": 3.6,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "pfrda_2025_phase1_p1_english_language_13",
+      "pfrda_2025_phase1_p1_english_language_14",
+      "pfrda_2025_phase1_p1_english_language_15",
+      "pfrda_2025_phase1_p1_english_language_16"
+    ],
+    "dimensions": [
+      {
+        "id": "word_interchange_multi_swap_required",
+        "name": "Multiple word swaps needed within single sentence",
+        "is_core_concept": true
+      },
+      {
+        "id": "word_interchange_single_swap_required",
+        "name": "Single word pair swap required within sentence",
+        "is_core_concept": true
+      },
+      {
+        "id": "word_interchange_no_swap_needed",
+        "name": "No word interchange required; sentence correct as-is",
+        "is_core_concept": true
+      },
+      {
+        "id": "word_interchange_domain_specific_vocabulary",
+        "name": "Recognition of discipline-specific terminology accuracy",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_english_language",
+    "name": "English Language (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ga_banking_finance_current",
+    "name": "Banking/Finance Current Affairs (incl. Abbreviations, Regulatory Framework, Digital Payments/Fintech)",
+    "weight": 6.4683,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_general_awareness_financial_2",
+      "pfrda_2022_phase1_p1_general_awareness_financial_5",
+      "pfrda_2022_phase1_p1_general_awareness_financial_18",
+      "pfrda_2025_phase1_p1_general_awareness_financial_10",
+      "pfrda_2025_phase1_p1_general_awareness_financial_16",
+      "pfrda_2025_phase1_p1_general_awareness_financial_18",
+      "pfrda_2025_phase1_p1_general_awareness_financial_19",
+      "pfrda_2025_phase1_p1_general_awareness_financial_20"
+    ],
+    "dimensions": [
+      {
+        "id": "banking_upi_cross_border_deployment",
+        "name": "UPI international adoption and deployment",
+        "is_core_concept": false
+      },
+      {
+        "id": "banking_arc_regulatory_requirements",
+        "name": "Asset Reconstruction Company capital requirements",
+        "is_core_concept": false
+      },
+      {
+        "id": "banking_government_disinvestment_initiatives",
+        "name": "Government disinvestment in public sector banks",
+        "is_core_concept": false
+      },
+      {
+        "id": "banking_sebi_framework_abbreviations",
+        "name": "SEBI regulatory framework acronyms and terminology",
+        "is_core_concept": true
+      },
+      {
+        "id": "banking_esg_disclosure_standards",
+        "name": "ESG reporting and stakeholder disclosure frameworks",
+        "is_core_concept": false
+      },
+      {
+        "id": "banking_stablecoin_regulation",
+        "name": "Government legislation on stablecoin regulation",
+        "is_core_concept": false
+      },
+      {
+        "id": "banking_digital_payment_infrastructure",
+        "name": "Digital payment system operators and infrastructure",
+        "is_core_concept": false
+      },
+      {
+        "id": "banking_stablecoin_blockchain_features",
+        "name": "Stablecoin technical characteristics and transparency",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ga_corporate_industry",
+    "name": "Corporate/Industry Current Affairs",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ga_defence",
+    "name": "Defence Current Affairs / Exercises",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ga_economy_current",
+    "name": "Economy / Inflation / Taxation Current Affairs",
+    "weight": 2.2122,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_general_awareness_financial_9",
+      "pfrda_2022_phase1_p1_general_awareness_financial_16",
+      "pfrda_2025_phase1_p1_general_awareness_financial_15"
+    ],
+    "dimensions": [
+      {
+        "id": "inflation_wpi_metrics",
+        "name": "WPI inflation rates and measurement",
+        "is_core_concept": true
+      },
+      {
+        "id": "inflation_wpi_compilation",
+        "name": "WPI compilation authority and methodology",
+        "is_core_concept": false
+      },
+      {
+        "id": "inflation_wpi_scope",
+        "name": "WPI scope and applicability to goods",
+        "is_core_concept": false
+      },
+      {
+        "id": "taxation_itr_eligibility",
+        "name": "ITR form eligibility criteria and restrictions",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ga_environment",
+    "name": "Environment & Global Agreements",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ga_govt_schemes",
+    "name": "Government Schemes/Apps & Policy Targets",
+    "weight": 6.2244,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_general_awareness_financial_1",
+      "pfrda_2022_phase1_p1_general_awareness_financial_4",
+      "pfrda_2022_phase1_p1_general_awareness_financial_13",
+      "pfrda_2022_phase1_p1_general_awareness_financial_20",
+      "pfrda_2025_phase1_p1_general_awareness_financial_7",
+      "pfrda_2025_phase1_p1_general_awareness_financial_12",
+      "pfrda_2025_phase1_p1_general_awareness_financial_13",
+      "pfrda_2025_phase1_p1_general_awareness_financial_14"
+    ],
+    "dimensions": [
+      {
+        "id": "schemes_apps_identification",
+        "name": "Identification of specific government schemes and apps",
+        "is_core_concept": true
+      },
+      {
+        "id": "policy_target_timelines",
+        "name": "Completion years and target deadlines for policy goals",
+        "is_core_concept": true
+      },
+      {
+        "id": "scheme_eligibility_criteria",
+        "name": "Age ranges and eligibility requirements for schemes",
+        "is_core_concept": true
+      },
+      {
+        "id": "scheme_financial_parameters",
+        "name": "Loan amounts, contributions, and financial limits in schemes",
+        "is_core_concept": true
+      },
+      {
+        "id": "scheme_rules_and_conditions",
+        "name": "Specific rules, transitions, and payout conditions of schemes",
+        "is_core_concept": true
+      },
+      {
+        "id": "solar_renewable_initiatives",
+        "name": "Solar power projects and renewable energy scheme details",
+        "is_core_concept": true
+      },
+      {
+        "id": "scheme_launching_minister",
+        "name": "Government minister responsible for launching schemes",
+        "is_core_concept": false
+      },
+      {
+        "id": "mou_state_partnerships",
+        "name": "State/UT partnerships and MOUs for specific initiatives",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ga_international_orgs",
+    "name": "International Organizations & Committees",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ga_regulatory_bodies",
+    "name": "Regulatory Bodies & Institutions (incl. Institution HQs)",
+    "weight": 2.8683,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_general_awareness_financial_3",
+      "pfrda_2022_phase1_p1_general_awareness_financial_8",
+      "pfrda_2022_phase1_p1_general_awareness_financial_15",
+      "pfrda_2025_phase1_p1_general_awareness_financial_9"
+    ],
+    "dimensions": [
+      {
+        "id": "regulatory_committee_composition",
+        "name": "Committee structure, composition, and leadership details",
+        "is_core_concept": false
+      },
+      {
+        "id": "regulatory_enforcement_sanctions",
+        "name": "Regulatory penalties and enforcement action durations",
+        "is_core_concept": false
+      },
+      {
+        "id": "regulatory_jurisdiction_scope",
+        "name": "Regulatory authority jurisdiction and policy domains",
+        "is_core_concept": true
+      },
+      {
+        "id": "institution_headquarters_location",
+        "name": "Institution headquarters and physical location details",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ga_reports_indices",
+    "name": "Reports & Indices",
+    "weight": 3.1122,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_general_awareness_financial_14",
+      "pfrda_2022_phase1_p1_general_awareness_financial_17",
+      "pfrda_2025_phase1_p1_general_awareness_financial_1",
+      "pfrda_2025_phase1_p1_general_awareness_financial_8"
+    ],
+    "dimensions": [
+      {
+        "id": "reports_indices_specific_metrics",
+        "name": "Specific numerical metrics from named reports",
+        "is_core_concept": true
+      },
+      {
+        "id": "reports_indices_country_rankings",
+        "name": "Country rankings across global indices",
+        "is_core_concept": true
+      },
+      {
+        "id": "reports_indices_report_authorship",
+        "name": "Organizations and agencies behind reports",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ga_science_health",
+    "name": "Science & Health Current Affairs",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ga_sports_awards",
+    "name": "Sports & Awards (incl. Brand Ambassadors)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ga_static_gk",
+    "name": "Static GK (incl. Books & Authors, Important Days)",
+    "weight": 2.2122,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_general_awareness_financial_10",
+      "pfrda_2022_phase1_p1_general_awareness_financial_11",
+      "pfrda_2025_phase1_p1_general_awareness_financial_5"
+    ],
+    "dimensions": [
+      {
+        "id": "sgk_books_authors",
+        "name": "Books and their authors identification",
+        "is_core_concept": false
+      },
+      {
+        "id": "sgk_important_days_dates",
+        "name": "Important international days and dates",
+        "is_core_concept": false
+      },
+      {
+        "id": "sgk_institutional_locations",
+        "name": "Geographic locations of Indian institutions",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_general_awareness_financial",
+    "name": "General Awareness incl. Financial Sector (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_ages",
+    "name": "Problems on Ages",
+    "weight": 2.4561,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_quantitative_aptitude_11",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_8",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_11"
+    ],
+    "dimensions": [
+      {
+        "id": "ages_ratio_past_future",
+        "name": "Age ratios at different time points (past/present/future)",
+        "is_core_concept": true
+      },
+      {
+        "id": "ages_multiple_persons",
+        "name": "Finding unknown age given multiple persons and conditions",
+        "is_core_concept": true
+      },
+      {
+        "id": "ages_linear_equations",
+        "name": "Solving systems of linear equations from age conditions",
+        "is_core_concept": true
+      },
+      {
+        "id": "ages_average_relationship",
+        "name": "Using average age to find individual or unknown ages",
+        "is_core_concept": false
+      },
+      {
+        "id": "ages_fractional_relationships",
+        "name": "Age expressed as fraction of another person's age",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_quant_averages",
+    "name": "Averages",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_boats_streams",
+    "name": "Boats & Streams",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_data_interpretation",
+    "name": "Data Interpretation (Bar/Line Chart, Caselet)",
+    "weight": 10.4805,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 13,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_quantitative_aptitude_13",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_14",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_15",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_16",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_17",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_13",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_14",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_15",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_16",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_17",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_18",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_19",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_20"
+    ],
+    "dimensions": [
+      {
+        "id": "di_direct_value_extraction",
+        "name": "Direct value extraction from chart/data",
+        "is_core_concept": true
+      },
+      {
+        "id": "di_ratio_calculation",
+        "name": "Ratio calculation between data points",
+        "is_core_concept": true
+      },
+      {
+        "id": "di_percentage_calculation",
+        "name": "Percentage calculation from chart data",
+        "is_core_concept": true
+      },
+      {
+        "id": "di_year_over_year_comparison",
+        "name": "Year-over-year comparison across time periods",
+        "is_core_concept": true
+      },
+      {
+        "id": "di_multi_step_caselet_logic",
+        "name": "Multi-step calculations from caselet data",
+        "is_core_concept": true
+      },
+      {
+        "id": "di_derived_metric_calculation",
+        "name": "Calculating derived metrics from given conditions",
+        "is_core_concept": true
+      },
+      {
+        "id": "di_category_subset_filtering",
+        "name": "Filtering and aggregating specific subsets of data",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_quant_linear_equations",
+    "name": "Linear Equations (Word Problems)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_mensuration",
+    "name": "Mensuration",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_mixtures_alligation",
+    "name": "Mixtures & Alligation",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_number_series",
+    "name": "Number Series",
+    "weight": 1.9683,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_quantitative_aptitude_5",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_6",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_7"
+    ],
+    "dimensions": [
+      {
+        "id": "ns_arithmetic_progression",
+        "name": "Arithmetic progression and difference patterns",
+        "is_core_concept": true
+      },
+      {
+        "id": "ns_multiplicative_patterns",
+        "name": "Multiplicative and factorial-based sequences",
+        "is_core_concept": true
+      },
+      {
+        "id": "ns_digit_sum_properties",
+        "name": "Digit sum and divisibility properties",
+        "is_core_concept": true
+      },
+      {
+        "id": "ns_identify_anomaly",
+        "name": "Identifying the anomalous term breaking pattern",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_quant_partnership",
+    "name": "Partnership",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_quadratic_equations",
+    "name": "Quadratic Equations (Quantity/Data Comparison)",
+    "weight": 7.1244,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_quantitative_aptitude_1",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_2",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_3",
+      "pfrda_2022_phase1_p1_quantitative_aptitude_4",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_1",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_2",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_3",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_4",
+      "pfrda_2025_phase1_p1_quantitative_aptitude_5"
+    ],
+    "dimensions": [
+      {
+        "id": "qe_solving_quadratic_roots",
+        "name": "Solving quadratic equations to find roots",
+        "is_core_concept": true
+      },
+      {
+        "id": "qe_comparing_root_values",
+        "name": "Comparing values of roots from two equations",
+        "is_core_concept": true
+      },
+      {
+        "id": "qe_handling_multiple_roots",
+        "name": "Determining relationship when equation has multiple roots",
+        "is_core_concept": true
+      },
+      {
+        "id": "qe_linear_vs_quadratic",
+        "name": "Comparing roots when one equation is linear",
+        "is_core_concept": false
+      },
+      {
+        "id": "qe_non_integer_coefficients",
+        "name": "Solving quadratics with fractional/non-standard coefficients",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_quant_ratio_proportion",
+    "name": "Ratio & Proportion",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_si_ci",
+    "name": "Simple & Compound Interest",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_time_speed_distance",
+    "name": "Time, Speed & Distance",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quant_time_work",
+    "name": "Time & Work",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_quantitative_aptitude",
+    "name": "Quantitative Aptitude (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_reasoning",
+    "name": "Test of Reasoning (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_reasoning_arrangement",
+    "name": "Number/Symbol Arrangement",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_reasoning_cause_effect",
+    "name": "Cause and Effect",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_reasoning_coding_decoding",
+    "name": "Coding-Decoding (Letter/Word/Number/Machine Input-Output)",
+    "weight": 5.1561,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_reasoning_20",
+      "pfrda_2025_phase1_p1_reasoning_11",
+      "pfrda_2025_phase1_p1_reasoning_12",
+      "pfrda_2025_phase1_p1_reasoning_13",
+      "pfrda_2025_phase1_p1_reasoning_14",
+      "pfrda_2025_phase1_p1_reasoning_15"
+    ],
+    "dimensions": [
+      {
+        "id": "cc_letter_substitution_rules",
+        "name": "Apply letter substitution rules to words",
+        "is_core_concept": false
+      },
+      {
+        "id": "cc_vowel_consonant_distinction",
+        "name": "Distinguish vowels and consonants for encoding",
+        "is_core_concept": false
+      },
+      {
+        "id": "cc_count_transformed_letters",
+        "name": "Count letters meeting specific transformation criteria",
+        "is_core_concept": false
+      },
+      {
+        "id": "cc_numerical_machine_logic",
+        "name": "Trace multi-step numerical machine operations",
+        "is_core_concept": true
+      },
+      {
+        "id": "cc_machine_output_calculation",
+        "name": "Calculate final output from machine steps",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_reasoning_puzzle_matching",
+    "name": "Puzzle — Matching-Based (incl. Date & Attribute Matching)",
+    "weight": 7.1244,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_reasoning_1",
+      "pfrda_2022_phase1_p1_reasoning_2",
+      "pfrda_2022_phase1_p1_reasoning_3",
+      "pfrda_2022_phase1_p1_reasoning_4",
+      "pfrda_2025_phase1_p1_reasoning_6",
+      "pfrda_2025_phase1_p1_reasoning_7",
+      "pfrda_2025_phase1_p1_reasoning_8",
+      "pfrda_2025_phase1_p1_reasoning_9",
+      "pfrda_2025_phase1_p1_reasoning_10"
+    ],
+    "dimensions": [
+      {
+        "id": "matching_entity_to_attribute",
+        "name": "Match single entity to specific attribute",
+        "is_core_concept": true
+      },
+      {
+        "id": "matching_multiple_constraints",
+        "name": "Apply multiple negative and positive constraints simultaneously",
+        "is_core_concept": true
+      },
+      {
+        "id": "matching_paired_attributes",
+        "name": "Match entity pairs with restricted attribute combinations",
+        "is_core_concept": true
+      },
+      {
+        "id": "matching_determinacy",
+        "name": "Determine if matching has unique or ambiguous solution",
+        "is_core_concept": true
+      },
+      {
+        "id": "matching_transitive_inference",
+        "name": "Use logical inference chains to derive matches",
+        "is_core_concept": true
+      },
+      {
+        "id": "matching_date_sequence",
+        "name": "Order entities by date and identify temporal relationships",
+        "is_core_concept": true
+      },
+      {
+        "id": "matching_odd_one_out",
+        "name": "Identify entity not matching a pattern or property set",
+        "is_core_concept": false
+      },
+      {
+        "id": "matching_statement_validity",
+        "name": "Verify correctness of proposed attribute assignments",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_reasoning_puzzle_scheduling",
+    "name": "Puzzle — Date/Month/Day-of-Week Scheduling",
+    "weight": 5.2488,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_reasoning_5",
+      "pfrda_2022_phase1_p1_reasoning_6",
+      "pfrda_2022_phase1_p1_reasoning_7",
+      "pfrda_2022_phase1_p1_reasoning_8",
+      "pfrda_2022_phase1_p1_reasoning_9",
+      "pfrda_2022_phase1_p1_reasoning_10",
+      "pfrda_2022_phase1_p1_reasoning_11",
+      "pfrda_2022_phase1_p1_reasoning_12"
+    ],
+    "dimensions": [
+      {
+        "id": "puzzle_day_assignment",
+        "name": "Assigning entities to specific days of week",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_constraint_satisfaction",
+        "name": "Satisfying multiple sequential and gap constraints",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_adjacency_relationships",
+        "name": "Identifying immediately consecutive day/date placements",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_gap_counting",
+        "name": "Counting gaps between assigned days or dates",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_exclusion_constraints",
+        "name": "Applying negative constraints (cannot be on specific day)",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_identifying_empty_slot",
+        "name": "Determining location of unassigned slot or rest day",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_query_day_occupant",
+        "name": "Querying which entity occupies a specific day/date",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_between_entity_count",
+        "name": "Counting entities scheduled between two reference points",
+        "is_core_concept": true
+      },
+      {
+        "id": "puzzle_boundary_ordering",
+        "name": "Determining relative ordering before or after anchor entities",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_reasoning_puzzle_seating",
+    "name": "Puzzle — Linear/Floor Seating Arrangement",
+    "weight": 7.1244,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p1_reasoning_15",
+      "pfrda_2022_phase1_p1_reasoning_16",
+      "pfrda_2022_phase1_p1_reasoning_17",
+      "pfrda_2022_phase1_p1_reasoning_18",
+      "pfrda_2025_phase1_p1_reasoning_1",
+      "pfrda_2025_phase1_p1_reasoning_2",
+      "pfrda_2025_phase1_p1_reasoning_3",
+      "pfrda_2025_phase1_p1_reasoning_4",
+      "pfrda_2025_phase1_p1_reasoning_5"
+    ],
+    "dimensions": [
+      {
+        "id": "linear_seating_total_count",
+        "name": "Determining total number of persons in arrangement",
+        "is_core_concept": true
+      },
+      {
+        "id": "linear_seating_position_calculation",
+        "name": "Finding specific person's position from reference point",
+        "is_core_concept": true
+      },
+      {
+        "id": "linear_seating_relative_distance",
+        "name": "Calculating distance between two persons in row",
+        "is_core_concept": true
+      },
+      {
+        "id": "linear_seating_direction_navigation",
+        "name": "Identifying person at specified offset and direction",
+        "is_core_concept": true
+      },
+      {
+        "id": "floor_seating_attribute_assignment",
+        "name": "Matching persons to floors and secondary attributes",
+        "is_core_concept": true
+      },
+      {
+        "id": "floor_seating_position_queries",
+        "name": "Finding count or persons at specific floor positions",
+        "is_core_concept": true
+      },
+      {
+        "id": "floor_seating_interval_calculation",
+        "name": "Determining gap between two persons across floors",
+        "is_core_concept": true
+      },
+      {
+        "id": "floor_seating_logical_consistency",
+        "name": "Evaluating truth of statements about arrangement",
+        "is_core_concept": true
+      },
+      {
+        "id": "floor_seating_adjacent_relationships",
+        "name": "Identifying attributes of person immediately above/below",
+        "is_core_concept": true
+      },
+      {
+        "id": "arrangement_oddity_detection",
+        "name": "Identifying person with different property pattern",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_reasoning_statement_argument",
+    "name": "Statement & Argument (Critical Reasoning)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_reasoning_statement_assumption",
+    "name": "Statement & Assumptions",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_reasoning_syllogism",
+    "name": "Syllogism",
+    "weight": 2.7,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2025_phase1_p1_reasoning_16",
+      "pfrda_2025_phase1_p1_reasoning_17",
+      "pfrda_2025_phase1_p1_reasoning_18"
+    ],
+    "dimensions": [
+      {
+        "id": "syllogism_categorical_statement_conversion",
+        "name": "Converting between categorical statement forms",
+        "is_core_concept": true
+      },
+      {
+        "id": "syllogism_conclusion_validity_determination",
+        "name": "Determining whether conclusions logically follow",
+        "is_core_concept": true
+      },
+      {
+        "id": "syllogism_quantifier_interpretation",
+        "name": "Interpreting quantifiers like 'only', 'few', 'some', 'all'",
+        "is_core_concept": true
+      },
+      {
+        "id": "syllogism_possibility_vs_certainty",
+        "name": "Distinguishing between possibility and logical certainty",
+        "is_core_concept": true
+      },
+      {
+        "id": "syllogism_negative_statement_handling",
+        "name": "Handling negative statements in premises and conclusions",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "indian_econ",
+    "name": "Indian Economy",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_act_2013",
+    "name": "PFRDA Act 2013 & Amendments",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ai_ml",
+    "name": "AI/ML Fundamentals (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_budget_economic_survey",
+    "name": "Union Budget & Economic Survey (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ca2013_ch10",
+    "name": "Chapter X — Audit & Auditors",
+    "weight": 4.3588,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_companies_act_2",
+      "pfrda_2022_phase1_p2_general_companies_act_4",
+      "pfrda_2022_phase1_p2_general_companies_act_5",
+      "pfrda_2022_phase2_p2_general_companies_act_5",
+      "pfrda_2025_phase1_p2_general_companies_act_6",
+      "pfrda_2025_phase2_p2_general_companies_act_1"
+    ],
+    "dimensions": [
+      {
+        "id": "audit_cag_appointment_authority",
+        "name": "CAG's authority and process for appointing auditors",
+        "is_core_concept": true
+      },
+      {
+        "id": "audit_auditor_removal_approval",
+        "name": "Approval requirements for auditor removal by shareholders",
+        "is_core_concept": false
+      },
+      {
+        "id": "audit_cag_appointment_timeline",
+        "name": "Timeframe for CAG to appoint company auditor",
+        "is_core_concept": true
+      },
+      {
+        "id": "audit_llp_partner_eligibility",
+        "name": "Eligibility criteria for LLP partners to sign as auditors",
+        "is_core_concept": false
+      },
+      {
+        "id": "audit_report_review_timeline",
+        "name": "Timeline for CAG review of audit reports",
+        "is_core_concept": false
+      },
+      {
+        "id": "audit_auditor_resignation_notification",
+        "name": "Notification requirements upon auditor resignation",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca2013_ch11",
+    "name": "Chapter XI — Appointment & Qualifications of Directors",
+    "weight": 3.9837,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_companies_act_3",
+      "pfrda_2021_phase1_p2_general_companies_act_8",
+      "pfrda_2021_phase2_p2_general_companies_act_10",
+      "pfrda_2022_phase1_p2_general_companies_act_7",
+      "pfrda_2022_phase2_p2_general_companies_act_3",
+      "pfrda_2025_phase2_p2_general_companies_act_6"
+    ],
+    "dimensions": [
+      {
+        "id": "appt_qual_removal_statutory_section",
+        "name": "Statutory section for director removal",
+        "is_core_concept": false
+      },
+      {
+        "id": "appt_qual_max_directors_public",
+        "name": "Maximum number of directors in public company",
+        "is_core_concept": false
+      },
+      {
+        "id": "appt_qual_appointment_procedure",
+        "name": "Procedure and forum for director appointment",
+        "is_core_concept": true
+      },
+      {
+        "id": "appt_qual_independent_directors_listed",
+        "name": "Minimum independent directors in listed companies",
+        "is_core_concept": false
+      },
+      {
+        "id": "appt_qual_consent_filing_timeline",
+        "name": "Director consent form DIR-2 filing timeline",
+        "is_core_concept": false
+      },
+      {
+        "id": "appt_qual_shareholder_threshold",
+        "name": "Small shareholder equity value threshold",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca2013_ch12",
+    "name": "Chapter XII — Meetings of Board & its Powers",
+    "weight": 2.1466,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_companies_act_1",
+      "pfrda_2022_phase1_p2_general_companies_act_6",
+      "pfrda_2025_phase2_p2_general_companies_act_5"
+    ],
+    "dimensions": [
+      {
+        "id": "bm_quorum_requirements",
+        "name": "Quorum requirements for board meetings",
+        "is_core_concept": true
+      },
+      {
+        "id": "bm_meeting_frequency",
+        "name": "Maximum interval between consecutive board meetings",
+        "is_core_concept": true
+      },
+      {
+        "id": "bm_committee_functions",
+        "name": "Powers and responsibilities of board committees",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca2013_ch27",
+    "name": "Chapter XXVII — National Company Law Tribunal & Appellate Tribunal",
+    "weight": 2.4276,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_companies_act_4",
+      "pfrda_2021_phase2_p2_general_companies_act_7",
+      "pfrda_2021_phase2_p2_general_companies_act_8",
+      "pfrda_2022_phase2_p2_general_companies_act_4"
+    ],
+    "dimensions": [
+      {
+        "id": "nclt_constitutional_section",
+        "name": "Statutory section establishing NCLT constitution",
+        "is_core_concept": false
+      },
+      {
+        "id": "nclt_official_name_designation",
+        "name": "Official name and formal designation of NCLT",
+        "is_core_concept": false
+      },
+      {
+        "id": "nclt_appointment_consultation_authority",
+        "name": "Authority consulted for NCLT appointments",
+        "is_core_concept": false
+      },
+      {
+        "id": "nclt_president_qualification_experience",
+        "name": "NCLT President's judicial experience requirement",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca2013_ch3",
+    "name": "Chapter III — Prospectus & Allotment of Securities",
+    "weight": 6.3742,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_companies_act_9",
+      "pfrda_2021_phase2_p2_general_companies_act_3",
+      "pfrda_2021_phase2_p2_general_companies_act_4",
+      "pfrda_2021_phase2_p2_general_companies_act_9",
+      "pfrda_2022_phase1_p2_general_companies_act_2",
+      "pfrda_2022_phase2_p2_general_companies_act_2",
+      "pfrda_2025_phase1_p2_general_companies_act_1",
+      "pfrda_2025_phase1_p2_general_companies_act_3",
+      "pfrda_2025_phase2_p2_general_companies_act_4"
+    ],
+    "dimensions": [
+      {
+        "id": "prosp_allot_underwriting_commission_limits",
+        "name": "Underwriting commission rate caps on debentures",
+        "is_core_concept": false
+      },
+      {
+        "id": "prosp_allot_prospectus_violation_penalties",
+        "name": "Penalties for prospectus issuance in contravention",
+        "is_core_concept": false
+      },
+      {
+        "id": "prosp_allot_contract_variation_process",
+        "name": "Process for varying prospectus contract terms",
+        "is_core_concept": false
+      },
+      {
+        "id": "prosp_allot_minimum_subscription_return",
+        "name": "Return of subscription on unmet minimum threshold",
+        "is_core_concept": true
+      },
+      {
+        "id": "prosp_allot_rhp_filing_timeline",
+        "name": "Red Herring Prospectus filing timeline requirements",
+        "is_core_concept": false
+      },
+      {
+        "id": "prosp_allot_minimum_application_money",
+        "name": "Minimum application money percentage on securities issue",
+        "is_core_concept": false
+      },
+      {
+        "id": "prosp_allot_allotment_timeline",
+        "name": "Timeline for allotment after private placement funds received",
+        "is_core_concept": false
+      },
+      {
+        "id": "prosp_allot_stock_exchange_notification",
+        "name": "Stock exchange notification requirements for public issues",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca2013_ch4",
+    "name": "Chapter IV — Share Capital & Debentures",
+    "weight": 4.9493,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 7,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_companies_act_2",
+      "pfrda_2021_phase1_p2_general_companies_act_7",
+      "pfrda_2022_phase1_p2_general_companies_act_1",
+      "pfrda_2022_phase2_p2_general_companies_act_6",
+      "pfrda_2022_phase2_p2_general_companies_act_7",
+      "pfrda_2025_phase1_p2_general_companies_act_5",
+      "pfrda_2025_phase2_p2_general_companies_act_3"
+    ],
+    "dimensions": [
+      {
+        "id": "share_capital_duplicate_certificates",
+        "name": "Duplicate share certificate issuance provisions",
+        "is_core_concept": false
+      },
+      {
+        "id": "share_capital_member_payment_obligations",
+        "name": "Member payment obligations to company",
+        "is_core_concept": false
+      },
+      {
+        "id": "share_capital_transferability_rules",
+        "name": "Share and debenture transferability conditions",
+        "is_core_concept": true
+      },
+      {
+        "id": "share_capital_beneficial_owner_threshold",
+        "name": "Beneficial owner voting rights threshold",
+        "is_core_concept": false
+      },
+      {
+        "id": "share_capital_types_issuable",
+        "name": "Types of share capital companies can issue",
+        "is_core_concept": true
+      },
+      {
+        "id": "share_capital_public_company_restrictions",
+        "name": "Share types public companies cannot issue",
+        "is_core_concept": false
+      },
+      {
+        "id": "share_capital_legal_classification",
+        "name": "Legal classification as movable property",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca2013_ch8",
+    "name": "Chapter VIII — Declaration & Payment of Dividend",
+    "weight": 3.9837,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_companies_act_1",
+      "pfrda_2021_phase2_p2_general_companies_act_5",
+      "pfrda_2021_phase2_p2_general_companies_act_6",
+      "pfrda_2022_phase1_p2_general_companies_act_3",
+      "pfrda_2022_phase2_p2_general_companies_act_1",
+      "pfrda_2025_phase1_p2_general_companies_act_4"
+    ],
+    "dimensions": [
+      {
+        "id": "dividend_statutory_section",
+        "name": "Statutory section governing dividend declaration",
+        "is_core_concept": true
+      },
+      {
+        "id": "dividend_unpaid_unclaimed_transfer",
+        "name": "Transfer of unpaid or unclaimed dividends to special account",
+        "is_core_concept": true
+      },
+      {
+        "id": "dividend_transfer_timeline",
+        "name": "Timeline for transferring dividends to special account",
+        "is_core_concept": true
+      },
+      {
+        "id": "dividend_bank_deposit_timeline",
+        "name": "Timeline for depositing declared dividend in scheduled bank",
+        "is_core_concept": true
+      },
+      {
+        "id": "dividend_payment_deadline",
+        "name": "Deadline for payment of declared dividend to shareholders",
+        "is_core_concept": true
+      },
+      {
+        "id": "interim_dividend_source",
+        "name": "Source of funds for declaring interim dividend",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca_cashflow_ratio",
+    "name": "Cash Flow Statement, Fund Flow Statement, Financial Statement & Ratio Analysis",
+    "weight": 11.0139,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 16,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_commerce_accountancy_4",
+      "pfrda_2021_phase1_p2_general_commerce_accountancy_5",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_1",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_2",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_3",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_4",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_5",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_4",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_5",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_6",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_7",
+      "pfrda_2022_phase2_p2_general_commerce_accountancy_7",
+      "pfrda_2025_phase1_p2_general_commerce_accountancy_2",
+      "pfrda_2025_phase1_p2_general_commerce_accountancy_3",
+      "pfrda_2025_phase1_p2_general_commerce_accountancy_4",
+      "pfrda_2025_phase2_p2_general_commerce_accountancy_5"
+    ],
+    "dimensions": [
+      {
+        "id": "cfs_activity_classification",
+        "name": "Classification of transactions into cash flow activities",
+        "is_core_concept": true
+      },
+      {
+        "id": "cfs_special_cases",
+        "name": "Special cases in cash flow statement classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "liquidity_ratios",
+        "name": "Identification and calculation of liquidity ratios",
+        "is_core_concept": true
+      },
+      {
+        "id": "solvency_ratios",
+        "name": "Calculation of solvency and leverage ratios",
+        "is_core_concept": true
+      },
+      {
+        "id": "profitability_ratios",
+        "name": "Calculation and identification of profitability ratios",
+        "is_core_concept": true
+      },
+      {
+        "id": "efficiency_ratios",
+        "name": "Calculation of activity and efficiency ratios",
+        "is_core_concept": true
+      },
+      {
+        "id": "ratio_terminology",
+        "name": "Alternative names and terminology for financial ratios",
+        "is_core_concept": false
+      },
+      {
+        "id": "ffs_sources_applications",
+        "name": "Classification of items as sources or applications of funds",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca_esop_buyback",
+    "name": "Employees Stock Option (ESOP) & Buy-Back of Securities",
+    "weight": 2.1466,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_commerce_accountancy_1",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_3",
+      "pfrda_2025_phase1_p2_general_commerce_accountancy_5"
+    ],
+    "dimensions": [
+      {
+        "id": "esop_fair_value_calculation",
+        "name": "Fair value calculation and accounting recognition",
+        "is_core_concept": true
+      },
+      {
+        "id": "esop_vesting_period_requirements",
+        "name": "Vesting period minimum duration and conventions",
+        "is_core_concept": true
+      },
+      {
+        "id": "esop_vesting_as_exercise_prerequisite",
+        "name": "Vesting as condition precedent to exercise rights",
+        "is_core_concept": true
+      },
+      {
+        "id": "esop_exercise_price_vs_market_price",
+        "name": "Intrinsic value: difference between exercise and market price",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca_final_accounts",
+    "name": "Preparation & Presentation of Company Final Accounts",
+    "weight": 1.8371,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_commerce_accountancy_6",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_7",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_2"
+    ],
+    "dimensions": [
+      {
+        "id": "fac_retained_earnings_calculation",
+        "name": "Calculation of addition to retained earnings",
+        "is_core_concept": false
+      },
+      {
+        "id": "fac_current_vs_noncurrent_liabilities",
+        "name": "Classification of liabilities as current or non-current",
+        "is_core_concept": false
+      },
+      {
+        "id": "fac_asset_valuation_adjustments",
+        "name": "Asset valuation with provisions and allowances",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca_info_system",
+    "name": "Accounting as a Financial Information System",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_ca_share_capital",
+    "name": "Accounting for Share Capital Transactions — Bonus Shares, Rights Shares",
+    "weight": 3.0466,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_commerce_accountancy_2",
+      "pfrda_2022_phase2_p2_general_commerce_accountancy_2",
+      "pfrda_2025_phase2_p2_general_commerce_accountancy_1",
+      "pfrda_2025_phase2_p2_general_commerce_accountancy_3"
+    ],
+    "dimensions": [
+      {
+        "id": "share_capital_bonus_share_mechanics",
+        "name": "Mechanics and effects of bonus share issuance",
+        "is_core_concept": true
+      },
+      {
+        "id": "share_capital_rights_issue_calculation",
+        "name": "Calculating ex-rights price in rights issues",
+        "is_core_concept": true
+      },
+      {
+        "id": "share_capital_rights_value_computation",
+        "name": "Computing value of rights from issue terms",
+        "is_core_concept": true
+      },
+      {
+        "id": "share_capital_redemption_proceeds",
+        "name": "Computing shares issued from redemption proceeds",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_ca_standards",
+    "name": "Accounting Standards — Depreciation, Inventories, Revenue Recognition, Fixed Assets, Foreign Exchange Transactions, Investments",
+    "weight": 8.4081,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 12,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_commerce_accountancy_3",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_6",
+      "pfrda_2021_phase2_p2_general_commerce_accountancy_8",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_1",
+      "pfrda_2022_phase1_p2_general_commerce_accountancy_8",
+      "pfrda_2022_phase2_p2_general_commerce_accountancy_1",
+      "pfrda_2022_phase2_p2_general_commerce_accountancy_4",
+      "pfrda_2022_phase2_p2_general_commerce_accountancy_5",
+      "pfrda_2022_phase2_p2_general_commerce_accountancy_6",
+      "pfrda_2025_phase2_p2_general_commerce_accountancy_2",
+      "pfrda_2025_phase2_p2_general_commerce_accountancy_4",
+      "pfrda_2025_phase2_p2_general_commerce_accountancy_6"
+    ],
+    "dimensions": [
+      {
+        "id": "inv_valuation_cost_vs_nrv",
+        "name": "Inventory valuation at lower of cost or NRV",
+        "is_core_concept": true
+      },
+      {
+        "id": "depr_calculation_methods",
+        "name": "Depreciation calculation methods and formulas",
+        "is_core_concept": true
+      },
+      {
+        "id": "depr_allocation_basis",
+        "name": "Systematic allocation of depreciable amount",
+        "is_core_concept": true
+      },
+      {
+        "id": "invest_classification_timeframe",
+        "name": "Investment classification by realization timeframe",
+        "is_core_concept": false
+      },
+      {
+        "id": "asset_impairment_definition",
+        "name": "Asset impairment loss definition and recognition",
+        "is_core_concept": false
+      },
+      {
+        "id": "fx_gain_loss_recognition",
+        "name": "Foreign exchange transaction gains and losses",
+        "is_core_concept": false
+      },
+      {
+        "id": "ppe_cost_components",
+        "name": "Components included in PPE initial cost",
+        "is_core_concept": false
+      },
+      {
+        "id": "fair_value_market_participants",
+        "name": "Fair value market participant characteristics",
+        "is_core_concept": false
+      },
+      {
+        "id": "lease_payment_amortization",
+        "name": "Operating lease upfront payment accounting treatment",
+        "is_core_concept": false
+      },
+      {
+        "id": "fx_transaction_rate_timing",
+        "name": "Foreign exchange rate application at transaction date",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_commerce_accountancy",
+    "name": "Commerce & Accountancy (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_companies_act",
+    "name": "Companies Act 2013 — Chapters III/IV/VIII/X/XI/XII/XXVII",
+    "weight": 32.1047,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_companies_act_5",
+      "pfrda_2021_phase1_p2_general_companies_act_6",
+      "pfrda_2025_phase1_p2_general_companies_act_2",
+      "pfrda_2025_phase2_p2_general_companies_act_2",
+      "pfrda_2025_phase2_p2_general_companies_act_7"
+    ],
+    "dimensions": [
+      {
+        "id": "ca2013_memorandum_articles_alteration",
+        "name": "Alteration of Memorandum or Articles procedures",
+        "is_core_concept": false
+      },
+      {
+        "id": "ca2013_npo_registration",
+        "name": "Registration requirements for Not for Profit Organizations",
+        "is_core_concept": false
+      },
+      {
+        "id": "ca2013_iepf_establishment",
+        "name": "Investor Education and Protection Fund establishment",
+        "is_core_concept": false
+      },
+      {
+        "id": "ca2013_iepf_permitted_uses",
+        "name": "Permitted and prohibited uses of IEPF funds",
+        "is_core_concept": false
+      },
+      {
+        "id": "ca2013_startup_definition_criteria",
+        "name": "Startup definition and eligibility criteria",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_cost_5s",
+    "name": "5S Methodology",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_cost_bpr",
+    "name": "Process Innovation & Business Process Re-engineering (BPR)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_cost_cellular_mfg",
+    "name": "Cellular Manufacturing / One-Piece Flow Production Systems",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_cost_control_analysis",
+    "name": "Cost Control & Analysis — Standard Costing, Marginal Costing, Budget & Budgetary Control",
+    "weight": 9.833,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 14,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_costing_1",
+      "pfrda_2021_phase1_p2_general_costing_2",
+      "pfrda_2021_phase1_p2_general_costing_3",
+      "pfrda_2021_phase1_p2_general_costing_4",
+      "pfrda_2021_phase1_p2_general_costing_5",
+      "pfrda_2022_phase1_p2_general_costing_2",
+      "pfrda_2022_phase1_p2_general_costing_4",
+      "pfrda_2022_phase2_p2_general_costing_1",
+      "pfrda_2022_phase2_p2_general_costing_2",
+      "pfrda_2022_phase2_p2_general_costing_7",
+      "pfrda_2025_phase1_p2_general_costing_3",
+      "pfrda_2025_phase1_p2_general_costing_7",
+      "pfrda_2025_phase2_p2_general_costing_4",
+      "pfrda_2025_phase2_p2_general_costing_8"
+    ],
+    "dimensions": [
+      {
+        "id": "sc_break_even_point_calculation",
+        "name": "Break-even point calculation and analysis",
+        "is_core_concept": true
+      },
+      {
+        "id": "sc_profit_loss_marginal_costing",
+        "name": "Profit/loss determination using marginal costing",
+        "is_core_concept": true
+      },
+      {
+        "id": "sc_material_cost_variance_analysis",
+        "name": "Material cost variance and price variance decomposition",
+        "is_core_concept": true
+      },
+      {
+        "id": "sc_budgeted_variable_cost_calculation",
+        "name": "Budgeted variable cost per unit derivation",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_total_variable_cost_composition",
+        "name": "Components and composition of total variable cost",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_marginal_cost_definition",
+        "name": "Marginal cost concept and incremental cost definition",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_pv_ratio_application",
+        "name": "Profit-volume ratio application in costing decisions",
+        "is_core_concept": true
+      },
+      {
+        "id": "sc_margin_of_safety",
+        "name": "Margin of safety calculation and interpretation",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_high_low_method_variable_cost",
+        "name": "High-low method for separating variable and fixed costs",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_budgetary_control_characteristics",
+        "name": "Budgetary control purpose and comparative analysis",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_absorption_vs_marginal_costing",
+        "name": "Absorption costing vs marginal costing classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_cost_plus_pricing_method",
+        "name": "Cost-plus pricing with desired ROI calculation",
+        "is_core_concept": false
+      },
+      {
+        "id": "sc_variable_cost_classification",
+        "name": "Classification of expense types as variable or fixed",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_cost_kaizen",
+    "name": "Kaizen Costing",
+    "weight": 2.1466,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_costing_4",
+      "pfrda_2022_phase1_p2_general_costing_8",
+      "pfrda_2025_phase1_p2_general_costing_8"
+    ],
+    "dimensions": [
+      {
+        "id": "kaizen_core_principles",
+        "name": "Core principles and characteristics of Kaizen",
+        "is_core_concept": true
+      },
+      {
+        "id": "kaizen_continuous_improvement",
+        "name": "Continuous improvement as central to Kaizen",
+        "is_core_concept": true
+      },
+      {
+        "id": "kaizen_waste_elimination",
+        "name": "Waste elimination focus in Kaizen Costing",
+        "is_core_concept": true
+      },
+      {
+        "id": "kaizen_gradual_incremental",
+        "name": "Gradual and incremental nature of improvement",
+        "is_core_concept": false
+      },
+      {
+        "id": "kaizen_collective_decision_making",
+        "name": "Collective decision-making in Kaizen approach",
+        "is_core_concept": false
+      },
+      {
+        "id": "kaizen_vs_other_methodologies",
+        "name": "Distinguishing Kaizen from Six Sigma, TPM, JIT",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_cost_lean_jit",
+    "name": "Lean System — Introduction & Just-in-Time (JIT)",
+    "weight": 2.4561,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p2_general_costing_5",
+      "pfrda_2025_phase1_p2_general_costing_1",
+      "pfrda_2025_phase1_p2_general_costing_9"
+    ],
+    "dimensions": [
+      {
+        "id": "lean_core_principles",
+        "name": "Core principles of lean manufacturing",
+        "is_core_concept": true
+      },
+      {
+        "id": "lean_waste_definition",
+        "name": "Definition and identification of waste in lean",
+        "is_core_concept": true
+      },
+      {
+        "id": "lean_push_pull_systems",
+        "name": "Push versus pull systems in lean",
+        "is_core_concept": true
+      },
+      {
+        "id": "jit_takt_time",
+        "name": "Takt time as JIT production metric",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_cost_methods",
+    "name": "Methods of Costing — Unit, Job, Batch, Contract, Process/Operation Costing, Service-sector Costing",
+    "weight": 6.1588,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_costing_5",
+      "pfrda_2022_phase1_p2_general_costing_1",
+      "pfrda_2022_phase2_p2_general_costing_3",
+      "pfrda_2022_phase2_p2_general_costing_4",
+      "pfrda_2025_phase1_p2_general_costing_4",
+      "pfrda_2025_phase1_p2_general_costing_6",
+      "pfrda_2025_phase2_p2_general_costing_1",
+      "pfrda_2025_phase2_p2_general_costing_7"
+    ],
+    "dimensions": [
+      {
+        "id": "costing_method_selection",
+        "name": "Selecting appropriate costing method by production type",
+        "is_core_concept": true
+      },
+      {
+        "id": "job_costing_application",
+        "name": "Job costing for specific orders and discrete projects",
+        "is_core_concept": true
+      },
+      {
+        "id": "process_costing_application",
+        "name": "Process costing for continuous/repetitive production",
+        "is_core_concept": true
+      },
+      {
+        "id": "contract_costing_domain",
+        "name": "Contract costing application in specific industries",
+        "is_core_concept": false
+      },
+      {
+        "id": "batch_costing_classification",
+        "name": "Batch costing as extension of job costing",
+        "is_core_concept": false
+      },
+      {
+        "id": "unit_cost_calculation",
+        "name": "Computing per-unit cost with overhead allocation",
+        "is_core_concept": true
+      },
+      {
+        "id": "abnormal_loss_gain",
+        "name": "Identifying abnormal loss and gain in production",
+        "is_core_concept": false
+      },
+      {
+        "id": "economic_batch_quantity",
+        "name": "Economic batch quantity calculation and optimization",
+        "is_core_concept": false
+      },
+      {
+        "id": "material_cost_composition",
+        "name": "Distinguishing relevant and irrelevant material costs",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_cost_overview",
+    "name": "Overview of Cost & Management Accounting — Objectives & Scope",
+    "weight": 6.0276,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_costing_1",
+      "pfrda_2021_phase2_p2_general_costing_2",
+      "pfrda_2021_phase2_p2_general_costing_3",
+      "pfrda_2022_phase2_p2_general_costing_6",
+      "pfrda_2025_phase2_p2_general_costing_2",
+      "pfrda_2025_phase2_p2_general_costing_6",
+      "pfrda_2025_phase2_p2_general_costing_9",
+      "pfrda_2025_phase2_p2_general_costing_10"
+    ],
+    "dimensions": [
+      {
+        "id": "cma_scope_elements",
+        "name": "Elements and activities within cost accounting scope",
+        "is_core_concept": true
+      },
+      {
+        "id": "cma_vs_fa_comparison",
+        "name": "Distinction between cost and financial accounting types",
+        "is_core_concept": true
+      },
+      {
+        "id": "cma_primary_objectives",
+        "name": "Primary objectives and purposes of cost accounting",
+        "is_core_concept": true
+      },
+      {
+        "id": "cma_cost_classification",
+        "name": "Cost classification methods and valid bases",
+        "is_core_concept": true
+      },
+      {
+        "id": "cma_cost_types",
+        "name": "Specific cost types and their characteristics",
+        "is_core_concept": true
+      },
+      {
+        "id": "cma_terminology_definitions",
+        "name": "Definitions of key cost accounting terms and concepts",
+        "is_core_concept": true
+      },
+      {
+        "id": "cma_cost_calculation",
+        "name": "Calculation and computation of specific cost categories",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_cost_six_sigma",
+    "name": "Six Sigma",
+    "weight": 4.0122,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2022_phase1_p2_general_costing_6",
+      "pfrda_2022_phase1_p2_general_costing_7",
+      "pfrda_2025_phase1_p2_general_costing_2",
+      "pfrda_2025_phase1_p2_general_costing_5",
+      "pfrda_2025_phase2_p2_general_costing_3"
+    ],
+    "dimensions": [
+      {
+        "id": "sixsigma_dmadv_acronym",
+        "name": "DMADV methodology and components",
+        "is_core_concept": false
+      },
+      {
+        "id": "sixsigma_dmaic_acronym",
+        "name": "DMAIC methodology and correct interpretation",
+        "is_core_concept": false
+      },
+      {
+        "id": "sixsigma_sipoc_framework",
+        "name": "SIPOC model components and application",
+        "is_core_concept": false
+      },
+      {
+        "id": "sixsigma_certification_levels",
+        "name": "Six Sigma belt levels and role responsibilities",
+        "is_core_concept": false
+      },
+      {
+        "id": "sixsigma_defect_metrics",
+        "name": "Six Sigma defect rate and quality standards",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_cost_tpm",
+    "name": "Total Productive Maintenance (TPM)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_costing",
+    "name": "Costing — Cost/Management Accounting, Lean/Six Sigma (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_eco_bop_forex",
+    "name": "Balance of Payments, Foreign Exchange Markets",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_eco_consumption_investment",
+    "name": "Consumption Function, Investment Function, Multiplier & Accelerator",
+    "weight": 4.0493,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_economics_basic_2",
+      "pfrda_2021_phase2_p2_general_economics_basic_4",
+      "pfrda_2022_phase1_p2_general_economics_basic_3",
+      "pfrda_2022_phase1_p2_general_economics_basic_4",
+      "pfrda_2022_phase2_p2_general_economics_basic_5",
+      "pfrda_2025_phase1_p2_general_economics_basic_4"
+    ],
+    "dimensions": [
+      {
+        "id": "mult_acc_multiplier_formula",
+        "name": "Multiplier formula and mathematical expression",
+        "is_core_concept": true
+      },
+      {
+        "id": "mult_acc_mpc_multiplier_relationship",
+        "name": "Relationship between MPC and multiplier magnitude",
+        "is_core_concept": true
+      },
+      {
+        "id": "mult_acc_investment_income_relationship",
+        "name": "Relationship between income and investment",
+        "is_core_concept": true
+      },
+      {
+        "id": "mult_acc_interest_investment_relationship",
+        "name": "Relationship between interest rates and investment",
+        "is_core_concept": true
+      },
+      {
+        "id": "mult_acc_demand_unemployment_keynesian",
+        "name": "Keynesian demand shortfall and unemployment effects",
+        "is_core_concept": false
+      },
+      {
+        "id": "mult_acc_consumption_theories_comparison",
+        "name": "Comparison of consumption function theories",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eco_demand_supply_market",
+    "name": "Demand & Supply, Market Structures",
+    "weight": 3.9837,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_economics_basic_1",
+      "pfrda_2021_phase1_p2_general_economics_basic_4",
+      "pfrda_2021_phase2_p2_general_economics_basic_1",
+      "pfrda_2022_phase2_p2_general_economics_basic_1",
+      "pfrda_2022_phase2_p2_general_economics_basic_7",
+      "pfrda_2025_phase1_p2_general_economics_basic_1"
+    ],
+    "dimensions": [
+      {
+        "id": "ds_marginal_utility_principle",
+        "name": "Marginal utility diminishing with consumption increases",
+        "is_core_concept": false
+      },
+      {
+        "id": "ds_giffen_goods_behavior",
+        "name": "Giffen goods upward-sloping demand curve",
+        "is_core_concept": false
+      },
+      {
+        "id": "ds_demand_price_relationship",
+        "name": "Inverse relationship between quantity demanded and price",
+        "is_core_concept": true
+      },
+      {
+        "id": "ds_supply_price_relationship",
+        "name": "Positive relationship between supply and price",
+        "is_core_concept": true
+      },
+      {
+        "id": "ds_duopoly_pricing_models",
+        "name": "Duopoly models and firm pricing assumptions",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eco_is_lm",
+    "name": "Demand & Supply for Money, IS-LM Framework",
+    "weight": 1.9027,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_economics_basic_2",
+      "pfrda_2022_phase1_p2_general_economics_basic_5",
+      "pfrda_2022_phase2_p2_general_economics_basic_4"
+    ],
+    "dimensions": [
+      {
+        "id": "islm_is_curve_components",
+        "name": "Variables and components of the IS curve",
+        "is_core_concept": true
+      },
+      {
+        "id": "money_quantity_theory_formula",
+        "name": "Fisher equation and money quantity theory formula",
+        "is_core_concept": true
+      },
+      {
+        "id": "islm_curve_shifts_monetary_policy",
+        "name": "IS-LM curve shifts from monetary policy changes",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eco_monetary_fiscal_nbfc",
+    "name": "Monetary & Fiscal Policy, Non-Banking Financial Institutions",
+    "weight": 5.1932,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 7,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_economics_basic_3",
+      "pfrda_2021_phase1_p2_general_economics_basic_6",
+      "pfrda_2022_phase1_p2_general_economics_basic_1",
+      "pfrda_2022_phase1_p2_general_economics_basic_2",
+      "pfrda_2025_phase1_p2_general_economics_basic_3",
+      "pfrda_2025_phase2_p2_general_economics_basic_4",
+      "pfrda_2025_phase2_p2_general_economics_basic_7"
+    ],
+    "dimensions": [
+      {
+        "id": "mbfs_money_supply_classification",
+        "name": "Money supply aggregates (M0, M3, narrow vs broad)",
+        "is_core_concept": true
+      },
+      {
+        "id": "mbfs_budget_deficit",
+        "name": "Budget deficit when expenditure exceeds revenue",
+        "is_core_concept": false
+      },
+      {
+        "id": "mbfs_fiscal_year_timeline",
+        "name": "Indian government fiscal year calendar dates",
+        "is_core_concept": false
+      },
+      {
+        "id": "mbfs_non_tax_revenue_sources",
+        "name": "Non-tax revenue sources and components",
+        "is_core_concept": true
+      },
+      {
+        "id": "mbfs_money_multiplier_calculation",
+        "name": "Money multiplier formula and computation",
+        "is_core_concept": false
+      },
+      {
+        "id": "mbfs_quantity_theory_exchange",
+        "name": "Fisher equation relating money, velocity, prices, transactions",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eco_national_income",
+    "name": "National Income — Concepts & Measurement, Classical & Keynesian Determination of Output/Employment",
+    "weight": 3.7027,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_economics_basic_5",
+      "pfrda_2022_phase1_p2_general_economics_basic_7",
+      "pfrda_2022_phase2_p2_general_economics_basic_2",
+      "pfrda_2025_phase2_p2_general_economics_basic_1",
+      "pfrda_2025_phase2_p2_general_economics_basic_5"
+    ],
+    "dimensions": [
+      {
+        "id": "ni_gnp_gni_relationship",
+        "name": "Relationship between GNP, GNI, and adjustment items",
+        "is_core_concept": true
+      },
+      {
+        "id": "ni_nnp_calculation",
+        "name": "Net National Product calculation and components",
+        "is_core_concept": false
+      },
+      {
+        "id": "ni_gdp_deflator",
+        "name": "GDP deflator calculation and nominal-real conversion",
+        "is_core_concept": false
+      },
+      {
+        "id": "ni_measurement_methods",
+        "name": "Alternative methods for measuring national income",
+        "is_core_concept": false
+      },
+      {
+        "id": "ni_keynesian_demand_determination",
+        "name": "Keynesian determination of output and employment via demand",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_eco_phillips_cycles",
+    "name": "Inflation & Phillips Curve, Business Cycles",
+    "weight": 5.8493,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_economics_basic_7",
+      "pfrda_2021_phase2_p2_general_economics_basic_5",
+      "pfrda_2022_phase1_p2_general_economics_basic_6",
+      "pfrda_2022_phase2_p2_general_economics_basic_3",
+      "pfrda_2022_phase2_p2_general_economics_basic_6",
+      "pfrda_2025_phase2_p2_general_economics_basic_2",
+      "pfrda_2025_phase2_p2_general_economics_basic_3",
+      "pfrda_2025_phase2_p2_general_economics_basic_6"
+    ],
+    "dimensions": [
+      {
+        "id": "phillips_curve_relationship",
+        "name": "Phillips Curve relationship between inflation and unemployment",
+        "is_core_concept": true
+      },
+      {
+        "id": "phillips_curve_determinants",
+        "name": "Factors determining inflation in Phillips Curve framework",
+        "is_core_concept": true
+      },
+      {
+        "id": "inflation_causes",
+        "name": "Causes and sources of inflation in economy",
+        "is_core_concept": true
+      },
+      {
+        "id": "business_cycle_stagflation",
+        "name": "Stagflation as business cycle phenomenon",
+        "is_core_concept": false
+      },
+      {
+        "id": "price_indices",
+        "name": "Types and significance of price indices",
+        "is_core_concept": true
+      },
+      {
+        "id": "pmi_components",
+        "name": "Components and indicators in Purchasing Manager's Index",
+        "is_core_concept": false
+      },
+      {
+        "id": "inflation_targeting_framework",
+        "name": "Central bank inflation targeting bands and tolerance",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_economics_basic",
+    "name": "Economics — UG-level (PFRDA General; NOT linked to postgrad-depth canonical Macro Theory topics)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_fin_alt_finance_ppp",
+    "name": "Alternate Sources of Finance; Private & Social Cost-Benefit; Public-Private Partnership",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_fin_derivatives",
+    "name": "Basics of Derivatives — Forward, Futures, Swap",
+    "weight": 2.7371,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_finance_7",
+      "pfrda_2021_phase2_p2_general_finance_8",
+      "pfrda_2022_phase1_p2_general_finance_4",
+      "pfrda_2025_phase2_p2_general_finance_5"
+    ],
+    "dimensions": [
+      {
+        "id": "deriv_classification",
+        "name": "Classification of derivative vs non-derivative instruments",
+        "is_core_concept": true
+      },
+      {
+        "id": "deriv_greek_letters",
+        "name": "Greek letters measuring option price sensitivity",
+        "is_core_concept": false
+      },
+      {
+        "id": "deriv_hedging_concept",
+        "name": "Hedging as risk reduction strategy using derivatives",
+        "is_core_concept": true
+      },
+      {
+        "id": "deriv_futures_calculation",
+        "name": "Calculating number of futures contracts for hedging",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_fin_inclusion",
+    "name": "Financial Inclusion — Use of Technology",
+    "weight": 2.1466,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_finance_3",
+      "pfrda_2022_phase1_p2_general_finance_3",
+      "pfrda_2025_phase1_p2_general_finance_6"
+    ],
+    "dimensions": [
+      {
+        "id": "fi_tech_banking_access_products",
+        "name": "Banking products for financial inclusion",
+        "is_core_concept": true
+      },
+      {
+        "id": "fi_tech_dbt_government_transfers",
+        "name": "Direct Benefit Transfer mechanisms and government payments",
+        "is_core_concept": false
+      },
+      {
+        "id": "fi_tech_aeps_interoperability",
+        "name": "Aadhaar Enabled Payment System infrastructure",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_fin_inflation",
+    "name": "Inflation — Definition, Trends, Estimates, Consequences, Remedies; WPI/CPI",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_fin_markets",
+    "name": "Primary & Secondary Financial Markets — Forex, Money, Bond, Equity: Functions, Instruments, Recent Developments",
+    "weight": 5.5398,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_finance_5",
+      "pfrda_2021_phase1_p2_general_finance_6",
+      "pfrda_2021_phase2_p2_general_finance_4",
+      "pfrda_2022_phase1_p2_general_finance_1",
+      "pfrda_2022_phase1_p2_general_finance_5",
+      "pfrda_2022_phase2_p2_general_finance_5",
+      "pfrda_2025_phase1_p2_general_finance_2",
+      "pfrda_2025_phase1_p2_general_finance_3"
+    ],
+    "dimensions": [
+      {
+        "id": "fm_default_risk_assessment",
+        "name": "Default risk comparison across security types",
+        "is_core_concept": false
+      },
+      {
+        "id": "fm_cash_management_bills_tenure",
+        "name": "Tenure and maturity characteristics of money market instruments",
+        "is_core_concept": false
+      },
+      {
+        "id": "fm_sovereign_gold_bonds_redemption",
+        "name": "Redemption pricing methodology for gold-linked securities",
+        "is_core_concept": false
+      },
+      {
+        "id": "fm_ipo_price_stability_mechanisms",
+        "name": "Mechanisms for stabilizing share prices during IPO",
+        "is_core_concept": false
+      },
+      {
+        "id": "fm_nostro_vostro_accounts",
+        "name": "Nostro and Vostro account types in forex markets",
+        "is_core_concept": false
+      },
+      {
+        "id": "fm_price_to_book_valuation",
+        "name": "Price-to-book ratio and equity valuation assessment",
+        "is_core_concept": false
+      },
+      {
+        "id": "fm_treasury_bills_market",
+        "name": "Money market as issuance venue for treasury bills",
+        "is_core_concept": true
+      },
+      {
+        "id": "fm_fx_intervention_rationale",
+        "name": "Central bank forex intervention during market stress events",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_fin_recent_developments",
+    "name": "Recent Developments in the Financial Sector",
+    "weight": 4.6027,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_finance_2",
+      "pfrda_2022_phase1_p2_general_finance_6",
+      "pfrda_2022_phase2_p2_general_finance_3",
+      "pfrda_2025_phase1_p2_general_finance_7",
+      "pfrda_2025_phase1_p2_general_finance_8",
+      "pfrda_2025_phase1_p2_general_finance_11"
+    ],
+    "dimensions": [
+      {
+        "id": "gecl_credit_guarantee_mechanisms",
+        "name": "Credit guarantee schemes and guarantor institutions",
+        "is_core_concept": false
+      },
+      {
+        "id": "aif_investment_scope_expansion",
+        "name": "AIF investment asset classes and regulatory expansion",
+        "is_core_concept": false
+      },
+      {
+        "id": "sse_npo_registration_criteria",
+        "name": "Social Stock Exchange listing requirements for NPOs",
+        "is_core_concept": false
+      },
+      {
+        "id": "rbi_liquidity_management_tools",
+        "name": "RBI monetary policy instruments and collateral requirements",
+        "is_core_concept": false
+      },
+      {
+        "id": "stablecoin_price_stability_mechanisms",
+        "name": "Stablecoin design and price stabilization methods",
+        "is_core_concept": true
+      },
+      {
+        "id": "stablecoin_regulatory_backing_requirements",
+        "name": "Regulatory standards for stablecoin asset backing",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_fin_regulatory_bodies",
+    "name": "Role & Functions of Regulatory Bodies in the Financial Sector",
+    "weight": 8.5493,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 11,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_finance_1",
+      "pfrda_2021_phase2_p2_general_finance_1",
+      "pfrda_2022_phase1_p2_general_finance_2",
+      "pfrda_2022_phase2_p2_general_finance_4",
+      "pfrda_2022_phase2_p2_general_finance_7",
+      "pfrda_2025_phase1_p2_general_finance_5",
+      "pfrda_2025_phase1_p2_general_finance_9",
+      "pfrda_2025_phase1_p2_general_finance_10",
+      "pfrda_2025_phase2_p2_general_finance_1",
+      "pfrda_2025_phase2_p2_general_finance_3",
+      "pfrda_2025_phase2_p2_general_finance_4"
+    ],
+    "dimensions": [
+      {
+        "id": "regbod_sector_jurisdiction",
+        "name": "Which regulator oversees specific financial sectors",
+        "is_core_concept": true
+      },
+      {
+        "id": "regbod_institutional_scope",
+        "name": "Types of institutions covered under regulatory schemes",
+        "is_core_concept": true
+      },
+      {
+        "id": "regbod_specific_requirements",
+        "name": "Specific regulatory thresholds and disclosure requirements",
+        "is_core_concept": true
+      },
+      {
+        "id": "regbod_rbi_subsidiaries",
+        "name": "RBI's subsidiary organizations and structural relationships",
+        "is_core_concept": false
+      },
+      {
+        "id": "regbod_regulation_frameworks",
+        "name": "Regulatory frameworks like Scale-Based Regulation",
+        "is_core_concept": false
+      },
+      {
+        "id": "regbod_regulatory_instruments",
+        "name": "Specific regulatory instruments like BRSR mandates",
+        "is_core_concept": false
+      },
+      {
+        "id": "regbod_bank_classification",
+        "name": "Classification and definition of bank types",
+        "is_core_concept": false
+      },
+      {
+        "id": "regbod_investment_structure",
+        "name": "Registration and regulatory approval for investment vehicles",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_fin_tax_frbm",
+    "name": "Direct & Indirect Taxes, Non-tax Revenue, GST, Finance Commission, Fiscal Policy, FRBM Act",
+    "weight": 5.7181,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_finance_2",
+      "pfrda_2021_phase1_p2_general_finance_4",
+      "pfrda_2021_phase2_p2_general_finance_3",
+      "pfrda_2021_phase2_p2_general_finance_6",
+      "pfrda_2022_phase2_p2_general_finance_2",
+      "pfrda_2025_phase1_p2_general_finance_1",
+      "pfrda_2025_phase1_p2_general_finance_4",
+      "pfrda_2025_phase2_p2_general_finance_2"
+    ],
+    "dimensions": [
+      {
+        "id": "gst_inverted_duty_structure",
+        "name": "Inverted Duty Structure in GST",
+        "is_core_concept": false
+      },
+      {
+        "id": "frbm_escape_clause",
+        "name": "FRBM Act Escape Clause for Fiscal Deviation",
+        "is_core_concept": false
+      },
+      {
+        "id": "tobin_tax_forms",
+        "name": "Tobin Tax Implementation in India",
+        "is_core_concept": false
+      },
+      {
+        "id": "tds_immovable_property",
+        "name": "TDS on Immovable Property Sections",
+        "is_core_concept": false
+      },
+      {
+        "id": "finance_commission_devolution",
+        "name": "Finance Commission Fund Devolution Weightage",
+        "is_core_concept": false
+      },
+      {
+        "id": "finance_commission_vertical_imbalance",
+        "name": "Vertical Fiscal Imbalance Correction Principle",
+        "is_core_concept": false
+      },
+      {
+        "id": "gst_zero_rated_supply",
+        "name": "Zero-Rated Supply under GST",
+        "is_core_concept": false
+      },
+      {
+        "id": "gst_components_structure",
+        "name": "GST Components and Types",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_finance",
+    "name": "Finance — Financial System/Markets/Derivatives/Fiscal Policy (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_management",
+    "name": "Management — Processes, Leadership, HRD, Motivation Theories (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 2,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_marketing_communication",
+    "name": "Marketing & Communication (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_media",
+    "name": "Media — Convergence, Digital Divide, Algorithms (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_mgmt_communication",
+    "name": "Communication — Process, Channels, Oral vs. Written, Verbal vs. Non-verbal, Barriers, Role of IT",
+    "weight": 3.3932,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_management_7",
+      "pfrda_2021_phase2_p2_general_management_5",
+      "pfrda_2022_phase1_p2_general_management_6",
+      "pfrda_2022_phase2_p2_general_management_7",
+      "pfrda_2025_phase1_p2_general_management_4"
+    ],
+    "dimensions": [
+      {
+        "id": "comm_network_structures",
+        "name": "Communication network structures and patterns",
+        "is_core_concept": false
+      },
+      {
+        "id": "comm_direction_flow",
+        "name": "Direction and flow of communication in organizations",
+        "is_core_concept": true
+      },
+      {
+        "id": "comm_barriers_types",
+        "name": "Barriers to effective communication",
+        "is_core_concept": true
+      },
+      {
+        "id": "comm_effectiveness_outcomes",
+        "name": "Effects of effective communication on organizational outcomes",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_mgmt_hrd",
+    "name": "Human Resource Development — Concept & Goals of HRD",
+    "weight": 3.3932,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_management_4",
+      "pfrda_2021_phase2_p2_general_management_3",
+      "pfrda_2022_phase2_p2_general_management_3",
+      "pfrda_2022_phase2_p2_general_management_5",
+      "pfrda_2025_phase2_p2_general_management_3"
+    ],
+    "dimensions": [
+      {
+        "id": "hrd_career_development_programs",
+        "name": "Career Development Programs and Design",
+        "is_core_concept": true
+      },
+      {
+        "id": "hrd_training_scope",
+        "name": "Training Scope Beyond Current Job Role",
+        "is_core_concept": false
+      },
+      {
+        "id": "hrd_employee_autonomy",
+        "name": "Employee Autonomy and Freedom in Work Domain",
+        "is_core_concept": false
+      },
+      {
+        "id": "hrd_counselling_support",
+        "name": "Career Counselling and Manager Support Role",
+        "is_core_concept": false
+      },
+      {
+        "id": "hrd_developmental_functions",
+        "name": "Developmental Functions vs Other HRD Functions",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_mgmt_leadership_styles",
+    "name": "Leadership Styles & Theories; Successful vs. Effective Leader",
+    "weight": 7.1615,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 10,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_management_2",
+      "pfrda_2021_phase2_p2_general_management_4",
+      "pfrda_2022_phase1_p2_general_management_3",
+      "pfrda_2022_phase1_p2_general_management_4",
+      "pfrda_2022_phase1_p2_general_management_5",
+      "pfrda_2022_phase2_p2_general_management_1",
+      "pfrda_2022_phase2_p2_general_management_4",
+      "pfrda_2025_phase1_p2_general_management_1",
+      "pfrda_2025_phase1_p2_general_management_3",
+      "pfrda_2025_phase2_p2_general_management_4"
+    ],
+    "dimensions": [
+      {
+        "id": "ls_paternalistic_characteristics",
+        "name": "Paternalistic leadership characteristics and behaviors",
+        "is_core_concept": true
+      },
+      {
+        "id": "ls_democratic_characteristics",
+        "name": "Democratic leadership consultation and team participation",
+        "is_core_concept": true
+      },
+      {
+        "id": "ls_laissez_faire_delegative",
+        "name": "Laissez-faire and delegative leadership styles",
+        "is_core_concept": true
+      },
+      {
+        "id": "ls_affiliative_harmony",
+        "name": "Affiliative leadership focus on relationships and harmony",
+        "is_core_concept": false
+      },
+      {
+        "id": "ls_transactional_supervision",
+        "name": "Transactional leadership supervision and performance focus",
+        "is_core_concept": false
+      },
+      {
+        "id": "ls_coercive_directive",
+        "name": "Coercive leadership commanding and directive approach",
+        "is_core_concept": false
+      },
+      {
+        "id": "ls_manipulative_autocratic",
+        "name": "Manipulative autocratic leadership illusion of participation",
+        "is_core_concept": false
+      },
+      {
+        "id": "ls_mcgregor_theory_x",
+        "name": "McGregor Theory X assumptions about worker motivation",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_mgmt_motivation",
+    "name": "Motivation, Morale & Incentives — Theories of Motivation, Factors Determining Morale",
+    "weight": 5.7181,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_management_1",
+      "pfrda_2021_phase1_p2_general_management_3",
+      "pfrda_2021_phase1_p2_general_management_6",
+      "pfrda_2021_phase2_p2_general_management_7",
+      "pfrda_2022_phase2_p2_general_management_2",
+      "pfrda_2025_phase1_p2_general_management_2",
+      "pfrda_2025_phase2_p2_general_management_1",
+      "pfrda_2025_phase2_p2_general_management_6"
+    ],
+    "dimensions": [
+      {
+        "id": "mot_drive_reduction_theory",
+        "name": "Drive Reduction Theory and homeostasis concept",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_erg_theory",
+        "name": "Alderfer's ERG Theory and exploration/innovation",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_two_factor_theory",
+        "name": "Herzberg's Two-Factor Theory: hygiene and motivators",
+        "is_core_concept": true
+      },
+      {
+        "id": "mot_equity_theory",
+        "name": "Equity Theory of motivation",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_expectancy_theory",
+        "name": "Vroom's Expectancy Theory",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_competence_theory",
+        "name": "Competence Theory: skill development and demonstration",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_goal_setting_theory",
+        "name": "Goal Setting Theory of motivation",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_maslow_hierarchy",
+        "name": "Maslow's hierarchy of needs and self-esteem level",
+        "is_core_concept": true
+      },
+      {
+        "id": "mot_pygmalion_effect",
+        "name": "Pygmalion effect: expectations and self-fulfilling prophecy",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_morale_vs_motivation",
+        "name": "Distinction between morale and motivation",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_morale_definition",
+        "name": "Morale as group attitude toward organization",
+        "is_core_concept": false
+      },
+      {
+        "id": "mot_management_style_motivation",
+        "name": "Management approaches that motivate social betterment",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_mgmt_nature_scope",
+    "name": "Nature & Scope of Management; Management Processes — Planning, Organization, Staffing, Directing, Controlling",
+    "weight": 3.9837,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_management_5",
+      "pfrda_2021_phase2_p2_general_management_1",
+      "pfrda_2021_phase2_p2_general_management_2",
+      "pfrda_2022_phase1_p2_general_management_2",
+      "pfrda_2022_phase2_p2_general_management_6",
+      "pfrda_2025_phase2_p2_general_management_2"
+    ],
+    "dimensions": [
+      {
+        "id": "mgmt_characteristics_authority_hierarchy",
+        "name": "Management as system of authority and hierarchy",
+        "is_core_concept": false
+      },
+      {
+        "id": "mgmt_strategy_formulation_levels",
+        "name": "Strategy formulation by management levels",
+        "is_core_concept": false
+      },
+      {
+        "id": "mgmt_planning_function_definition",
+        "name": "Planning function: goal setting and resource allocation",
+        "is_core_concept": true
+      },
+      {
+        "id": "mgmt_theoretical_frameworks_systems",
+        "name": "Systems theory view of organizations",
+        "is_core_concept": false
+      },
+      {
+        "id": "mgmt_theoretical_integration_classical_behavioral",
+        "name": "Integration of classical and behavioral management theories",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_mgmt_role_manager",
+    "name": "Role of a Manager in an Organization; Leadership — Tasks of a Leader",
+    "weight": 1.9027,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "pfrda_2021_phase2_p2_general_management_6",
+      "pfrda_2022_phase1_p2_general_management_1",
+      "pfrda_2022_phase2_p2_general_management_8"
+    ],
+    "dimensions": [
+      {
+        "id": "mgr_interpersonal_roles",
+        "name": "Interpersonal roles and group leadership",
+        "is_core_concept": true
+      },
+      {
+        "id": "mgr_informational_roles",
+        "name": "Information collection and dissemination roles",
+        "is_core_concept": true
+      },
+      {
+        "id": "leader_communication_motivation",
+        "name": "Two-way communication and employee motivation",
+        "is_core_concept": false
+      },
+      {
+        "id": "leader_credibility_building",
+        "name": "Building credibility through organizational contribution",
+        "is_core_concept": false
+      },
+      {
+        "id": "mgr_monitoring_function",
+        "name": "Monitoring internal and external environmental factors",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_pen_annuity",
+    "name": "Annuity Plans",
+    "weight": 3.4588,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_pension_sector_6",
+      "pfrda_2022_phase1_p2_general_pension_sector_7",
+      "pfrda_2022_phase2_p2_general_pension_sector_1",
+      "pfrda_2022_phase2_p2_general_pension_sector_7",
+      "pfrda_2025_phase2_p2_general_pension_sector_6"
+    ],
+    "dimensions": [
+      {
+        "id": "pmvvy_loan_eligibility",
+        "name": "PMVVY loan availability and quantum",
+        "is_core_concept": true
+      },
+      {
+        "id": "pmvvy_enrollment_age",
+        "name": "PMVVY maximum enrollment age limit",
+        "is_core_concept": false
+      },
+      {
+        "id": "pmvvy_investment_limit",
+        "name": "PMVVY maximum investment or purchase limit",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_annuity_withdrawal",
+        "name": "NPS retirement corpus annuity vs lump sum split",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_pen_apy",
+    "name": "Atal Pension Yojana (APY)",
+    "weight": 7.0588,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_pension_sector_2",
+      "pfrda_2022_phase1_p2_general_pension_sector_4",
+      "pfrda_2022_phase1_p2_general_pension_sector_5",
+      "pfrda_2022_phase2_p2_general_pension_sector_4",
+      "pfrda_2025_phase1_p2_general_pension_sector_1",
+      "pfrda_2025_phase1_p2_general_pension_sector_2",
+      "pfrda_2025_phase2_p2_general_pension_sector_1",
+      "pfrda_2025_phase2_p2_general_pension_sector_5",
+      "pfrda_2025_phase2_p2_general_pension_sector_8"
+    ],
+    "dimensions": [
+      {
+        "id": "apy_minimum_contribution_period",
+        "name": "Minimum contribution period required for pension",
+        "is_core_concept": true
+      },
+      {
+        "id": "apy_nomination_rules",
+        "name": "Nomination eligibility and requirements",
+        "is_core_concept": false
+      },
+      {
+        "id": "apy_contribution_rates",
+        "name": "Contribution rates and compounding calculations",
+        "is_core_concept": true
+      },
+      {
+        "id": "apy_mode_change_frequency",
+        "name": "Frequency of changing tenure or auto-debit mode",
+        "is_core_concept": false
+      },
+      {
+        "id": "apy_contribution_amounts",
+        "name": "Contribution amounts for target pension levels",
+        "is_core_concept": true
+      },
+      {
+        "id": "apy_joining_age_limits",
+        "name": "Age eligibility and maximum joining age",
+        "is_core_concept": true
+      },
+      {
+        "id": "apy_target_beneficiaries",
+        "name": "Scheme eligibility and target worker sectors",
+        "is_core_concept": false
+      },
+      {
+        "id": "apy_government_guarantees",
+        "name": "Government guarantees and survivor benefits",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_pen_investment_basics",
+    "name": "Basics of Investment",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 1,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_pen_nps",
+    "name": "National Pension System (NPS)",
+    "weight": 10.9769,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 15,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_pension_sector_1",
+      "pfrda_2021_phase2_p2_general_pension_sector_1",
+      "pfrda_2021_phase2_p2_general_pension_sector_3",
+      "pfrda_2021_phase2_p2_general_pension_sector_4",
+      "pfrda_2021_phase2_p2_general_pension_sector_6",
+      "pfrda_2022_phase1_p2_general_pension_sector_1",
+      "pfrda_2022_phase1_p2_general_pension_sector_2",
+      "pfrda_2022_phase1_p2_general_pension_sector_3",
+      "pfrda_2022_phase1_p2_general_pension_sector_6",
+      "pfrda_2025_phase1_p2_general_pension_sector_3",
+      "pfrda_2025_phase1_p2_general_pension_sector_4",
+      "pfrda_2025_phase1_p2_general_pension_sector_5",
+      "pfrda_2025_phase1_p2_general_pension_sector_6",
+      "pfrda_2025_phase2_p2_general_pension_sector_4",
+      "pfrda_2025_phase2_p2_general_pension_sector_7"
+    ],
+    "dimensions": [
+      {
+        "id": "nps_eligibility_age_limits",
+        "name": "Eligibility age range for NPS account opening",
+        "is_core_concept": true
+      },
+      {
+        "id": "nps_eligibility_citizenship",
+        "name": "Citizenship and residency requirements for NPS",
+        "is_core_concept": true
+      },
+      {
+        "id": "nps_custodian_charges",
+        "name": "Asset servicing charges by custodian",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_government_contribution_rates",
+        "name": "Government contribution percentages to NPS accounts",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_ombudsman_compensation_limits",
+        "name": "Ombudsman compensation authority without PFRDA approval",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_tax_deduction_section",
+        "name": "Income tax sections for NPS contribution deductions",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_fund_processing_timeline",
+        "name": "Fund transfer settlement timeline for NPS transactions",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_pfm_investment_restrictions",
+        "name": "Prohibited investment classes for PFM fund deployment",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_grievance_redressal_portal",
+        "name": "Designated portal for NPS grievance management",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_vatsalya_minor_rules",
+        "name": "NPS Vatsalya account rules for minors",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_tier_minimum_contribution",
+        "name": "Tier-I minimum annual contribution requirement",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_partial_withdrawal_limits",
+        "name": "Partial withdrawal amount and eligibility period",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_government_model_asset_allocation",
+        "name": "Asset class exposure limits in Government Model",
+        "is_core_concept": false
+      },
+      {
+        "id": "nps_contribution_reflection_timeline",
+        "name": "Working days for contribution to reflect in account",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_pen_retirement_schemes",
+    "name": "Types of Retirement Schemes in India & their Features",
+    "weight": 4.9208,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 8,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_pension_sector_4",
+      "pfrda_2021_phase1_p2_general_pension_sector_5",
+      "pfrda_2021_phase1_p2_general_pension_sector_7",
+      "pfrda_2021_phase2_p2_general_pension_sector_5",
+      "pfrda_2021_phase2_p2_general_pension_sector_7",
+      "pfrda_2022_phase2_p2_general_pension_sector_2",
+      "pfrda_2022_phase2_p2_general_pension_sector_3",
+      "pfrda_2022_phase2_p2_general_pension_sector_5"
+    ],
+    "dimensions": [
+      {
+        "id": "eps_pensionable_salary_calculation",
+        "name": "EPS pensionable salary calculation method",
+        "is_core_concept": false
+      },
+      {
+        "id": "eps_administering_authority",
+        "name": "Authority responsible for administering EPS",
+        "is_core_concept": false
+      },
+      {
+        "id": "unorganized_sector_schemes",
+        "name": "Government schemes for unorganized workers",
+        "is_core_concept": false
+      },
+      {
+        "id": "eps_retirement_age_eligibility",
+        "name": "EPS retirement age and eligibility criteria",
+        "is_core_concept": true
+      },
+      {
+        "id": "eps_regulatory_framework_rules",
+        "name": "EPS membership eligibility rules and resolution",
+        "is_core_concept": false
+      },
+      {
+        "id": "eps_dependent_benefits",
+        "name": "EPS pension benefits for dependents and age limits",
+        "is_core_concept": false
+      },
+      {
+        "id": "eps_wage_ceiling",
+        "name": "EPS contribution wage ceiling limits",
+        "is_core_concept": false
+      },
+      {
+        "id": "gratuity_service_requirement",
+        "name": "Gratuity eligibility based on service duration",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_pen_status_india",
+    "name": "Status of the Pension Sector in India",
+    "weight": 3.6371,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "pfrda_2021_phase1_p2_general_pension_sector_3",
+      "pfrda_2021_phase2_p2_general_pension_sector_2",
+      "pfrda_2022_phase2_p2_general_pension_sector_6",
+      "pfrda_2025_phase2_p2_general_pension_sector_2",
+      "pfrda_2025_phase2_p2_general_pension_sector_3"
+    ],
+    "dimensions": [
+      {
+        "id": "psi_historical_policy_initiatives",
+        "name": "Historical policy projects and their timelines",
+        "is_core_concept": false
+      },
+      {
+        "id": "psi_digital_pension_infrastructure",
+        "name": "Digital platforms and systems for pensioner services",
+        "is_core_concept": true
+      },
+      {
+        "id": "psi_life_certificate_mechanisms",
+        "name": "Life certificate issuance methods and names",
+        "is_core_concept": true
+      },
+      {
+        "id": "psi_grievance_resolution_timelines",
+        "name": "Grievance resolution timeframes by regulatory body",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "pfrda_pension_sector",
+    "name": "Pension Sector — NPS, APY, Annuities (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_descriptive_statistics",
+    "name": "Descriptive Statistics (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_economic_statistics",
+    "name": "Economic Statistics (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_hypothesis_testing",
+    "name": "Hypothesis Testing (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_operations_research",
+    "name": "Operations Research (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_probability_distributions",
+    "name": "Probability Distributions (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_probability_theory",
+    "name": "Probability Theory (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_sampling_techniques",
+    "name": "Sampling Techniques (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_statistical_computing",
+    "name": "Statistical Computing (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_statistical_inference",
+    "name": "Statistical Inference (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_statistical_quality_control",
+    "name": "Statistical Quality Control (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_time_series_analysis",
+    "name": "Time Series Analysis (PFRDA Research)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "pfrda_english_descriptive",
+    "name": "English Descriptive Writing — Precis/Essay/Comprehension (PFRDA)",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  }
+]

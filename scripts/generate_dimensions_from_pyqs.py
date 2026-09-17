@@ -177,11 +177,21 @@ def run(exam_id: str, force: bool) -> None:
         existing = {e["topic_id"]: e for e in json.loads(out_path.read_text())}
         print(f"Resuming: {len(existing)} topic(s) already done in {out_path.name} (use --force to redo all).")
 
-    topics = fetch_topics(exam_id)
-    if not topics:
+    raw_topics = fetch_topics(exam_id)
+    if not raw_topics:
         print(f"No topics found for exam_id='{exam_id}' via /topics — check it's registered in nyaya-core.")
         return
-    print(f"{len(topics)} topic(s) registered for '{exam_id}'.")
+    # /topics returns one row per (exam_id, paper_id, topic_id) — a topic linked under 2+
+    # papers (real, e.g. pfrda_gradea's General/Research-stream overlap) appears more than
+    # once with the same real weight each time (verified live: 74/195 of PFRDA's rows are
+    # such duplicates, weight identical every time) — dedupe here so this script doesn't
+    # spend a real Haiku call twice on the same topic.
+    topics = list({t["topic_id"]: t for t in raw_topics}.values())
+    if len(topics) < len(raw_topics):
+        print(f"{len(raw_topics)} topic row(s) from /topics, {len(topics)} unique topic_id(s) "
+              f"after dedup (a topic linked under 2+ papers appears once per paper).")
+    else:
+        print(f"{len(topics)} topic(s) registered for '{exam_id}'.")
 
     DIMENSIONS_DIR.mkdir(parents=True, exist_ok=True)
     results: dict[str, dict] = dict(existing)

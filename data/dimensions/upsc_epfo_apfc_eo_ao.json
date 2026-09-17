@@ -1,0 +1,2689 @@
+[
+  {
+    "topic_id": "accountancy_auditing_insurance",
+    "name": "Principles of Accountancy, Auditing & Insurance",
+    "weight": 0.73,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 6,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_14_21_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_11",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_6"
+    ],
+    "dimensions": [
+      {
+        "id": "paai_accounting_standards_identification",
+        "name": "Identification of applicable accounting standards",
+        "is_core_concept": true
+      },
+      {
+        "id": "paai_overhead_rate_calculation",
+        "name": "Calculation of factory overhead rates",
+        "is_core_concept": false
+      },
+      {
+        "id": "paai_financial_reporting_frameworks",
+        "name": "Understanding IFRS and international reporting standards",
+        "is_core_concept": false
+      },
+      {
+        "id": "paai_financial_statement_formats",
+        "name": "Legal requirements for financial statement formats",
+        "is_core_concept": false
+      },
+      {
+        "id": "paai_profitability_ratios",
+        "name": "Computation and formula of profitability ratios",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "accountancy_fundamentals",
+    "name": "Accountancy Fundamentals (accrual/matching, journal entries, trial balance, inventory valuation)",
+    "weight": 8.24,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 56,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_18_25_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_18_25_pyq_1",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_18_25_pyq_2",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_18_25_pyq_3",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_19_26_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_19_26_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_1_1_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_15_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_13_19_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_15_22_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_12_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_12_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_12_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_13_pyq_10",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_13_13_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_13_13_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_13_13_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_13_13_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_13_13_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_10",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_16_17_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_16_17_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_16_17_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_7",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_5"
+    ],
+    "dimensions": [
+      {
+        "id": "acct_reserves_vs_provisions",
+        "name": "Distinction between reserves and provisions",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_trial_balance_function",
+        "name": "Trial balance purpose and limitations",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_journal_entries",
+        "name": "Journal entry recording and adjustments",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_accrual_matching",
+        "name": "Accrual and matching principles",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_inventory_valuation_methods",
+        "name": "Inventory valuation methods (FIFO, LIFO, weighted average)",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_inventory_cost_inclusion",
+        "name": "Costs includable or excludable in inventory computation",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_accounting_errors",
+        "name": "Classification of accounting errors",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_capital_vs_revenue_expenditure",
+        "name": "Capitalization vs. revenue expense classification",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_accounting_concepts",
+        "name": "Foundational accounting concepts (going concern, prudence, etc.)",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_account_types",
+        "name": "Real, personal, and nominal account classification",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_depreciation_methods",
+        "name": "Depreciation calculation methods (SLM vs. WDV)",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_operating_profit_calculation",
+        "name": "Operating profit computation from net profit",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_bookkeeping_process_sequence",
+        "name": "Chronological sequence of bookkeeping procedures",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_revenue_recognition",
+        "name": "Revenue recognition timing and principles",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_bank_reconciliation",
+        "name": "Bank reconciliation statement adjustments",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_doubtful_debts_provision",
+        "name": "Provision for doubtful debts and prudence concept",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_single_entry_profit",
+        "name": "Net profit calculation under single-entry system",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_consignment_accounting",
+        "name": "Accounting treatment for consignment transactions",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_credit_terms_calculations",
+        "name": "Cash discount and credit term calculations",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_capital_reserve_creation",
+        "name": "Capital reserve sources and creation",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_financial_statement_types",
+        "name": "Types and purposes of financial statements",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_double_entry_principle",
+        "name": "Double-entry bookkeeping principle and mechanics",
+        "is_core_concept": true
+      },
+      {
+        "id": "acct_as_standards",
+        "name": "Accounting Standards (AS) application and references",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_deferred_revenue_expenditure",
+        "name": "Deferred revenue expenditure classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_non_profit_accounting",
+        "name": "Non-trading organization accounting (receipts/payments, I&E accounts)",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_joint_venture_accounting",
+        "name": "Joint venture accounting treatment",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_branch_accounting",
+        "name": "Branch account classification and treatment",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_intangible_assets",
+        "name": "Identification and classification of intangible assets",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_current_liabilities",
+        "name": "Current liabilities definition and timeframe",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_debenture_interest",
+        "name": "Debenture interest as charge vs. appropriation",
+        "is_core_concept": false
+      },
+      {
+        "id": "acct_prepaid_expense_balance_sheet",
+        "name": "Prepaid expenses presentation on balance sheet",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "auditing_principles",
+    "name": "Auditing Principles (vouching, verification, documentation)",
+    "weight": 0.55,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_19_26_pyq_4",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_19_26_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_15_pyq_7"
+    ],
+    "dimensions": [
+      {
+        "id": "auditing_vouching_definition_purpose",
+        "name": "Definition and primary objective of vouching",
+        "is_core_concept": true
+      },
+      {
+        "id": "auditing_vouching_transaction_verification",
+        "name": "Vouching to verify authenticity and authorization of transactions",
+        "is_core_concept": true
+      },
+      {
+        "id": "auditing_vouching_supporting_evidence",
+        "name": "Use of documentary evidence and vouchers in vouching",
+        "is_core_concept": true
+      },
+      {
+        "id": "auditing_documentation_definition_scope",
+        "name": "Definition and scope of audit documentation",
+        "is_core_concept": true
+      },
+      {
+        "id": "auditing_documentation_media_formats",
+        "name": "Recording audit documentation in various media formats",
+        "is_core_concept": false
+      },
+      {
+        "id": "auditing_documentation_vs_audit_file",
+        "name": "Distinction between audit documentation and audit file",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "computer_applications",
+    "name": "Computer Applications & Basic IT Concepts",
+    "weight": 8.24,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 48,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_4",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_5",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_6",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_7",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_8",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_14_21_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_16_24_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_16_24_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_16_24_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_16_24_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_10",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_11",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_12",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_13",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_2_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_2_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_2_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_2_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_2_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_9_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_9_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_9_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_9_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_9_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_9_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_16_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_16_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_16_pyq_5"
+    ],
+    "dimensions": [
+      {
+        "id": "comp_ai_chatgpt_characteristics",
+        "name": "ChatGPT technology and capabilities",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_ai_hardware_requirements",
+        "name": "Hardware for AI model training and deployment",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_security_ssl_encryption",
+        "name": "SSL encryption and secure web protocols",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_storage_ssd_characteristics",
+        "name": "Solid State Drive features and properties",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_memory_types_permanence",
+        "name": "Memory types and data persistence",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_memory_volatility",
+        "name": "Volatile vs non-volatile memory distinction",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_network_protocols_secure",
+        "name": "Network protocols for secure communication",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_security_malware_types",
+        "name": "Malware classification and behavior",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_spreadsheet_formula_syntax",
+        "name": "Excel formula syntax and operators",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_data_storage_units",
+        "name": "Digital storage unit conversions",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_email_spam_definition",
+        "name": "SPAM email characteristics and definition",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_peripherals_plug_play",
+        "name": "Plug-and-Play device connectivity",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_software_spreadsheet_purpose",
+        "name": "Spreadsheet software applications and use",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_gps_technology_concepts",
+        "name": "Global Positioning System functionality",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_cellular_generations_technology",
+        "name": "Cellular network generations and evolution",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_network_types_classification",
+        "name": "Network types LAN WAN MAN classification",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_cloud_computing_definition",
+        "name": "Cloud computing architecture and services",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_communication_duplex_modes",
+        "name": "Communication transmission duplex modes",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_os_definition_function",
+        "name": "Operating system definition and role",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_power_supply_smps",
+        "name": "Switch Mode Power Supply technology",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_interfaces_usb_standard",
+        "name": "USB interface standard and definition",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_storage_cdrom_type",
+        "name": "CD-ROM storage media classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_wireless_wap_protocol",
+        "name": "Wireless Application Protocol technology",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_wireless_bluetooth_capability",
+        "name": "Bluetooth wireless connectivity features",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_computer_basic_functions",
+        "name": "Basic computer functions and operations",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_hardware_identification",
+        "name": "Hardware vs software component distinction",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_data_binary_conversion",
+        "name": "Binary to decimal number conversion",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_memory_cache_performance",
+        "name": "Cache memory speed and CPU buffer role",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_software_web_browser",
+        "name": "Web browser software identification",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_data_storage_capacity",
+        "name": "Data storage capacity unit equivalents",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_language_translator_tools",
+        "name": "Language translator software classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_device_driver_function",
+        "name": "Device driver role and functionality",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_cpu_program_counter_register",
+        "name": "Program counter register instruction tracking",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_file_format_audio",
+        "name": "Audio file format classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_flipflop_digital_storage",
+        "name": "Flip-flop circuit bit storage function",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_protocols_ftp_transfer",
+        "name": "File Transfer Protocol functionality",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_memory_ram_definition",
+        "name": "Random Access Memory characteristics",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_cpu_brain_computer",
+        "name": "Central Processing Unit primary function",
+        "is_core_concept": true
+      },
+      {
+        "id": "comp_storage_disk_mirroring",
+        "name": "Disk mirroring data redundancy technique",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_ewaste_definition",
+        "name": "Electronic waste disposal and definition",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_software_cad_application",
+        "name": "Computer Aided Design software purpose",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_security_tls_ssl_transport",
+        "name": "TLS/SSL transport layer security protocol",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_latex_comment_syntax",
+        "name": "LaTeX document comment marker syntax",
+        "is_core_concept": false
+      },
+      {
+        "id": "comp_spreadsheet_absolute_reference",
+        "name": "Excel absolute cell reference syntax",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "employees_compensation_act_1923",
+    "name": "Employees' Compensation Act, 1923",
+    "weight": 0.55,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_16_21_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2012_12_12_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_7"
+    ],
+    "dimensions": [
+      {
+        "id": "eca_injury_classification",
+        "name": "Classification of injuries under Schedule I",
+        "is_core_concept": true
+      },
+      {
+        "id": "eca_disablement_threshold",
+        "name": "Minimum period for liability to compensation",
+        "is_core_concept": true
+      },
+      {
+        "id": "eca_act_nature_scope",
+        "name": "Nature and scope of the Act",
+        "is_core_concept": true
+      },
+      {
+        "id": "eca_death_compensation",
+        "name": "Funeral expenses and death compensation amounts",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epf_misc_provisions_act_1952",
+    "name": "EPF & Miscellaneous Provisions Act, 1952 (incl. EPF/EPS/EDLI/Family Pension Schemes)",
+    "weight": 0.55,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_15_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_12_12_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_1_1_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_10_pyq_6"
+    ],
+    "dimensions": [
+      {
+        "id": "epf_wage_ceiling",
+        "name": "Maximum wage limit for mandatory EPF coverage",
+        "is_core_concept": false
+      },
+      {
+        "id": "epf_scheme_disadvantages",
+        "name": "Limitations and drawbacks of EPF schemes",
+        "is_core_concept": false
+      },
+      {
+        "id": "epf_coverage_scope",
+        "name": "Benefits and provisions covered under EPF Act",
+        "is_core_concept": true
+      },
+      {
+        "id": "epfo_administrative_structure",
+        "name": "EPFO governance, administration, and operational framework",
+        "is_core_concept": true
+      },
+      {
+        "id": "eps_contribution_allocation",
+        "name": "Employer contribution division between EPF and EPS",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epfo_ancient_medieval_culture",
+    "name": "Ancient & Medieval History, Art & Culture (EPFO)",
+    "weight": 3.66,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 20,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_5_6_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_6_8_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_6_8_pyq_1",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_6_8_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_4_8_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_4_8_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_10_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_10_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_11_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_10_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_10_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_10_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_17_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_17_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_19_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_19_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_19_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_19_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_10_pyq_1"
+    ],
+    "dimensions": [
+      {
+        "id": "amh_chronological_ordering",
+        "name": "Chronological ordering of historical events",
+        "is_core_concept": true
+      },
+      {
+        "id": "amh_temple_architecture_identification",
+        "name": "Identification of temples and architectural structures",
+        "is_core_concept": true
+      },
+      {
+        "id": "amh_religious_philosophy_characteristics",
+        "name": "Characteristics of religious philosophies and movements",
+        "is_core_concept": true
+      },
+      {
+        "id": "amh_historical_geographical_locations",
+        "name": "Geographic locations of historical sites and events",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_historical_methodology_scholarship",
+        "name": "Historical methodology and scholarly disciplines",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_mughal_administration_documents",
+        "name": "Mughal administrative texts and their purposes",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_archaeological_survey_personnel",
+        "name": "Key figures in archaeological institutions and research",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_literary_works_attribution",
+        "name": "Attribution and analysis of historical literary works",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_cultural_transmission_patterns",
+        "name": "Patterns of cultural spread and transmission across regions",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_comparative_empire_analysis",
+        "name": "Comparative features of historical empires",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_succession_inheritance_systems",
+        "name": "Systems of succession and inheritance in historical societies",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_historical_source_evaluation",
+        "name": "Evaluation of source types for historical research",
+        "is_core_concept": false
+      },
+      {
+        "id": "amh_ruler_monument_associations",
+        "name": "Association of rulers with architectural monuments",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epfo_culture_heritage_freedom",
+    "name": "Indian Culture, Heritage and Freedom Movements",
+    "insufficient_pyq_evidence": true,
+    "real_pyq_count": 0,
+    "dimensions": []
+  },
+  {
+    "topic_id": "epfo_current_events",
+    "name": "Current Events of National and International Importance",
+    "weight": 7.33,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 39,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_1_1_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_5_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_6_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_6_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_6_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_6_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_10_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_11_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_7_12_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_15_22_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_21_30_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_10",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_12_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_12_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_12_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_11_11_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_11_11_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_16_17_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_16_18_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_16_18_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_16_18_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_5_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_5_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_5_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_6_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_7_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_7_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_7_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_12_14_pyq_0"
+    ],
+    "dimensions": [
+      {
+        "id": "ceni_sdg_framework_goals",
+        "name": "UN Sustainable Development Goals structure and targets",
+        "is_core_concept": true
+      },
+      {
+        "id": "ceni_sdg_decent_work",
+        "name": "SDG 8 decent work components and standards",
+        "is_core_concept": true
+      },
+      {
+        "id": "ceni_inclusive_economic_growth",
+        "name": "Meaning and implications of inclusive economic growth",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_international_organizations",
+        "name": "Role and mandate of international UN institutions",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_social_protection_policy",
+        "name": "Social protection as development and welfare component",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_india_outreach_programs",
+        "name": "India's diaspora and neighborhood engagement programs",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_economic_zones_policy",
+        "name": "Special Economic Zones investment and development purpose",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_national_telecom_policy",
+        "name": "India's National Telecom Policy framework and components",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_millennium_development_goals",
+        "name": "UN Millennium Development Goals and targets",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_carbon_footprint_concept",
+        "name": "Definition and measurement of carbon footprint",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_national_awards",
+        "name": "India's national honors and award recipients",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_historical_policies",
+        "name": "Historical policies of racial segregation and apartheid",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_social_security_benefits",
+        "name": "Social security cash benefits eligibility and coverage",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_startup_initiatives",
+        "name": "India's StandUp India and startup support programs",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_sports_awards",
+        "name": "National and international sports awards and recipients",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_government_institutions",
+        "name": "India's policy and transformation institutions like NITI Aayog",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_river_development_programs",
+        "name": "National river conservation and village development initiatives",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_regional_infrastructure",
+        "name": "Cross-border infrastructure and connectivity projects",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_commemorative_occasions",
+        "name": "National commemorative days and their historical significance",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_cultural_artifacts",
+        "name": "Recovery and attribution of historical artworks",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_international_treaties",
+        "name": "International environmental and climate agreements",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_environmental_issues",
+        "name": "Wildlife decline and environmental degradation causes",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_maternal_health_programs",
+        "name": "Government maternal health and institutional delivery schemes",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_rural_employment",
+        "name": "Rural employment guarantee schemes and livelihood security",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_un_judicial_positions",
+        "name": "UN and international judicial institution appointments",
+        "is_core_concept": false
+      },
+      {
+        "id": "ceni_international_languages_culture",
+        "name": "International observance of cultural and linguistic heritage",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epfo_economy_dev_issues",
+    "name": "Developmental Issues and Present Trends in Indian Economy",
+    "weight": 11.36,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 77,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_6_8_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_11_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_7_12_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_14_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_15_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_15_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_15_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_11_17_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_11_17_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_12_18_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_12_18_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_12_18_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_13_19_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_14_21_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_22_31_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_22_31_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_22_31_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_11_11_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_11_11_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_11_11_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_3_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_17_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_19_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_20_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_23_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_23_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_24_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_25_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_25_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_25_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_25_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_26_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_26_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_1_1_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_7",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_7",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_14_pyq_0"
+    ],
+    "dimensions": [
+      {
+        "id": "indian_economy_social_security_schemes",
+        "name": "Social Security Schemes and their Parameters",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_msme_classification",
+        "name": "Micro, Small and Medium Enterprises Classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_inflation_measurement",
+        "name": "Inflation Measurement and Types",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_national_income_accounting",
+        "name": "National Income Accounting Concepts and Measurement",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_monetary_policy_tools",
+        "name": "Monetary Policy Instruments and Implementation",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_fiscal_deficit_budgeting",
+        "name": "Fiscal Deficit and Government Budget Components",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_regulatory_institutions",
+        "name": "Financial and Economic Regulatory Institutions",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_unorganized_sector_support",
+        "name": "Support Programs for Unorganized Sector Workers",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_growth_theories",
+        "name": "Economic Growth Theories and Models",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_green_revolution",
+        "name": "Green Revolution and Agricultural Development",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_transportation_elasticity",
+        "name": "Transportation Modes and Economic Elasticity",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_disinvestment_policy",
+        "name": "Public Sector Disinvestment and Privatization",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_factor_distribution",
+        "name": "Factor Income Distribution Theory",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_international_trade",
+        "name": "International Trade and Tariff Arrangements",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_foreign_investment",
+        "name": "Foreign Investment Promotion and Effects",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_historical_development",
+        "name": "Historical Factors in India's Economic Development",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_market_structures",
+        "name": "Market Structure Types and Competition",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_environmental_taxation",
+        "name": "Environmental Taxes and Carbon Pricing",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_tax_policy_effects",
+        "name": "Tax Policy Impact on Micro and Macro Economy",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_foreign_exchange_sterilization",
+        "name": "Foreign Exchange Sterilization Mechanisms",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_per_capita_income_determinants",
+        "name": "Determinants of Per Capita Income Growth",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_open_market_operations",
+        "name": "Open Market Operations and Credit Expansion",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_special_economic_zones",
+        "name": "Special Economic Zones and Export Promotion",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_rural_livelihood_programs",
+        "name": "Rural Livelihood Enhancement Initiatives",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_financial_inclusion",
+        "name": "Financial Inclusion and Digital Payment Systems",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_budget_preparation",
+        "name": "Union Budget Preparation and Fiscal Framework",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_niti_aayog_role",
+        "name": "NITI Aayog Functions and Planning Architecture",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_gva_sectoral_composition",
+        "name": "Gross Value Added and Sectoral Contribution",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_price_indices",
+        "name": "Price Index Systems and Economic Measurement",
+        "is_core_concept": true
+      },
+      {
+        "id": "indian_economy_international_institutions",
+        "name": "International Economic Institutions and Membership",
+        "is_core_concept": false
+      },
+      {
+        "id": "indian_economy_banking_sector_protection",
+        "name": "Deposit Insurance and Banking System Safety",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epfo_governance_constitution",
+    "name": "Governance and Constitution of India",
+    "weight": 9.34,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 67,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_6_11_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_6_11_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_1_1_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_9_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_9_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_9_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_9_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_9_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_9_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_10_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_13_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_14_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_14_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_15_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_15_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_12_18_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_13_19_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_22_31_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_10_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_10_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_10_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_10_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_11_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_3_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_3_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_14_14_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_4_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_4_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_5_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_12_12_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_15_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_15_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_15_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_15_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_15_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_15_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_15_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_16_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_16_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_17_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_17_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_25_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_6_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_6_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_6_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_6_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_6_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_7_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_7_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_7_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_7_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_7_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_7_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_7_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_13_pyq_5"
+    ],
+    "dimensions": [
+      {
+        "id": "gc_fundamental_rights_articles",
+        "name": "Specific articles and scope of fundamental rights",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_directive_principles",
+        "name": "Directive Principles of State Policy nature and enforcement",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_constitutional_amendments",
+        "name": "Specific constitutional amendments and their provisions",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_emergency_powers",
+        "name": "Presidential emergency powers and proclamations",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_writs_enforcement",
+        "name": "Writs for enforcement of rights and their scope",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_parliament_procedures",
+        "name": "Parliamentary procedures and legislative processes",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_constitutional_bodies",
+        "name": "Constitutional bodies and their roles/powers",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_finance_commission",
+        "name": "Finance Commission composition and functions",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_panchayati_raj",
+        "name": "Panchayati Raj system structure and provisions",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_municipal_governance",
+        "name": "Municipal governance structure and constitutional amendments",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_judicial_review",
+        "name": "Judicial review and constitutional equilibrium",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_ordinance_power",
+        "name": "Presidential and gubernatorial ordinance-making authority",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_pm_requirements",
+        "name": "Prime Minister eligibility and parliamentary membership requirements",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_election_commission",
+        "name": "Election Commission composition and term conditions",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_public_accounts_committee",
+        "name": "Public Accounts Committee composition and functions",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_speaker_powers",
+        "name": "Speaker of Lok Sabha powers and appointment authority",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_schedules_content",
+        "name": "Constitutional schedules content and allocation",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_constituent_assembly",
+        "name": "Constituent Assembly composition and selection methods",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_inter_state_relations",
+        "name": "Inter-state council and centre-state relations mechanisms",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_oci_citizenship",
+        "name": "Overseas Citizen of India status and rights",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_administrative_tribunals",
+        "name": "Administrative tribunals and their establishment",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_cooperative_societies",
+        "name": "Constitutional status and protection of cooperatives",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_state_high_courts",
+        "name": "High Court distribution among states",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_supreme_court_petitions",
+        "name": "Supreme Court petition types and procedures",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_federal_structure",
+        "name": "Federal structure and comparative constitutionalism",
+        "is_core_concept": false
+      },
+      {
+        "id": "gc_cag_appointment_removal",
+        "name": "Comptroller and Auditor General appointment and removal",
+        "is_core_concept": true
+      },
+      {
+        "id": "gc_constitutional_sources",
+        "name": "Constitutional sources and foundational documents",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epfo_modern_freedom_struggle",
+    "name": "Modern History & Freedom Struggle (EPFO)",
+    "weight": 8.24,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 59,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_6_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_6_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_7_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_7_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_7_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_7_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_7_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_7_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_7_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_8_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_11_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_13_19_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_19_28_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_9_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_3_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_3_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_3_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_3_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_5_3_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_10_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_10_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_11_11_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_14_14_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_14_14_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_14_14_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_14_14_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_14_14_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_14_14_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_19_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_8_pyq_7",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_7",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_9_pyq_8",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_10_pyq_0"
+    ],
+    "dimensions": [
+      {
+        "id": "mffs_moderate_vs_militant_approaches",
+        "name": "Moderate versus militant nationalist strategies",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_satyagraha_campaigns",
+        "name": "Specific Satyagraha movements and their objectives",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_nationalist_organizations",
+        "name": "Key nationalist and reform organizations founded",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_key_political_figures",
+        "name": "Leadership roles of major freedom struggle figures",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_british_legislation_acts",
+        "name": "British legislative measures and their provisions",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_social_reform_movements",
+        "name": "Social reform and women's organizations during freedom struggle",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_chronological_sequencing",
+        "name": "Chronological ordering of freedom struggle events",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_peasant_movements",
+        "name": "Peasant and agrarian movements and protest causes",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_pre_independence_negotiations",
+        "name": "Pre-independence commissions and pacts",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_early_rebellions",
+        "name": "Early rebellions and resistance movements before INC",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_economic_thought_critiques",
+        "name": "Economic critiques of British rule and poverty analysis",
+        "is_core_concept": false
+      },
+      {
+        "id": "mffs_religious_reform_movements",
+        "name": "Religious and socio-religious reform movements",
+        "is_core_concept": true
+      },
+      {
+        "id": "mffs_regional_movements",
+        "name": "Regional independence and reform movements",
+        "is_core_concept": false
+      },
+      {
+        "id": "mffs_education_policy",
+        "name": "Colonial education policy and its implications",
+        "is_core_concept": false
+      },
+      {
+        "id": "mffs_labor_trade_union_movements",
+        "name": "Labor and trade union organization efforts",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epfo_quant_stats_mental_ability",
+    "name": "Elementary Mathematics, Statistics and General Mental Ability",
+    "weight": 1.0,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 15,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_7",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_7",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_18_pyq_8"
+    ],
+    "dimensions": [
+      {
+        "id": "stat_central_tendency",
+        "name": "Central tendency measures: mean, median, mode",
+        "is_core_concept": true
+      },
+      {
+        "id": "stat_dispersion",
+        "name": "Dispersion measures: variance and standard deviation",
+        "is_core_concept": false
+      },
+      {
+        "id": "stat_geometric_mean",
+        "name": "Geometric mean calculation",
+        "is_core_concept": false
+      },
+      {
+        "id": "prob_basic_events",
+        "name": "Probability of single events and outcome enumeration",
+        "is_core_concept": true
+      },
+      {
+        "id": "prob_independent_events",
+        "name": "Probability of independent events",
+        "is_core_concept": false
+      },
+      {
+        "id": "prob_without_replacement",
+        "name": "Probability with sampling without replacement",
+        "is_core_concept": false
+      },
+      {
+        "id": "comb_permutations",
+        "name": "Permutations with repetition of identical items",
+        "is_core_concept": false
+      },
+      {
+        "id": "arith_simple_interest",
+        "name": "Simple interest calculations",
+        "is_core_concept": false
+      },
+      {
+        "id": "arith_work_rate",
+        "name": "Work rate and time problems",
+        "is_core_concept": false
+      },
+      {
+        "id": "arith_mean_calculation",
+        "name": "Arithmetic mean from observations",
+        "is_core_concept": false
+      },
+      {
+        "id": "arith_unit_digit_pattern",
+        "name": "Unit digit patterns in powers",
+        "is_core_concept": false
+      },
+      {
+        "id": "algebra_quadratic_roots",
+        "name": "Solving quadratic equations",
+        "is_core_concept": false
+      },
+      {
+        "id": "logic_set_operations",
+        "name": "Set operations and Venn diagram applications",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "epfo_reading_comprehension",
+    "name": "Reading Comprehension Passages (EPFO)",
+    "weight": 1.83,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 10,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_2_2_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_2_2_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_21_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_21_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_21_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_22_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_22_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_22_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_22_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_22_pyq_4"
+    ],
+    "dimensions": [
+      {
+        "id": "rc_factual_accuracy",
+        "name": "Identifying factually correct statements from passage",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_identifying_causal_factors",
+        "name": "Identifying determining factors or causes mentioned in passage",
+        "is_core_concept": false
+      },
+      {
+        "id": "rc_theme_identification",
+        "name": "Identifying main theme or central idea of passage",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_implicit_characteristics",
+        "name": "Inferring characteristics or qualities from passage context",
+        "is_core_concept": false
+      },
+      {
+        "id": "rc_author_support_position",
+        "name": "Determining which idea the author supports or endorses",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_tone_analysis",
+        "name": "Analyzing tone and emotional quality of specific statements",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_statement_verification",
+        "name": "Verifying truth value of claims based on passage content",
+        "is_core_concept": false
+      },
+      {
+        "id": "rc_comparative_responsibility",
+        "name": "Determining relative responsibility among multiple parties",
+        "is_core_concept": true
+      },
+      {
+        "id": "rc_severity_judgment",
+        "name": "Identifying who should face greater punishment per author",
+        "is_core_concept": false
+      },
+      {
+        "id": "rc_corruption_assessment",
+        "name": "Determining degrees of corruption among different entities",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "esi_act_1948",
+    "name": "Employees' State Insurance Act, 1948",
+    "weight": 0.37,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_21_30_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_1"
+    ],
+    "dimensions": [
+      {
+        "id": "esi_wage_ceiling_limits",
+        "name": "Wage ceiling and coverage thresholds for employees",
+        "is_core_concept": true
+      },
+      {
+        "id": "esi_contribution_rates",
+        "name": "Employer contribution rates as percentage of wage bill",
+        "is_core_concept": true
+      },
+      {
+        "id": "esi_coverage_scope",
+        "name": "Types of factors and benefits covered under ESI",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "general_english",
+    "name": "General English (non-comprehension)",
+    "weight": 2.38,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 16,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_2_2_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_1_2_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_4_8_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_4_8_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_1_1_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_1_2_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_1_2_pyq_1"
+    ],
+    "dimensions": [
+      {
+        "id": "ge_figurative_language_identification",
+        "name": "Identifying figures of speech and literary devices",
+        "is_core_concept": true
+      },
+      {
+        "id": "ge_idiomatic_expression_meaning",
+        "name": "Understanding meaning of idiomatic expressions",
+        "is_core_concept": true
+      },
+      {
+        "id": "ge_vocabulary_word_choice",
+        "name": "Selecting appropriate words in context",
+        "is_core_concept": true
+      },
+      {
+        "id": "ge_word_definition",
+        "name": "Understanding definitions and meanings of words",
+        "is_core_concept": true
+      },
+      {
+        "id": "ge_sentence_arrangement_logic",
+        "name": "Arranging sentences in logical order",
+        "is_core_concept": true
+      },
+      {
+        "id": "ge_literary_form_definition",
+        "name": "Identifying and defining literary forms",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "general_science",
+    "name": "General Science (Physics/Chemistry/Biology basics)",
+    "weight": 14.47,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 84,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_1",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_2",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_14_pyq_3",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_15_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_12_15_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_16_pyq_8",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_17_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_10_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_8_15_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_12_18_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_14_21_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_14_21_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_14_21_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_15_22_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_16_24_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_16_24_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_25_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_19_29_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_21_30_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_12_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_17_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_17_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_14",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_18_pyq_15",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_21_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_4_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_5_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_5_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_7_5_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_8_6_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_12_12_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_12_12_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_12_12_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_1_1_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_1_1_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_1_1_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_1_1_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_1_1_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2012_1_1_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2012_1_2_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_3_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_4_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_5_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_7_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_7_8_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_24_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_16_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_16_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_16_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_16_pyq_6",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_0"
+    ],
+    "dimensions": [
+      {
+        "id": "chem_molecular_structure",
+        "name": "Molecular structure and composition of compounds",
+        "is_core_concept": true
+      },
+      {
+        "id": "chem_substance_properties",
+        "name": "Physical and chemical properties of substances",
+        "is_core_concept": true
+      },
+      {
+        "id": "chem_reactions_processes",
+        "name": "Chemical reactions and stoichiometry",
+        "is_core_concept": true
+      },
+      {
+        "id": "chem_solutions_solubility",
+        "name": "Solution chemistry and solubility behavior",
+        "is_core_concept": true
+      },
+      {
+        "id": "chem_acids_bases_pH",
+        "name": "Acids, bases, and pH concepts",
+        "is_core_concept": true
+      },
+      {
+        "id": "phys_states_matter",
+        "name": "States of matter and phase transitions",
+        "is_core_concept": true
+      },
+      {
+        "id": "phys_waves_radiation",
+        "name": "Waves and electromagnetic radiation spectrum",
+        "is_core_concept": true
+      },
+      {
+        "id": "phys_motion_mechanics",
+        "name": "Motion, speed, and distance calculations",
+        "is_core_concept": true
+      },
+      {
+        "id": "phys_electricity_magnetism",
+        "name": "Electricity, magnetism, and electromagnetic properties",
+        "is_core_concept": true
+      },
+      {
+        "id": "phys_atomic_structure",
+        "name": "Atomic structure and subatomic particles",
+        "is_core_concept": true
+      },
+      {
+        "id": "phys_heat_thermodynamics",
+        "name": "Heat transfer and temperature concepts",
+        "is_core_concept": true
+      },
+      {
+        "id": "bio_cell_organelles",
+        "name": "Cell structure and organelle functions",
+        "is_core_concept": true
+      },
+      {
+        "id": "bio_genetics_dna",
+        "name": "DNA structure and genetic identification techniques",
+        "is_core_concept": true
+      },
+      {
+        "id": "bio_anatomy_systems",
+        "name": "Human body systems and organ functions",
+        "is_core_concept": true
+      },
+      {
+        "id": "bio_organisms_classification",
+        "name": "Organism classification and characteristics",
+        "is_core_concept": true
+      },
+      {
+        "id": "bio_disease_agents",
+        "name": "Causal agents of diseases and infections",
+        "is_core_concept": true
+      },
+      {
+        "id": "env_pollution_types",
+        "name": "Types of pollution and primary pollutants",
+        "is_core_concept": true
+      },
+      {
+        "id": "env_climate_change",
+        "name": "Climate change and greenhouse gas effects",
+        "is_core_concept": true
+      },
+      {
+        "id": "env_biodiversity_ecosystems",
+        "name": "Biodiversity, biomes, and ecosystem threats",
+        "is_core_concept": true
+      },
+      {
+        "id": "env_resources_sustainability",
+        "name": "Renewable and non-renewable energy resources",
+        "is_core_concept": true
+      },
+      {
+        "id": "env_remediation_conservation",
+        "name": "Environmental remediation and conservation techniques",
+        "is_core_concept": true
+      },
+      {
+        "id": "bio_plant_physiology",
+        "name": "Plant tissues, structures, and specialized functions",
+        "is_core_concept": false
+      },
+      {
+        "id": "chem_alloys_materials",
+        "name": "Alloys and material properties for applications",
+        "is_core_concept": false
+      },
+      {
+        "id": "phys_unit_measurement",
+        "name": "Units of measurement in physics",
+        "is_core_concept": false
+      },
+      {
+        "id": "chem_superconductivity",
+        "name": "Superconductivity and electrical resistance phenomena",
+        "is_core_concept": false
+      },
+      {
+        "id": "bio_vision_perception",
+        "name": "Vision and binocular image processing in humans",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "general_science_computer",
+    "name": "General Science & Basic Computer Applications",
+    "weight": 1.83,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 11,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_18_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_19_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_19_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_19_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_19_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_19_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_19_pyq_8",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_17_pyq_1"
+    ],
+    "dimensions": [
+      {
+        "id": "gsca_percentage_change_calculations",
+        "name": "Sequential percentage changes and net effects",
+        "is_core_concept": true
+      },
+      {
+        "id": "gsca_inverse_proportionality",
+        "name": "Inverse proportional relationships in work/rate problems",
+        "is_core_concept": true
+      },
+      {
+        "id": "gsca_compound_interest_exponential_growth",
+        "name": "Compound interest and exponential growth patterns",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_number_series_pattern_recognition",
+        "name": "Identifying patterns in numerical sequences",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_discount_and_pricing",
+        "name": "Discount calculations and original price determination",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_venn_diagram_representation",
+        "name": "Set relationships represented through Venn diagrams",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_modular_arithmetic",
+        "name": "Remainder and modular arithmetic operations",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_compound_percentage_problems",
+        "name": "Percentages of subsets within populations",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_relative_motion_meeting_problems",
+        "name": "Relative motion and meeting point calculations",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_exchange_mechanism_optimization",
+        "name": "Optimization with exchange/trade mechanisms",
+        "is_core_concept": false
+      },
+      {
+        "id": "gsca_optical_physics_applications",
+        "name": "Physical phenomena in communication technologies",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "grammar_correctness",
+    "name": "Grammar, Prepositions & Phrasal-Verb Correctness",
+    "weight": 5.13,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 28,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_1_1_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_2_3_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_2_3_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_2_3_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_2_3_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_2_3_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_4_pyq_0",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_4_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_4_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_4_pyq_3",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_4_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_4_8_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_8"
+    ],
+    "dimensions": [
+      {
+        "id": "prep_verb_collocation",
+        "name": "Correct preposition with specific verbs",
+        "is_core_concept": true
+      },
+      {
+        "id": "subj_verb_agreement",
+        "name": "Subject-verb agreement with complex subjects",
+        "is_core_concept": true
+      },
+      {
+        "id": "phrasal_verb_selection",
+        "name": "Selecting appropriate phrasal verbs for context",
+        "is_core_concept": true
+      },
+      {
+        "id": "conditional_tense_form",
+        "name": "Correct conditional tense structure",
+        "is_core_concept": true
+      },
+      {
+        "id": "question_tag_formation",
+        "name": "Forming grammatically correct question tags",
+        "is_core_concept": true
+      },
+      {
+        "id": "word_order_emphasis",
+        "name": "Word placement for intended emphasis/meaning",
+        "is_core_concept": true
+      },
+      {
+        "id": "sentence_arrangement",
+        "name": "Arranging sentence fragments in correct order",
+        "is_core_concept": true
+      },
+      {
+        "id": "article_usage",
+        "name": "Correct use of articles in phrases",
+        "is_core_concept": true
+      },
+      {
+        "id": "phrasal_verb_error",
+        "name": "Identifying incorrect phrasal verb usage",
+        "is_core_concept": false
+      },
+      {
+        "id": "inversion_after_adverb",
+        "name": "Inversion after negative/restrictive adverbs",
+        "is_core_concept": false
+      },
+      {
+        "id": "redundant_conjunction",
+        "name": "Removing redundant conjunctions in clauses",
+        "is_core_concept": false
+      },
+      {
+        "id": "pronoun_antecedent_agreement",
+        "name": "Pronoun agreement with collective nouns",
+        "is_core_concept": false
+      },
+      {
+        "id": "word_choice_contextual",
+        "name": "Selecting contextually appropriate word forms",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "industrial_disputes_act_1947",
+    "name": "Industrial Disputes Act, 1947",
+    "weight": 1.28,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 9,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_17_22_pyq_0",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_16_21_pyq_2",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_13_pyq_4",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_9_7_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_10_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_6"
+    ],
+    "dimensions": [
+      {
+        "id": "ida_definition_of_industry",
+        "name": "Definition of 'industry' and triple test",
+        "is_core_concept": true
+      },
+      {
+        "id": "ida_notice_periods",
+        "name": "Notice period requirements for employers and workers",
+        "is_core_concept": true
+      },
+      {
+        "id": "ida_retrenchment_compensation",
+        "name": "Retrenchment compensation calculation and payouts",
+        "is_core_concept": true
+      },
+      {
+        "id": "ida_works_committee_constitution",
+        "name": "Works Committee formation thresholds and requirements",
+        "is_core_concept": false
+      },
+      {
+        "id": "ida_conciliation_procedures",
+        "name": "Conciliation officer processes and failure report timelines",
+        "is_core_concept": false
+      },
+      {
+        "id": "ida_layoff_definition",
+        "name": "Lay-off definition and distinction from termination",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "insurance_principles",
+    "name": "Insurance Principles (indemnity, subrogation, utmost good faith)",
+    "weight": 0.92,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_19_26_pyq_2",
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_19_26_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_5_11_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_18_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_18_pyq_1"
+    ],
+    "dimensions": [
+      {
+        "id": "insurance_principle_mitigation",
+        "name": "Principle of Mitigation in insurance contracts",
+        "is_core_concept": false
+      },
+      {
+        "id": "insurance_principle_utmost_good_faith",
+        "name": "Principle of Utmost Good Faith",
+        "is_core_concept": true
+      },
+      {
+        "id": "insurance_principle_subrogation",
+        "name": "Principle of Subrogation",
+        "is_core_concept": true
+      },
+      {
+        "id": "insurance_indemnity_vs_non_indemnity",
+        "name": "Classification of contracts as indemnity or non-indemnity",
+        "is_core_concept": true
+      },
+      {
+        "id": "insurance_life_vs_indemnity",
+        "name": "Life Insurance as non-indemnity contract",
+        "is_core_concept": false
+      },
+      {
+        "id": "insurance_private_vs_social_programmes",
+        "name": "Differences between private and social insurance programmes",
+        "is_core_concept": false
+      },
+      {
+        "id": "insurance_bancassurance_definition",
+        "name": "Definition and nature of Bancassurance",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "labour_codes_social_security",
+    "name": "Industrial Relations, Labour Codes & Social Security",
+    "weight": 5.49,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 35,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_1_1_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_12_pyq_7",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_13_pyq_6",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_15_22_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_26_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_14_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_14_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_15_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_16_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_16_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_16_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_16_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_16_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_16_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_14_16_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_9_8_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_3_4_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_12_12_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_12_12_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_17_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_23_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_10_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_10_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_10_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_4"
+    ],
+    "dimensions": [
+      {
+        "id": "ir_historical_evolution",
+        "name": "Historical evolution of industrial relations in India",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_dispute_resolution_mechanisms",
+        "name": "Dispute resolution processes and mechanisms",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_labour_act_definitions",
+        "name": "Statutory definitions in labour legislation",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_working_hours_limits",
+        "name": "Maximum working hours and statutory limits",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_minimum_wage_framework",
+        "name": "Minimum wage determination and authority",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_trade_union_types",
+        "name": "Classification and typology of trade unions",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_worker_participation",
+        "name": "Worker participation in management structures",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_ilo_principles",
+        "name": "ILO principles and Philadelphia Declaration",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_theoretical_perspectives",
+        "name": "Theoretical perspectives on industrial relations",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_union_security_measures",
+        "name": "Trade union security arrangements and types",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_statutory_machinery",
+        "name": "Statutory bodies and institutional frameworks",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_constitutional_provisions",
+        "name": "Constitutional provisions for workers' rights",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_labour_welfare_theories",
+        "name": "Theories and concepts of labour welfare",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_wage_types_formulas",
+        "name": "Wage types and determination formulas",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_social_security_instruments",
+        "name": "Social security legislation and instruments",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_specific_act_thresholds",
+        "name": "Statutory thresholds and applicability criteria",
+        "is_core_concept": true
+      },
+      {
+        "id": "ir_bonus_and_benefits",
+        "name": "Bonus and statutory benefit provisions",
+        "is_core_concept": false
+      },
+      {
+        "id": "ir_globalization_impact",
+        "name": "Impact of globalization on industrial relations",
+        "is_core_concept": false
+      },
+      {
+        "id": "ir_standing_orders_application",
+        "name": "Standing orders certification and jurisdiction",
+        "is_core_concept": false
+      },
+      {
+        "id": "ir_strike_right_status",
+        "name": "Constitutional status of right to strike",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "maternity_benefit_act_1961",
+    "name": "Maternity Benefit Act, 1961",
+    "weight": 0.37,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_13_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_17_26_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_1"
+    ],
+    "dimensions": [
+      {
+        "id": "mba_maternity_leave_duration",
+        "name": "Duration of maternity leave entitlements",
+        "is_core_concept": true
+      },
+      {
+        "id": "mba_wage_provisions",
+        "name": "Wage payment during maternity benefit period",
+        "is_core_concept": false
+      },
+      {
+        "id": "mba_eligibility_service_requirement",
+        "name": "Continuous service period eligibility criteria",
+        "is_core_concept": true
+      },
+      {
+        "id": "mba_child_limit_differentials",
+        "name": "Variation in benefits based on number of children",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "new_labour_codes",
+    "name": "The 4 New Labour Codes (Wages/IR/OSH/Social Security, 2019-2020)",
+    "weight": 0.37,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 4,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_13_pyq_5",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_5"
+    ],
+    "dimensions": [
+      {
+        "id": "nlc_gig_platform_worker_coverage",
+        "name": "Gig and platform worker coverage under Social Security Code",
+        "is_core_concept": true
+      },
+      {
+        "id": "nlc_social_security_fund_mechanisms",
+        "name": "Statutory funds and schemes for social security provisions",
+        "is_core_concept": false
+      },
+      {
+        "id": "nlc_wage_components_definition",
+        "name": "Definition and composition of wages under Wages Code",
+        "is_core_concept": true
+      },
+      {
+        "id": "nlc_wage_allowance_calculation_thresholds",
+        "name": "Percentage thresholds for wage component classification",
+        "is_core_concept": false
+      },
+      {
+        "id": "nlc_equal_remuneration_scope",
+        "name": "Scope of equal pay obligations for men and women",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "payment_of_gratuity_act_1972",
+    "name": "Payment of Gratuity Act, 1972",
+    "weight": 0.73,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 5,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_13_pyq_1",
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_13_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_12_12_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_12_pyq_0"
+    ],
+    "dimensions": [
+      {
+        "id": "pga_eligibility_service_duration",
+        "name": "Minimum continuous service duration for gratuity eligibility",
+        "is_core_concept": true
+      },
+      {
+        "id": "pga_maximum_gratuity_limit",
+        "name": "Maximum limit of gratuity payable to employees",
+        "is_core_concept": true
+      },
+      {
+        "id": "pga_wage_calculation_method",
+        "name": "Wage calculation basis per completed year of service",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "payment_of_wages_act_1936",
+    "name": "Payment of Wages Act, 1936",
+    "weight": 0.37,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_14_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_15_15_pyq_5",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_11_pyq_3"
+    ],
+    "dimensions": [
+      {
+        "id": "powa_wage_period_limits",
+        "name": "Maximum duration of wage periods",
+        "is_core_concept": true
+      },
+      {
+        "id": "powa_payment_frequency_options",
+        "name": "Permissible wage payment frequency intervals",
+        "is_core_concept": true
+      }
+    ]
+  },
+  {
+    "topic_id": "trade_unions_act_1926",
+    "name": "Trade Unions Act, 1926",
+    "weight": 0.55,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 3,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_eoao_gat_2023_notebooklm_3_13_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_9_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_10_9_pyq_2"
+    ],
+    "dimensions": [
+      {
+        "id": "tua_registration_minimum_members",
+        "name": "Minimum membership requirement for Trade Union registration",
+        "is_core_concept": true
+      },
+      {
+        "id": "tua_trade_dispute_definition",
+        "name": "Definition and classification of trade disputes",
+        "is_core_concept": false
+      }
+    ]
+  },
+  {
+    "topic_id": "vocabulary_usage",
+    "name": "Vocabulary & Closest-Meaning Usage",
+    "weight": 5.13,
+    "insufficient_pyq_evidence": false,
+    "real_pyq_count": 38,
+    "source_question_ids": [
+      "upsc_epfo_apfc_eo_ao_epfo_apfc_eoao_2025_2_2_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2016_english_2_5_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_4",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_6_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_7_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2017_english_1_8_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_5",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_6",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_7",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_8",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_9",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_0_pyq_10",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2021_english_1_1_pyq_3",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_23_pyq_0",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_23_pyq_1",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_23_pyq_2",
+      "upsc_epfo_apfc_eo_ao_gat_2012_14_24_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_2_4_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_2_4_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_2_4_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_2_4_pyq_3",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_2_4_pyq_4",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_5_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_5_pyq_1",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_5_pyq_2",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_6_pyq_0",
+      "upsc_epfo_apfc_eo_ao_apfc_gs_2023_notebooklm_3_6_pyq_1"
+    ],
+    "dimensions": [
+      {
+        "id": "vocab_synonym_identification",
+        "name": "Identifying synonyms of given words",
+        "is_core_concept": true
+      },
+      {
+        "id": "vocab_antonym_identification",
+        "name": "Identifying antonyms of given words",
+        "is_core_concept": true
+      },
+      {
+        "id": "vocab_phrase_meaning",
+        "name": "Understanding meaning of idiomatic phrases",
+        "is_core_concept": true
+      },
+      {
+        "id": "vocab_single_word_substitution",
+        "name": "Substituting phrases with single words",
+        "is_core_concept": true
+      },
+      {
+        "id": "vocab_contextual_word_meaning",
+        "name": "Interpreting word meaning within sentence context",
+        "is_core_concept": true
+      },
+      {
+        "id": "vocab_term_definition",
+        "name": "Defining specific terms or concepts",
+        "is_core_concept": true
+      },
+      {
+        "id": "vocab_analogical_relationships",
+        "name": "Recognizing word relationships and analogies",
+        "is_core_concept": false
+      }
+    ]
+  }
+]
