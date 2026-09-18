@@ -104,3 +104,7 @@ def search(query: str, exam_id: str, paper_id: Optional[str] = None, topic_id: O
 
 def post_attempt(question_id: str, chosen_option: str) -> dict:
     return _request("POST", "/attempt", json_body={"question_id": question_id, "chosen_option": chosen_option})
+
+
+def get_attempted_question_ids(exam_id: str) -> list[str]:
+    return _request("GET", "/attempts", {"exam_id": exam_id})

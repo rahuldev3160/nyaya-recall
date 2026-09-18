@@ -1,3 +1,50 @@
+### PFRDA/EPFO drill: real bugs fixed + AI-generated bank wired in — 2026-09-18
+
+**Uncommitted on local `main` (not a branch, not a PR — Rahul hasn't been asked to
+commit).** Two same-session pieces of work, both live-verified in a real browser:
+
+**1. Fixed 5 real bugs Rahul found using the Mode 1 drill (PR #57, below) for the first
+time:** (a) ~35% of PFRDA's real questions had broken `options` (null or a single
+`{letter: text}` entry — a source coaching-book defect in the reasoning/puzzle section,
+not a display bug) — `nyaya_pyq_drill.py`'s new `_is_answerable_mcq()` now requires >=4
+real options + a resolvable `correct_option`, verified live against the actual broken
+rows. (b) Topics with zero real quizzable PYQs (e.g. `pfrda_costing`) were still shown as
+selectable, a real dead end — `/topics` now filters to only topics with >=1 answerable
+question. (c) Topics tested across 2 papers (74/195 of PFRDA's) showed as visual
+duplicates in the picker — deduped by `topic_id`. (d) Same top-N-by-weight order served
+every session, no memory of what was already attempted — added nyaya-core's new `GET
+/attempts` endpoint + weighted-random shuffle that prefers unattempted questions. (e) No
+way to exit mid-quiz or review a previous answer — added a persistent "Exit quiz" control
+and real "← Previous" (answers now keyed per-question-index, not a single
+cleared-on-`next()` state).
+
+**Also fixed, unrelated to the above but blocking local use entirely:** the frontend
+crashed on *every* page (`supabaseUrl is required`) because Supabase auth was never
+actually set up (no real project, `.env.local` never created) —
+`createClient("", "")` throws at module-eval time, before `AuthGuard`'s existing "skip
+auth if unconfigured" runtime check ever got a chance to run. Fixed with a placeholder
+URL/key fallback in `web/src/lib/supabase.ts` (matches the local-dev-mode intent already
+coded into `AuthGuard.tsx`). Also confirmed and worked around ISSUE-030 (already logged,
+below) — `uvicorn backend.server:app` needs `PYTHONPATH=".:./backend"` from the repo
+root, not the documented `cd backend && uvicorn server:app`.
+
+**2. Wired in the new AI-generated question bank** (built in nyaya-core, see its own
+HANDOFF.md for the full design/pilot — this repo needed almost no change, by design):
+`web/src/app/nyaya/page.tsx` now shows a purple "AI-GENERATED" vs green "Real PYQ" badge
+per question (`current.source_type`, already present in the API response — the drill's
+`/quiz` handler only ever stripped `correct_option`) and the page subtitle no longer
+falsely claims "no AI-generated content in this mode." No backend change was needed —
+`_is_answerable_mcq()` (fixed above, same session) already accepts any `pyq_bank` content
+generically, AI-generated rows included.
+
+**Real next step:** Rahul review + decide on committing this (currently uncommitted on
+`main`, not a branch — CLAUDE.md's own rule is "never push directly to main," flagging
+this explicitly rather than silently committing on his behalf) and, separately, review the
+AI-generated pilot content's quality (see nyaya-core's HANDOFF) before scaling generation
+to more topics.
+
+---
+
 ### PFRDA/EPFO real-PYQ drill mode added — 2026-09-17/18
 
 **Merged to `main` as PR #57** (branch `feature/pfrda-epfo-nyaya-core-integration`,
