@@ -32,6 +32,111 @@
 
 ---
 
+### ISSUE-030 — PFRDA/EPFO drill served broken/single-option MCQs (~35% of PFRDA's real data)
+**Noticed:** 2026-09-18 (Rahul's first real practice session on the new `/nyaya` drill, PR #57)
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P0
+**Linked feature:** `/nyaya` PFRDA/EPFO real-PYQ drill (PR #57), fix in PR #60
+
+**What happened:** Rahul saw MCQs with only one visible option (the correct one) instead
+of a real multiple-choice set.
+**The problem:** 158/454 PFRDA `pyq_bank` MCQ rows have broken `options` (140 down to a
+single `{letter: text}` entry, 17 `NULL`, 1 with only 2) — a real ingestion defect in the
+2025 paper's reasoning/puzzle section (see nyaya-core's BUG-18), not a display bug.
+**Current state of the code (before fix):** `/nyaya/quiz`'s candidate filter only checked
+`status != 'void'` and a non-null `correct_option` — never validated the actual shape of
+`options`.
+**Resolution:** Fixed in `backend/routes/nyaya_pyq_drill.py::_is_answerable_mcq()` —
+requires `options` to be a dict with >=4 entries and `correct_option` to resolve to one of
+them. Verified live: 0 broken questions served after the fix. The underlying 158 broken
+rows are still unfixed in nyaya-core's `pyq_bank` (BUG-18 there) — re-extraction from the
+source PDF is real, scoped, unstarted work.
+
+---
+
+### ISSUE-031 — PFRDA/EPFO topic picker showed dead-end and duplicate topics
+**Noticed:** 2026-09-18 (same session as ISSUE-030)
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** `/nyaya` drill, fix in PR #60
+
+**What happened:** Selecting some topics (e.g. `pfrda_costing`) returned "No quizzable
+real PYQs found," and some topics appeared twice in the list with identical names.
+**The problem:** (a) some registered topics genuinely have zero ingested real PYQs yet —
+a real dead end, not previously filtered out of the picker. (b) 74/195 of PFRDA's topics
+are linked under 2 papers (General tested in both Phase 1 and Phase 2) — nyaya-core's
+`/topics` correctly returns one row per (exam_id, paper_id, topic_id), but the flat picker
+never deduped by `topic_id`.
+**Resolution:** `nyaya_pyq_drill.py::list_topics()` now filters to topics with >=1 real
+answerable MCQ (reusing `_is_answerable_mcq`) and dedupes by `topic_id` (keeping the
+highest weight seen). Verified live: `pfrda_costing` no longer listed, zero duplicate
+names in either exam's picker.
+
+---
+
+### ISSUE-032 — Same PFRDA/EPFO questions served in the same order every session
+**Noticed:** 2026-09-18 (same session as ISSUE-030)
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P1
+**Linked feature:** `/nyaya` drill, fix in PR #60
+
+**What happened:** Attempting the same topic again in a later session produced the exact
+same questions in the exact same order.
+**The problem:** `/nyaya/quiz` sorted candidates deterministically by topic weight and
+took a fixed top-N — no randomization, no memory of what the user had already answered.
+**Current state of the code (before fix):** No repeat-avoidance mechanism existed at all
+for this drill; nyaya-core's `user_attempts` table already had the data needed, just no
+endpoint to read it back.
+**Resolution:** Added `GET /attempts` to nyaya-core (returns distinct attempted
+`question_id`s for an exam) + `nyaya_core_client.get_attempted_question_ids()`. `/nyaya/quiz`
+now weighted-shuffles candidates and prefers unattempted ones, falling back to
+already-seen ones only once the unseen pool is exhausted. Verified live: question order
+differs between identical back-to-back calls.
+
+---
+
+### ISSUE-033 — No way to exit or review a previous question mid-quiz
+**Noticed:** 2026-09-18 (same session as ISSUE-030)
+**Reported by:** Rahul
+**Status:** Resolved
+**Priority:** P2
+**Linked feature:** `/nyaya` drill, fix in PR #60
+
+**What happened:** Once in a quiz, the only path forward was "Next" — no way to leave
+early or look back at a question already answered.
+**The problem:** `web/src/app/nyaya/page.tsx` only ever kept the *current* question's
+`chosen`/`result` in state, wiped on every `next()` — there was nothing to go "back" to.
+**Resolution:** Replaced single `chosen`/`result` state with a per-question-index
+`answers` map, added a persistent "Exit quiz" control and a real "← Previous" that
+re-renders the stored answer/correctness for that index. Verified live in the browser:
+stepping back to Q1 after answering Q2 shows the original choice and "Correct!"/"Wrong"
+state intact.
+
+---
+
+### ISSUE-034 — Every page in the app 500'd (Supabase never configured)
+**Noticed:** 2026-09-18 (blocked starting the frontend locally for the first time)
+**Reported by:** Claude (starting local dev servers), not previously noticed by Rahul
+**Status:** Resolved
+**Priority:** P0
+**Linked feature:** none — pre-existing, affects the whole app
+
+**What happened:** `npm run dev` served every route (including pre-existing ones like
+`/pyq`) as a 500, not just `/nyaya`.
+**The problem:** `web/src/lib/supabase.ts` calls `createClient(supabaseUrl, supabaseAnonKey)`
+at module-eval time with both values defaulting to `""` (Supabase was never actually set
+up — no real project, no `.env.local`). `@supabase/supabase-js` throws on an empty URL
+immediately on import, before `AuthGuard`'s own "skip auth if unconfigured" runtime check
+ever gets a chance to run.
+**Resolution:** Fallback to a placeholder URL/key when the real env vars are unset —
+matches the local-dev-mode intent already coded into `AuthGuard.tsx`, the client is just
+never exercised when unconfigured. Verified live: every route returns 200 after the fix.
+
+---
+
 ### ISSUE-029 — PYQ-explanation-card feature: wrong-option fields empty in 100% of generated rows
 **Noticed:** 2026-09-06 (found by a fork agent while researching prior art for nyaya-core's
 new `pyq_explanations` design, prompted by Rahul recalling unsatisfactory MCQ explanations)
@@ -754,4 +859,4 @@ Fixed. Backend was already complete.
 4. Add it under **Open**
 5. When resolved: move it to **Resolved**, fill in the Resolution field, commit
 
-Next issue number: ISSUE-029
+Next issue number: ISSUE-035
