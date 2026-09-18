@@ -22,9 +22,12 @@ export default function NyayaPage() {
 
   const [questions, setQuestions] = useState<NyayaQuestion[]>([]);
   const [idx, setIdx] = useState(0);
-  const [chosen, setChosen] = useState<string | null>(null);
-  const [result, setResult] = useState<NyayaAttemptResult | null>(null);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
+  // Per-question answer state, keyed by index — lets the learner step back to a
+  // previously-answered question and see their own choice + the result again, instead
+  // of that state being wiped the moment they move on (the reported "no back button"
+  // gap: there was nothing to go back TO before this, since only the current question's
+  // answer was ever kept in memory).
+  const [answers, setAnswers] = useState<Record<number, { chosen: string; result: NyayaAttemptResult }>>({});
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,9 +66,7 @@ export default function NyayaPage() {
         });
         setQuestions(qs);
         setIdx(0);
-        setChosen(null);
-        setResult(null);
-        setScore({ correct: 0, total: 0 });
+        setAnswers({});
         setView("quiz");
       } catch {
         setError("No quizzable real PYQs found for this selection.");
@@ -76,39 +77,47 @@ export default function NyayaPage() {
     [examId]
   );
 
+  const currentAnswer = answers[idx];
+
   const answer = useCallback(
     async (option: string) => {
-      if (chosen || !questions[idx]) return;
-      setChosen(option);
+      if (answers[idx] || !questions[idx]) return;
       try {
         const r: NyayaAttemptResult = await api.recordNyayaAttempt(questions[idx].question_id, option);
-        setResult(r);
-        setScore((s) => ({ correct: s.correct + (r.is_correct ? 1 : 0), total: s.total + 1 }));
+        setAnswers((a) => ({ ...a, [idx]: { chosen: option, result: r } }));
       } catch {
         setError("Could not record that attempt — nyaya-core may be unreachable.");
       }
     },
-    [chosen, idx, questions]
+    [answers, idx, questions]
   );
 
   function next() {
     if (idx + 1 < questions.length) {
       setIdx(idx + 1);
-      setChosen(null);
-      setResult(null);
     } else {
       setView("done");
     }
   }
+
+  function prev() {
+    if (idx > 0) setIdx(idx - 1);
+  }
+
+  const score = Object.values(answers).reduce(
+    (s, a) => ({ correct: s.correct + (a.result.is_correct ? 1 : 0), total: s.total + 1 }),
+    { correct: 0, total: 0 }
+  );
 
   const current = questions[idx];
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
-        <h1 className="text-xl font-bold text-white">PFRDA / EPFO — Real PYQ Drill</h1>
+        <h1 className="text-xl font-bold text-white">PFRDA / EPFO — Practice</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          Real, previously-asked questions only — no AI-generated content in this mode.
+          A mix of real, previously-asked questions and AI-generated practice questions
+          grounded in them — every question is labeled, never blended silently.
         </p>
       </div>
 
@@ -162,20 +171,39 @@ export default function NyayaPage() {
 
       {!loading && view === "quiz" && current && (
         <div className="flex flex-col gap-4">
-          <div className="text-xs text-gray-500">
-            Question {idx + 1} / {questions.length} · {score.correct}/{score.total} correct so far
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-500">
+              Question {idx + 1} / {questions.length} · {score.correct}/{score.total} correct so far
+            </div>
+            <button
+              onClick={() => setView("pick_topic")}
+              className="text-xs text-gray-500 hover:text-gray-300"
+            >
+              ✕ Exit quiz
+            </button>
           </div>
-          <div className="rounded-lg border border-gray-800 bg-gray-900 p-4 text-white">{current.question_text}</div>
+          <div className="rounded-lg border border-gray-800 bg-gray-900 p-4 text-white">
+            <span
+              className={`inline-block mb-2 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
+                current.source_type === "ai_generated"
+                  ? "bg-purple-900/40 text-purple-300 border border-purple-700"
+                  : "bg-emerald-900/40 text-emerald-300 border border-emerald-700"
+              }`}
+            >
+              {current.source_type === "ai_generated" ? "AI-Generated" : "Real PYQ"}
+            </span>
+            <div>{current.question_text}</div>
+          </div>
           <div className="flex flex-col gap-2">
             {current.options &&
               Object.entries(current.options).map(([letter, text]) => {
-                const isChosen = chosen === letter;
-                const isCorrect = result && result.correct_option === letter;
-                const isWrongChoice = result && isChosen && !result.is_correct;
+                const isChosen = currentAnswer?.chosen === letter;
+                const isCorrect = currentAnswer && currentAnswer.result.correct_option === letter;
+                const isWrongChoice = currentAnswer && isChosen && !currentAnswer.result.is_correct;
                 return (
                   <button
                     key={letter}
-                    disabled={!!chosen}
+                    disabled={!!currentAnswer}
                     onClick={() => answer(letter)}
                     className={`text-left px-4 py-2.5 rounded-lg border text-sm ${
                       isCorrect
@@ -183,26 +211,41 @@ export default function NyayaPage() {
                         : isWrongChoice
                         ? "border-red-600 bg-red-900/30 text-red-300"
                         : "border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800"
-                    } ${chosen ? "cursor-default" : "cursor-pointer"}`}
+                    } ${currentAnswer ? "cursor-default" : "cursor-pointer"}`}
                   >
                     <span className="font-semibold">{letter})</span> {text}
                   </button>
                 );
               })}
           </div>
-          {result && (
-            <div className="flex items-center justify-between">
-              <span className={`text-sm font-medium ${result.is_correct ? "text-green-400" : "text-red-400"}`}>
-                {result.is_correct ? "Correct!" : `Wrong — correct answer was ${result.correct_option}.`}
-              </span>
+          {currentAnswer && (
+            <div
+              className={`text-sm font-medium ${
+                currentAnswer.result.is_correct ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              {currentAnswer.result.is_correct
+                ? "Correct!"
+                : `Wrong — correct answer was ${currentAnswer.result.correct_option}.`}
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={prev}
+              disabled={idx === 0}
+              className="px-4 py-2 rounded-lg border border-gray-800 text-gray-300 hover:bg-gray-800 text-sm disabled:opacity-30 disabled:pointer-events-none"
+            >
+              ← Previous
+            </button>
+            {currentAnswer && (
               <button
                 onClick={next}
                 className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium"
               >
                 {idx + 1 < questions.length ? "Next →" : "Finish"}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
